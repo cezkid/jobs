@@ -440,15 +440,6 @@ def fresh(job: dict, now: datetime, fresh_days: int) -> float:
     return 0.5 if days is None else max(0.0, 1 - days / fresh_days)
 
 
-def demerits(job: dict, config: dict) -> int:
-    """Same count rank.rank demotes by: likely ghost (once), level/hours mismatch, no sponsor,
-    clearance they can't hold, what rank.asks_beyond names (a required licence not on their resume ...)."""
-    rc = config["rank"]
-    return (bool(rank.doubts(job, rc)) + len(rank.mismatches(job, rc)) + len(job.get("beyond") or [])
-            + len(rank.sponsorship(job, config))
-            + (bool(rank.clearance(job)) and rank.can_hold_clearance(config) is False))
-
-
 def windows(jobs: list[dict], now: datetime, steps: list[int], enough: int) -> dict[str, int]:
     """Freshest first (owner 2026-10-08: "start with 1 day and if not keep expanding"): jobs
     posted within steps[0] days are one group; fewer than `enough` there => the window widens
@@ -529,7 +520,7 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> 
         parts = {"match": m, "title": title_fit(j, facts), "asks": a, "pay": pay(j, ladder, floor), "where": where(j, tiers),
                  "fresh": fresh(j, now, bn["fresh_days"])}
         total = sum(weights[k] * parts[k] for k in weights) / (sum(weights.values()) or 1)
-        total -= bn["demerit"] * demerits(j, config)
+        total -= bn["demerit"] * rank.demerits(j, config)
         out.append(dict(j, best=round(total, 6), best_parts=parts,
                         best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config, facts),
                                     "years_only": years_only(j, facts, counted)}))
@@ -590,6 +581,5 @@ def reasons(job: dict, config: dict, now: datetime) -> str:
         parts.append(f"{job['seniority'].replace('_', '-')} level, above yours")
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     parts += [rank.pay_words(job, rc), place, ago(posted_days(job, now))]
-    parts += (rank.doubts(job, rc) + rank.mismatches(job, rc) + (job.get("beyond") or []) + rank.sponsorship(job, config)
-              + rank.clearance(job))
+    parts += rank.flags(job, config)
     return " · ".join(p for p in parts if p)

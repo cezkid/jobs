@@ -63,6 +63,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Jobs under their lowest pay are hidden on every list unless few came in that week (then the
   closest come back, marked); no-pay-listed stays unless they choose. Changing it = narrowing:
   `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
+- Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
+  (`rank --staffing`), then `blocklist.staffing: true` (`job-find`).
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 - "Remove CEZ Job Finder" -> `uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`
@@ -293,7 +295,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Resume you apply with | that employer's Taleo site | That employer, as soon as it's chosen and attached (only after you say yes) - before Submit; kept on your account there |
 | Contact details, work history, education, answers you apply with | that employer's Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |
 | Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
-| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website |
+| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user's own GitHub account name |
 

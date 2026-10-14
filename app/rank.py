@@ -104,6 +104,8 @@ def blocked(job: dict, blocklist: dict) -> bool:
         return True
     if blocklist.get("clearance") and job.get("requires_clearance"):
         return True
+    if blocklist.get("staffing") and staffing_firm(job):
+        return True
     # kinds of software work they chose to hide, by title only: "Java Full Stack" stays when only back-end is
     if software.hidden(job, blocklist.get("software_kinds")):
         return True
@@ -524,9 +526,39 @@ def posting_says(job: dict, rc: dict) -> list[str]:
     two recruiting firms in 20) - said as the record's word, not the posting's."""
     text, wanted = TAG.sub(" ", job.get("description") or ""), rc.get("posting_says") or []
     out = [f"posting says: {words}" for kind, (words, rx) in POSTING_SAYS.items() if kind in wanted and rx.search(text)]
-    if "nonprofit" in wanted and job.get("company_nonprofit") and not any("nonprofit" in o for o in out):
+    # a staffing firm filed as a nonprofit: 2 of 20 such records (2026-10-09)
+    if "nonprofit" in wanted and job.get("company_nonprofit") and not job.get("company_staffing") \
+            and not any("nonprofit" in o for o in out):
         out.append("listed as a nonprofit employer")
     return out
+
+
+# A staffing firm posting a job it fills for another company: the user meets the firm first, the
+# employer is often unnamed. Project / program manager users, 2026-10: "too many recruiter postings".
+# 2026-10-13, newest 300 US rows per title (30 days): IT project manager 95 from Adzuna, nearly all
+# staffing firms; technical project / program manager 46; project manager 25; program manager 11.
+# Employers' own hiring systems (Greenhouse, Workday ...) carry almost none. Three signals, any one:
+# the job search's company record (companies.staffing - most of them), a name saying so, contract
+# terms only a third party writes. Docs: app/docs/jobs/freehire.md #Staffing firms
+STAFFING_NAME = re.compile(r"staffing|recruit(?:ing|ment|ments|ers)?\b|personnel|placements?\b|manpower|\btalent", re.I)
+# a hiring system's host in the name (murphysfamilystaffing.zohorecruit.com): its word is no sign
+ATS_HOST = re.compile(r"\.(?:zohorecruit|recruitee|smartrecruiters)\.\w+.*$", re.I)
+# C2C / corp-to-corp / "on W2" / "W2 contract": 32 of 1,502 rows above, 25 of their firms already on
+# record, the other 7 staffing firms read by hand. "No C2C" is an employer turning third parties away
+STAFFING_TEXT = re.compile(r"(?<!\bno )(?<!\bnot )(?<!\bnot a )\b(?:C2C|corp[- ]to[- ]corp)\b"
+                           r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b", re.I)
+
+
+def staffing_firm(job: dict) -> bool:
+    """Posted by a staffing firm: its company record says so, its name does, or its contract terms."""
+    return bool(job.get("company_staffing")) or bool(STAFFING_NAME.search(ATS_HOST.sub("", job.get("company") or ""))) \
+        or bool(STAFFING_TEXT.search(TAG.sub(" ", job.get("description") or "")))
+
+
+def staffing(job: dict, rc: dict) -> list[str]:
+    """Named on every such job, so the user sees who posted it; sorts lower unless they keep them
+    (rank.staffing: keep). blocklist.staffing hides them."""
+    return ["staffing firm"] if rc.get("staffing", "lower") == "lower" and staffing_firm(job) else []
 
 
 def can_hold_clearance(config: dict) -> bool | None:
@@ -596,13 +628,29 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
         bool(j["stale"]),
         # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
         # reposted, many copies open, "always hiring" text), so they count once
-        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)) + len(j["beyond"])
-        + (bool(clearance(j)) and can_hold_clearance(config) is False),
+        demerits(j, config),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
         not collections_hit(j, rc["boost_collections"]),
     ))
     return kept
+
+
+def demerits(job: dict, config: dict) -> int:
+    """How many reasons sort a job lower: likely ghost (once), level/hours mismatch, no sponsor, a
+    clearance they can't hold, what asks_beyond names, a staffing firm. rank.rank and best both."""
+    rc = config["rank"]
+    return (bool(doubts(job, rc)) + len(mismatches(job, rc)) + len(job.get("beyond") or [])
+            + len(sponsorship(job, config)) + (bool(clearance(job)) and can_hold_clearance(config) is False)
+            + len(staffing(job, rc)))
+
+
+def flags(job: dict, config: dict) -> list[str]:
+    """The doubts and mismatches each job's reasons name, in the order rank.reasons and best say them."""
+    rc = config["rank"]
+    named = ["staffing firm"] if staffing_firm(job) else []
+    return (doubts(job, rc) + mismatches(job, rc) + (job.get("beyond") or []) + sponsorship(job, config)
+            + clearance(job) + named)
 
 
 def too_old(job: dict, rc: dict, now: datetime) -> bool:
@@ -693,8 +741,7 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += (doubts(job, rc) + mismatches(job, rc) + (job.get("beyond") or []) + sponsorship(job, config)
-              + clearance(job) + posting_says(job, rc))
+    parts += flags(job, config) + posting_says(job, rc)
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)
@@ -736,6 +783,7 @@ def main() -> None:
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
     ap.add_argument("--would-hide-kind", metavar="KIND", choices=list(software.KINDS),
                     help="count + sample titles hiding one kind of software work would hide (software.KINDS)")
+    ap.add_argument("--staffing", action="store_true", help="count + sample open jobs posted by staffing firms")
     ap.add_argument("--pay-floor", metavar="PAY", help="count what a pay floor would hide - yearly (45000) or"
                     " hourly (22/hr) - all open + last 7 days, before the thin-week relax, to say before saving it")
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
@@ -759,6 +807,14 @@ def main() -> None:
         hidden = would_hide_kind(jobs, args.would_hide_kind, config["blocklist"])
         print(f'{software.label(args.would_hide_kind)} titles would hide {len(hidden)} of {len(jobs)} open jobs')
         for j in hidden[:10]:
+            print(f"  {j['title']} | {j['company']}")
+        return
+    if args.staffing:
+        shown = [j for j in jobs if not blocked(j, {**config["blocklist"], "staffing": False})]
+        firms = [j for j in shown if staffing_firm(j)]
+        print(f"staffing firms posted {len(firms)} of {len(shown)} open jobs"
+              f" ({len({norm_company(j['company']) for j in firms})} firms)")
+        for j in firms[:10]:
             print(f"  {j['title']} | {j['company']}")
         return
     now = datetime.now(timezone.utc)

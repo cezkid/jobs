@@ -26,7 +26,7 @@ today-page:
     contains: Today page buttons put their words in the chat, never send them
 home-freehire:
   page: index.html
-  text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume. When: To find jobs and each company’s website, get the whole posting, or see if it’s still open.'
+  text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume. When: To find jobs, each company’s website and whether it’s a staffing firm, get the whole posting, or see if it’s still open.'
   why: 'privacy table: what freehire gets'
   rests_on:
   - file: AGENTS.md
@@ -34,7 +34,7 @@ home-freehire:
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
     - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
-    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website |'
+    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
 home-ai:
   page: index.html
   text: 'Your own AI account What they get: Your resume, the postings you work on and what you tell it, in Claude, ChatGPT or GitHub Copilot. When: While you chat. Personal plans may train on chats unless you switch it off.'
@@ -48,7 +48,7 @@ home-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-freehire:
   page: privacy.html
-  text: freehire.meYour search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.
+  text: freehire.meYour search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website and whether it’s a staffing firm.
   why: 'privacy table: what freehire gets'
   rests_on:
   - file: AGENTS.md
@@ -56,7 +56,7 @@ privacy-freehire:
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
     - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
-    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website |'
+    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
 privacy-ai:
   page: privacy.html
   text: Your AI (Claude, ChatGPT or GitHub Copilot)Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application, plus the titles and addresses of your open Chrome tabs. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it. When you ask which jobs you sent, your AI gets what your browser history on this computer shows for those jobs. If you turn on email alerts, the app password you type goes through the chat too.While you chat. Personal plans may train on chats unless you switch it off.

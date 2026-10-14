@@ -51,3 +51,13 @@ def test_mixed_geography_rejected(tmp_path):
     path.write_text("passes: [{tier: a, label: A, params: {countries: [us], cities: [Springfield]}}]\n", encoding="utf-8")
     with pytest.raises(ValueError, match="OR together"):
         cfg.load(path)
+
+
+# "hide" belongs to the blocklist: a misspelled staffing choice stops at load, never sorts silently
+def test_staffing_lower_or_keep(tmp_path):
+    path = tmp_path / "c.yml"
+    path.write_text("passes: [{tier: a, label: A, params: {countries: [us]}}]\nrank: {staffing: keep}\n", encoding="utf-8")
+    assert cfg.load(path)["rank"]["staffing"] == "keep"
+    path.write_text("passes: [{tier: a, label: A, params: {countries: [us]}}]\nrank: {staffing: hide}\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="blocklist.staffing"):
+        cfg.load(path)

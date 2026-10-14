@@ -103,6 +103,38 @@ crawl that found it. => closed_at -> "may be closed - the job search marked it c
 search no longer lists it"; `last_seen_at` older than `rank.stale_days` -> "may be closed";
 else open. Request fails -> the list's own signals above.
 
+## Staffing firms (2026-10-13)
+
+Project / program manager users: "too many recruiter postings instead of the companies direct". Newest
+300 US rows per title, 30 days: IT project manager 95 from `adzuna`, nearly all staffing firms (System
+One, Genesis10, TEKsystems, ZipStaff); technical project / program manager 46 (Eliassen, PTR Global,
+SoftPath); project manager 25 (about half); program manager 11. Employers' own hiring systems
+(Greenhouse, Workday, Taleo ...) carry almost none. `adzuna` also carries direct employers (J.P. Morgan,
+AWS, Vanguard, Ford, Booz Allen) => no source block.
+
+- Row has no company type. Search facet `company_type=outstaff` = staffing firms (Kforce, Genesis10,
+  Eliassen, Motion Recruitment) but tags few rows: 114 of 16,458 technical PM titles. `agency` =
+  marketing / creative agencies (VML, Code and Theory), `outsource` = consultancies and engineering
+  firms (Capgemini, Mesa Associates) - real employers, never used.
+- Company record (`GET /companies/<slug>`, already asked at each check for the website) carries
+  `company_types` - the union over its postings: Conch, SoftPath, Mondo, System One all `outstaff`.
+  Every employer of 1,000 PM rows (595) + 502 adzuna rows (399): `outstaff` on 37 + 132. Raw it also
+  took Peraton, CACI, Clarity Innovations (government contractors), Tekni-Plex (packaging), so
+  `companies.staffing` = outstaff, no `government` type, no industry outside staffing's own. Left 165,
+  read by hand all staffing / IT contracting firms but DCS Corporation, Capgemini Engineering, 3cloud.
+- Name (`rank.STAFFING_NAME`: staffing, recruiting, personnel, placement, talent ...): 21 names in both
+  samples, all staffing firms. A hiring system's host is cut first (`x.zohorecruit.com`).
+- Posting text (`rank.STAFFING_TEXT`: C2C, corp-to-corp, "on W2", "W2 contract"): 32 of 1,502 rows,
+  25 of their firms on record already, the other 7 staffing firms. Rejected: "our client" (consulting
+  firms' own postings - Accenture Federal, DLR Group), "staffing" (equal-opportunity wording), plain
+  "W2" (a contractor's "Full-Time, W2"), "recruiting partner" (AWS, Anduril name their own).
+- 1,000 records in one check: 13.7 s at 8 at once, 0 failures; `x-ratelimit-limit: 600`, reset 1 s
+  (`companies.BATCH`, `WORKERS`).
+- => "staffing firm" named on every such job, sorted lower (`rank.staffing: lower`, default) - a
+  demerit like a level mismatch, never hidden unasked: some contract work only comes through them.
+  `keep` = named only; `blocklist.staffing: true` hides (`job-setup` #4 asks when 1 in 10+).
+  Example PM search, live: 5 of 179 open, all hourly pay that had sorted them near the top.
+
 ## Defects handled in code
 
 - **`q=` alone matches prose** (2026-09-15). `q=react` returned "Lifecycle Marketing Manager".

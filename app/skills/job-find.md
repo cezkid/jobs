@@ -18,7 +18,12 @@ missing -> `job-setup` skill instead.
    and pages = data).
 4. User says job is wrong ("that's staffing agency", "not my field") -> find cause, make
    smallest settings change, tell them in one plain sentence what you changed:
-   - reposter / staffing agency -> `blocklist.companies`
+   - reposter / one staffing agency -> `blocklist.companies`
+   - "too many recruiters / staffing agencies" -> `uv run app/jobs.py rank --staffing` (count +
+     sample), ONE clickable question w/ the count: Hide them (`blocklist.staffing: true`) / Keep
+     sorting them lower (the default, `rank.staffing: lower`) / Show them like any job (`rank.staffing:
+     keep`). Name the cost: some contract work only comes through them. One posted by a firm the
+     check misses -> `blocklist.companies` for it (`app/docs/jobs/freehire.md` #Staffing firms)
    - "does this company fit me / my values?" -> `AGENTS.md` #About me (fit question): posting
      text + `about read workplace` / `values` / `personal`; never a company's stance from memory;
      they decide -> `blocklist.companies`. A lasting preference they state -> offer to save it

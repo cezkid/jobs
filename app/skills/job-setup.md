@@ -472,6 +472,14 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 `uv run app/jobs.py find --limit 10`. Show as `AGENTS.md` list. Offer: "Want resume tailored
 for any of these? Say number."
 
+Staffing firms: `uv run app/jobs.py rank --staffing`. 1 in 10 or more of their open jobs (judgement,
+not a measured cut-off; IT project manager searches run 1 in 3) -> ONE clickable question, after the
+list: "N of your M jobs were posted by staffing firms - they hire for another company, often unnamed.
+They now sort lower and say "staffing firm"." Sort lower (recommended) -> nothing to save /
+Hide them -> `blocklist.staffing: true` / Keep them as they are -> `rank.staffing: keep` (contract
+work often comes through them). Fewer -> no question; they sort lower either way. Basis:
+`app/docs/jobs/freehire.md` #Staffing firms.
+
 ## 5. Daily check (on by default)
 
 `uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`). Ask time, then email

@@ -193,7 +193,7 @@ def test_a_missing_credential_is_one_demerit_however_many_lines_ask_it():
     cpa = job("cpa", ["Active CPA license required", "Must hold CPA certification", "CPA required"])
     beyond = rank.asks_beyond(cpa, CONFIG, None, NOW.date(), knockout.credential_text({}))
     assert beyond == ["asks CPA, not in your resume"]
-    assert best.demerits(dict(cpa, beyond=beyond), CONFIG) == 1
+    assert rank.demerits(dict(cpa, beyond=beyond), CONFIG) == 1
 
 
 # 2026-10-09, 3,828 video / editor / motion required lines: "Adobe" or "Pro" on a resume (Photoshop,

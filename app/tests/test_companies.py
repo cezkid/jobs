@@ -48,8 +48,8 @@ def test_website_stored_once_answered(conn):
 # the job search asked about each company once a month, not at every check
 def test_fresh_answer_not_asked_again_old_one_is(conn):
     listed(conn, "notion", "figma")
-    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0)", (stamp(5),))
-    conn.execute("INSERT INTO companies VALUES ('figma', NULL, ?, 0)", (stamp(31),))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0, 0)", (stamp(5),))
+    conn.execute("INSERT INTO companies VALUES ('figma', NULL, ?, 0, 0)", (stamp(31),))
     asked = []
     companies.refresh(conn, client({"figma": "https://figma.com"}, asked), BASE, NOW)
     assert asked == ["figma"]
@@ -106,15 +106,15 @@ def test_link_none_without_a_website(conn):
 # live: the job search still answers with a website for a well-known company (Notion, 2026-10-03)
 def test_live_companies_endpoint_has_a_website():
     with httpx.Client(timeout=30) as c:
-        ok, site, nonprofit = companies.ask(c, "https://freehire.me/api/v1", "notion")
+        ok, site, nonprofit, staffing = companies.ask(c, "https://freehire.me/api/v1", "notion")
     assert ok and site and site.startswith("http"), site
-    assert nonprofit is False
+    assert nonprofit is False and staffing is False
 
 
 # live: the record still calls a well-known charity a nonprofit (American Red Cross, 2026-10-09)
 def test_live_companies_endpoint_names_a_nonprofit():
     with httpx.Client(timeout=30) as c:
-        ok, _, nonprofit = companies.ask(c, "https://freehire.me/api/v1", "american-red-cross")
+        ok, _, nonprofit, _ = companies.ask(c, "https://freehire.me/api/v1", "american-red-cross")
     assert ok and nonprofit
 
 
@@ -130,7 +130,7 @@ def test_nonprofit_read_off_the_record(record, expected):
 def test_company_cached_before_nonprofit_column_is_asked_again(conn):
     listed(conn, "redcross", "notion")
     conn.execute("INSERT INTO companies (slug, website, fetched_at) VALUES ('redcross', NULL, ?)", (stamp(2),))
-    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0)", (stamp(2),))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0, 0)", (stamp(2),))
     asked = []
 
     def handler(request):
@@ -140,3 +140,38 @@ def test_company_cached_before_nonprofit_column_is_asked_again(conn):
     assert asked == ["redcross"]
     assert conn.execute("SELECT nonprofit FROM companies WHERE slug = 'redcross'").fetchone()[0] == 1
     assert {j["public_slug"]: j["company_nonprofit"] for j in store.all_jobs(conn)} == {"j-redcross": 1, "j-notion": 0}
+
+
+# live: the record still calls a staffing firm one (System One, 2026-10-13)
+def test_live_companies_endpoint_names_a_staffing_firm():
+    with httpx.Client(timeout=30) as c:
+        ok, _, _, staffing = companies.ask(c, "https://freehire.me/api/v1", "system-one")
+    assert ok and staffing
+
+
+# outstaff on the record = a staffing firm, unless it's a government contractor or names an industry
+# of its own (Peraton, CACI: defense; Tekni-Plex: packaging) - those employ the people they hire
+@pytest.mark.parametrize("record, expected", [
+    ({"company_types": ["outstaff"]}, True), ({"company_types": ["outsource", "outstaff"], "industries": ["it-services"]}, True),
+    ({"company_types": ["agency", "outstaff"], "industries": ["recruitment"]}, True),
+    ({"company_types": ["government", "outsource", "outstaff"], "industries": ["defense"]}, False),
+    ({"company_types": ["inhouse", "outstaff", "product"], "industries": ["healthcare"]}, False),
+    ({"company_types": ["agency", "product"]}, False), ({}, False), ({"company_types": None, "industries": None}, False)])
+def test_staffing_read_off_the_record(record, expected):
+    assert companies.staffing(record) is expected
+
+
+# the record's staffing word is kept with the company, and a company asked before it existed is asked again
+def test_staffing_stored_and_asked_for_once(conn):
+    listed(conn, "systemone", "notion")
+    conn.execute("INSERT INTO companies (slug, website, fetched_at, nonprofit) VALUES ('systemone', NULL, ?, 0)", (stamp(2),))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0, 0)", (stamp(2),))
+    asked = []
+
+    def handler(request):
+        asked.append(request.url.path.rsplit("/", 1)[-1])
+        return httpx.Response(200, json={"data": {"company": {"company_types": ["outstaff"], "company_info": {}}}})
+    companies.refresh(conn, httpx.Client(transport=httpx.MockTransport(handler)), BASE, NOW)
+    assert asked == ["systemone"]
+    assert conn.execute("SELECT staffing FROM companies WHERE slug = 'systemone'").fetchone()[0] == 1
+    assert {j["company_slug"]: j["company_staffing"] for j in store.all_jobs(conn)} == {"systemone": 1, "notion": 0}
