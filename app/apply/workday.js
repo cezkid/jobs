@@ -10,7 +10,7 @@ window.__jf = (() => {
   const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const txt = (el) => (el?.textContent || '').replace(/\s+/g, ' ').trim();
   const shown = (el) => !!el && el.getClientRects().length > 0;
-  const S = { done: false, step: '', report: [] };
+  const S = { done: false, step: '', report: [], dates: [] };
   const note = (area, field, status, detail = '') => S.report.push(`${status} ${area} > ${field}${detail ? ': ' + detail : ''}`);
   async function until(fn, ms = 4000) {
     for (const t = Date.now() + ms; Date.now() < t; await sleep(100)) { const v = fn(); if (v && (!Array.isArray(v) || v.length)) return v; }
@@ -47,6 +47,8 @@ window.__jf = (() => {
     return (l.htmlFor && document.getElementById(l.htmlFor)) || box(l)?.querySelector('input:not([type="hidden"]), textarea, button') || null;
   }
   const fieldBox = (root, re) => { const l = labels(root).find((x) => re.test(said(x))); return l ? box(l) : null; };
+  // a picked pill renders as promptOption / role=option too (tenant G): never a search result or menu choice
+  const picked = (o) => !!o.closest('[data-automation-id="selectedItem"]');
   const pills = (ctrl) => [...((ctrl && box(ctrl))?.querySelectorAll('[data-automation-id="selectedItem"]') || [])];
   // entry = nearest ancestor of its anchor label holding no other anchor
   function entries(anchor) {
@@ -106,6 +108,7 @@ window.__jf = (() => {
       const fill = (el) => { put(el, v); if (!same(el)) for (const ch of v) key(el, ch, ch.charCodeAt(0)); out(el); };
       const el = get();
       if (!el || !v) continue;
+      if (sel === 'Month') S.dates.push({ area, name, get, keys: m.padStart(2, '0') + y });
       fill(el); await sleep(80);
       if (same(el)) keep(area, `${name} ${sel}`, () => same(get()), () => { const e = get(); if (e) fill(e); });
     }
@@ -113,9 +116,11 @@ window.__jf = (() => {
   // single-choice menu (Degree): options live in a listbox popup, not in the field
   async function choose(btn, wanted) {
     click(btn);
-    const opts = await until(() => [...document.querySelectorAll('[role="listbox"] [role="option"]')].filter(shown), 3000);
-    if (!opts) return { why: 'menu did not open' };
-    const hit = best(opts, wanted);
+    // options can arrive late, and a list from the menu before can still show (tenant G, hidden
+    // window): wait for a match, not for the first options
+    let opts = [];
+    const hit = await until(() => { opts = [...document.querySelectorAll('[role="listbox"] [role="option"]')].filter((o) => shown(o) && !picked(o)); return opts.length && best(opts, wanted); }, 4000);
+    if (!opts.length) return { why: 'menu did not open' };
     if (!hit) { key(btn, 'Escape', 27); return { ask: `no match for ${wanted[0]}; choices: ${opts.map(txt).join(' | ')}` }; }
     click(hit); await sleep(400);
     return { got: txt(hit) };
@@ -132,8 +137,20 @@ window.__jf = (() => {
     note(area, name, 'OK', got);
     keep(area, name, () => shows(got), async () => { const b = find(); if (b) await choose(b, [got]); });
   }
-  // search-and-pick (Field of Study, Skills): type, Enter, pick a popup option outside the field's own pills
-  async function pick(area, name, find, wanted, exact = false) {
+  // how close a popup option must be: 'exact' (language levels), 'strict' (skills: same name, or
+  // the name + a bracketed note either way - "Docker (Software)", "Large Language Models (LLMs)"),
+  // 'loose' (field of study: best(), user confirms the ASK). Loose skills picked Restify for REST,
+  // AWS VPN for AWS (tenant G) - a skill never held
+  function close(opts, w, mode) {
+    if (mode === 'loose') return best(opts, [w]);
+    const n = norm(w), t = (o) => txt(o).toLowerCase();
+    return opts.find((o) => norm(txt(o)) === n) || (mode === 'strict' && opts.find((o) => {
+      const m = t(o).match(/^(.*?)\s*\((.*)\)$/);
+      return m && (norm(m[1]) === n || norm(m[2]) === n);
+    })) || null;
+  }
+  // search-and-pick (Field of Study, Skills): type, Enter, pick a popup option outside every field's pills
+  async function pick(area, name, find, wanted, mode = 'loose') {
     const input = find();
     if (!input) return note(area, name, 'FAIL', 'field not found');
     const has = (w) => pills(find()).some((p) => norm(txt(p)) === norm(w));
@@ -144,9 +161,10 @@ window.__jf = (() => {
       const at = where();
       put(input, w); key(input, 'Enter', 13); await sleep(600);
       if (where() !== at || !document.contains(input)) throw new Error('Enter moved the form to another step - stopped filling; tell the user to check the page');
-      const opts = await until(() => [...document.querySelectorAll('[data-automation-id="promptOption"]')].filter((o) => shown(o) && !box(input).contains(o) && !/no items/i.test(txt(o))), 3000);
-      const hit = opts && (exact ? opts.find((o) => norm(txt(o)) === norm(w)) : best(opts, [w]));
-      if (!hit) { tried.push(`${w}: ${opts ? opts.slice(0, 4).map(txt).join(' / ') : 'none'}`); continue; }
+      // results can trail the typed words by a search (tenant G): wait for a match, not the first results
+      let opts = [];
+      const hit = await until(() => { opts = [...document.querySelectorAll('[data-automation-id="promptOption"]')].filter((o) => shown(o) && !picked(o) && !box(input).contains(o) && !/no items/i.test(txt(o))); return opts.length && close(opts, w, mode); }, 3000);
+      if (!hit) { tried.push(`${w}: ${opts.length ? opts.slice(0, 4).map(txt).join(' / ') : 'none'}`); continue; }
       const before = pills(input).length;
       click(hit.querySelector('input[type="checkbox"], input[type="radio"]') || hit); await sleep(400);
       put(input, ''); key(input, 'Escape', 27); out(input);
@@ -199,9 +217,39 @@ window.__jf = (() => {
     // some tenants (tenant A) take languages in the Skills box as "Spanish - Fluent", listed levels only
     if (!section(/^languages$/i)) for (const g of languages) {
       await unpick(input, new RegExp(`^${g.name} - `, 'i'));
-      await pick('Languages', g.name, find, g.levels.map((lv) => `${g.name} - ${lv}`), true);
-    } else note('Languages', 'section', 'ASK', 'separate Languages section - not handled yet, fill by hand');
-    for (const s of list) await pick('Skills', s, find, [s]);
+      await pick('Languages', g.name, find, g.levels.map((lv) => `${g.name} - ${lv}`), 'exact');
+    }
+    for (const s of list) await pick('Skills', s, find, names(s), 'strict');
+  }
+  // other names a skills list files the same skill under (tenant G: AWS only as "Amazon Web Services")
+  const ALIASES = { aws: ['Amazon Web Services'], rest: ['REST API', 'RESTful API'], claudecode: ['Anthropic Claude Code'],
+    microfrontends: ['Microfrontends', 'Micro Frontends'], gcp: ['Google Cloud Platform'], agile: ['Agile Methodology'],
+    llms: ['Large Language Models'] };
+  // "JavaScript/ES6" -> each half; "WCAG 2.2 AA" -> "WCAG" (version + level dropped); then aliases
+  function names(s) {
+    const parts = s.split('/').map((x) => x.trim()).filter((x) => x.length > 2 && x !== s); // never CI/CD -> "CI"
+    const bare = s.replace(/\s+v?\d[\d.]*(\s+[A-Z]{1,3})?$/, ''); // never "Agentic AI" -> "Agentic"
+    return [...new Set([s, ...parts, bare, ...(ALIASES[norm(s)] || [])].filter(Boolean))];
+  }
+  // separate Languages section (tenant G): one entry per language - Language, "I am fluent in this
+  // language", then a level menu per skill (Comprehension, Overall, Reading, Speaking, Writing)
+  async function languageSection(list) {
+    const anchor = /^language$/i, level = /^(comprehension|overall|reading|speaking|writing|proficiency|level)/i;
+    await grow('Languages', /^languages$/i, anchor, list.length);
+    for (const [i, g] of list.entries()) {
+      const e = entries(anchor)[i], a = `Language ${i + 1}`;
+      if (!e) break;
+      const f = within(anchor, i, field, anchor);
+      if (f()?.tagName === 'BUTTON') await menu(a, 'Language', f, [g.name]); else await pick(a, 'Language', f, [g.name], 'exact');
+      if (!g.levels.length) { note(a, 'levels', 'ASK', `no level on the resume for ${g.name}`); continue; }
+      await check(a, 'I am fluent', within(anchor, i, fieldBox, /fluent in this language/i), /^(native|fluent)$/i.test(g.levels[0]));
+      for (const l of labels(e).filter((x) => level.test(said(x)))) await menu(a, said(l), within(anchor, i, field, new RegExp(`^${said(l)}$`, 'i')), g.levels);
+    }
+  }
+  async function websites(list) {
+    const anchor = /^url/i;
+    await grow('Websites', /^websites$/i, anchor, list.length);
+    for (const [i, u] of list.entries()) await text('Websites', `URL ${i + 1}`, within(anchor, i, field, anchor), u);
   }
   // after the page settles, read every answer again: a re-render can clear one that showed when
   // filled. Refill once, still gone -> FAIL. Catches cleared values only, not every unkept one (workday.md)
@@ -215,13 +263,29 @@ window.__jf = (() => {
     note('Verify', 'answers', 'OK', `${kept.length} read again after the page settled, ${dropped.length} dropped`);
   }
 
-  async function run(data, only = ['work', 'education', 'skills']) {
-    Object.assign(S, { done: false, report: [] });
+  // My Information: home address from search settings (name, email, phone come from the account or
+  // the resume autofill; how-you-heard and "worked here before?" stay the AI's, from saved answers)
+  async function info(a) {
+    await text('My Information', 'Address Line 1', () => field(document, /^address line 1/i), a.street);
+    await text('My Information', 'City', () => field(document, /^city/i), a.city);
+    await text('My Information', 'Postal Code', () => field(document, /^(postal code|zip)/i), a.zip);
+    if (a.state) await menu('My Information', 'State', () => field(document, /^state/i), [a.state]);
+  }
+  const stepName = () => txt(document.querySelector('[data-automation-id="progressBarActiveStep"]'));
+  async function run(data, only = ['work', 'education', 'skills', 'websites']) {
+    Object.assign(S, { done: false, report: [], dates: [] });
     kept.length = 0;
+    if (/my information/i.test(stepName())) {
+      try { S.step = 'info'; await info(data.address || {}); S.step = 'verify'; await verify(); } catch (err) { note(S.step, 'error', 'FAIL', String(err)); }
+      S.step = 'done'; S.done = true;
+      return;
+    }
     try {
       if (only.includes('work')) { S.step = 'work'; await work(data.work); }
       if (only.includes('education')) { S.step = 'education'; await education(data.education); }
+      if (only.includes('skills') && section(/^languages$/i) && data.languages.length) { S.step = 'languages'; await languageSection(data.languages); }
       if (only.includes('skills')) { S.step = 'skills'; await skills(data.skills, data.languages); }
+      if (only.includes('websites') && data.links?.length) { S.step = 'websites'; await websites(data.links); }
       S.step = 'verify'; await verify();
     } catch (err) { note(S.step, 'error', 'FAIL', String(err)); }
     S.step = 'done'; S.done = true;
@@ -305,5 +369,16 @@ window.__jf = (() => {
       page: { host: location.hostname, title: document.title, site },
     });
   }
-  return { run, status, errors, uploaded, closed, snapshot, S };
+  // a tenant may keep a date only from real key presses (tenant G: Save said "From is required"
+  // over every filled date). Centre each month box in turn; same spot per column, so the AI clicks
+  // there and types `keys` (MMYYYY) with the extension's real keys
+  function dateTargets() {
+    return JSON.stringify(S.dates.map((d, i) => {
+      const el = d.get(); if (!el) return { i, area: d.area, name: d.name, missing: true };
+      el.scrollIntoView({ block: 'center' }); const r = el.getBoundingClientRect();
+      return { i, area: d.area, name: d.name, keys: d.keys, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
+    }));
+  }
+  const aim = (i) => { S.dates[i]?.get()?.scrollIntoView({ block: 'center' }); return i; };
+  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, S };
 })();

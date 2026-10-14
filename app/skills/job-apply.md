@@ -134,11 +134,21 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
    sign-in, then `AGENTS.md` #Where each job stands (`status set <job> closed` after their yes).
    `false` -> carry on. Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply
    Manually" / "Use My Last Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
-4. On **My Experience**: read `apply.js`, send its whole text in ONE `javascript_tool` call - it
-   starts the fill in the background and returns `'started'`. Poll every ~30s with
+4. On **My Information** (or My Experience, whichever shows first): read `apply.js`, send its whole
+   text in ONE `javascript_tool` call - it starts the fill in the background and returns `'started'`.
+   My Information gets the home address (`home_address`); how-heard from saved answers, "worked here
+   before?" No only when no resume job is that employer - fill those two by hand, name them. After
+   the user's Save and Continue, My Experience: `window.__jf.run(window.__jf.data)` - the data stays on
+   the page, never send the script twice (a fresh page after sign-in: send it again). Poll every ~30s with
    `await new Promise(r => setTimeout(r, 25000)); window.__jf.status()` until `done: true`.
    The run ends with `verify` (`step: 'verify'`, 2.5-5 s): every answer read again once the page settles.
    Never send it twice: rerun only parts with `window.__jf.run(<data>, ['skills'])` if needed.
+   Save then says a date box is required (tenant G keeps typed dates only):
+   `window.__jf.dateTargets()` -> per date one batch item set: `javascript_tool` `window.__jf.aim(i)`,
+   real click at its x/y, type its `keys` (`app/docs/apply/workday.md` #Widgets).
+   Save stuck, no request sent: the Chrome window is behind others - ask the user to bring it to the
+   front. "Page Error" + codes only: hook `fetch` to read Save's answer; "not authorized" = sign-in
+   timed out -> user signs out + in, reopens the application.
 5. `problems` from status: `ASK` = nearest choice picked or none on the form's list -> tell the
    user plainly with the choices, fix per their answer. `FAIL` = field not found -> read labels
    via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.

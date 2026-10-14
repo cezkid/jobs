@@ -1,0 +1,81 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Workday "My Experience" as tenant G showed it (2026-10-14), for workday.js: a picked pill renders
+     as promptOption + role=option inside selectedItem (also in another field), search results arrive
+     300 ms after Enter and the last search's stay up until then, the skills list holds near names
+     (Restify, AWS VPN, Mobile Microfrontends), a separate Languages section (Language menu, "I am
+     fluent" box, a level menu per skill) and a Websites section. -->
+<div data-automation-id="progressBarActiveStep">My Experience</div>
+<section>
+  <h3>Education</h3>
+  <div class="entry">
+    <div data-automation-id="formField-fieldOfStudy"><label for="fos">Field of Study</label>
+      <div data-automation-id="selectedItemList" role="listbox">
+        <div data-automation-id="selectedItem" role="option"><div data-automation-id="promptOption">Music</div></div>
+      </div><input id="fos"></div>
+  </div>
+</section>
+<section>
+  <h3>Languages</h3>
+  <div class="entry">
+    <div data-automation-id="formField-language"><label for="lang1">Language*</label><button id="lang1" class="menu" data-list="langs">Select One</button></div>
+    <div data-automation-id="formField-native"><label for="nat1">I am fluent in this language.</label><input type="checkbox" id="nat1"></div>
+    <div data-automation-id="formField-comp"><label for="comp1">Comprehension*</label><button id="comp1" class="menu" data-list="levels">Select One</button></div>
+    <div data-automation-id="formField-speak"><label for="speak1">Speaking*</label><button id="speak1" class="menu" data-list="levels">Select One</button></div>
+  </div>
+  <button id="addLang">Add Another</button>
+</section>
+<section>
+  <h3>Skills</h3>
+  <div data-automation-id="formField-skills"><label for="skills">Type to Add Skills</label>
+    <div data-automation-id="selectedItemList" role="listbox" id="skillPills"></div><input id="skills"></div>
+</section>
+<section>
+  <h3>Websites</h3>
+  <button id="addSite">Add</button>
+</section>
+<div id="menu" role="listbox" hidden></div>
+<div id="prompt" hidden></div>
+<script>
+  const lists = { langs: ['Select One', 'English', 'French'], levels: ['Select One', '1 - Beginner', '3 - Intermediate', '5 - Fluent'] };
+  const catalog = ['Restify', 'AWS VPN', 'Amazon Web Services (AWS)', 'Docker (Software)', 'React.js', 'Mobile Microfrontends'];
+  let open = null, n = 1, sites = 0;
+  document.addEventListener('click', (e) => {
+    const el = e.target, menu = document.getElementById('menu');
+    if (el.matches('button.menu')) {
+      open = el;
+      menu.innerHTML = lists[el.dataset.list].map((o) => `<div role="option">${o}</div>`).join('');
+      menu.hidden = false;
+    } else if (el.matches('#menu [role=option]')) {
+      open.textContent = el.textContent; menu.hidden = true;
+    } else if (el.matches('#prompt [data-automation-id=promptOption]')) {
+      document.getElementById('skillPills').insertAdjacentHTML('beforeend',
+        `<div data-automation-id="selectedItem" role="option"><div data-automation-id="promptOption">${el.textContent}</div><span data-automation-id="DELETE_charm"></span></div>`);
+      document.getElementById('prompt').hidden = true;
+    } else if (el.id === 'addLang') {
+      n++;
+      const entry = document.querySelector('.entry:has(#lang1)').cloneNode(true);
+      entry.querySelectorAll('[id]').forEach((x) => { x.id = x.id.replace(/1$/, n); });
+      entry.querySelectorAll('label').forEach((l) => { l.htmlFor = l.htmlFor.replace(/1$/, n); });
+      entry.querySelectorAll('button').forEach((b) => { b.textContent = 'Select One'; });
+      entry.querySelector('input').checked = false;
+      el.before(entry);
+    } else if (el.id === 'addSite') {
+      sites++;
+      el.insertAdjacentHTML('beforebegin', `<div class="entry"><div data-automation-id="formField-url"><label for="url${sites}">URL*</label><input id="url${sites}"></div></div>`);
+      el.textContent = 'Add Another';
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.id !== 'skills' || e.key !== 'Enter') return;
+    const typed = e.target.value.toLowerCase();
+    setTimeout(() => {  // the last search's results stay up until these arrive
+      const prompt = document.getElementById('prompt');
+      prompt.innerHTML = catalog.filter((c) => c.toLowerCase().includes(typed.replace(/[^a-z]/g, '').slice(0, 4)))
+        .map((c) => `<div data-automation-id="promptOption">${c}</div>`).join('');
+      prompt.hidden = false;
+    }, 300);
+  });
+</script>
+</body></html>
