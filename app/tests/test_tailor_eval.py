@@ -26,12 +26,15 @@ def test_every_case_carries_its_files():
 
 def test_golden_answers_pass_with_no_trap_hits(tmp_path):
     tasks = tailor_eval.prepare(tmp_path)
+    codes = {}
     for case, task in zip(tailor_eval.cases(), tasks):
         text = task.read_text(encoding="utf-8")
         # the AI's check runs the eval's mini folder, never the user's own job folder
         assert tailor_eval.check_line(tmp_path, case) in text and "jobs.py tailor check" not in text
         answered(tmp_path, case, golden(case))
-        assert tailor_eval.check(tmp_path, case) == 0
+        codes[case] = tailor_eval.check(tmp_path, case)
+    # every case checked before failing: a new gate names each golden answer it leaves behind
+    assert codes == {case: 0 for case in tailor_eval.cases()}
     rows = tailor_eval.grade(tmp_path)
     assert [(r["case"], r["passed"], r["runs"], r["gates failed"], r["traps"]) for r in rows] == [
         (case, True, 1, [], []) for case in tailor_eval.cases()]

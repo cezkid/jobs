@@ -1,6 +1,6 @@
 {
   "summary": null,
-  "headline_title": null,
+  "headline_title": "Security Engineer",
   "entries": [
     {"id": "northgate-credit-union", "title_mirror": null, "bullets": [
       {"text": "Wrote 25 Splunk detection rules that cut false-positive alerts by 31%", "sources": ["northgate-credit-union-2"]},
