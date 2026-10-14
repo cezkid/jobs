@@ -309,3 +309,91 @@ def test_snapshot_round_trips_to_a_fixture(snapshot, tmp_path, monkeypatch):
     fixture = json.loads(write_fixture(tmp_path, monkeypatch, raw).read_text())
     assert "page" not in fixture
     assert fixture == {k: v for k, v in snap.items() if k != "page"}  # the model's host names no label
+
+
+# tenant G (2026-10-14): picked pills look like search results, results trail the search, near
+# names on the skills list, a separate Languages section, a Websites section
+TENANT_G = {
+    "work": [], "education": [],
+    "skills": ["React.js", "REST", "AWS", "Docker", "Micro-frontends"],
+    "languages": [{"name": "English", "levels": ["Native", "Fluent"]}, {"name": "French", "levels": ["Native", "Fluent"]}],
+    "links": ["https://example.com", "https://github.com/someone"],
+}
+
+
+@pytest.fixture(scope="module")
+def tenant_g(chrome):
+    context = chrome.new_context()
+    context.route("**/*", lambda route: route.fulfill(path=str(FIXTURES / "tenant-g.html"))
+                  if urlsplit(route.request.url).path == "/tenant-g.html" else route.abort())
+    page = context.new_page()
+    page.goto(HOME.replace("form.html", "tenant-g.html"))
+    page.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    page.evaluate(f"window.__jf.run({json.dumps(TENANT_G)})")
+    page.wait_for_function("window.__jf.S.done", timeout=60000)
+    pills = page.evaluate("[...document.querySelectorAll('#skillPills [data-automation-id=selectedItem]')].map(p => p.textContent.trim())")
+    yield page, page.evaluate("window.__jf.S.report"), pills
+    context.close()
+
+
+def test_skill_exact_name_picked_past_other_fields_pills(tenant_g):
+    _, report, pills = tenant_g
+    assert "React.js" in pills  # the Field of Study pill "Music" is no search result
+    assert not any(r.startswith("ASK Skills > React.js") for r in report)
+
+
+def test_skill_never_a_different_skill_with_a_like_name(tenant_g):
+    _, report, pills = tenant_g
+    assert not {"Restify", "AWS VPN", "Mobile Microfrontends"} & set(pills)
+    assert line(report, "ASK Skills > REST").startswith("ASK Skills > REST: not on this form's list")
+
+
+def test_skill_bracketed_note_or_alias_picked_and_named(tenant_g):
+    _, report, pills = tenant_g
+    assert {"Docker (Software)", "Amazon Web Services (AWS)"} <= set(pills)
+    assert line(report, "ASK Skills > AWS") == 'ASK Skills > AWS: picked "Amazon Web Services (AWS)"'
+
+
+def test_language_section_entry_per_language_top_level(tenant_g):
+    page, _, _ = tenant_g
+    shown = page.evaluate("[...document.querySelectorAll('button.menu')].map(b => b.textContent)")
+    assert shown == ["English", "5 - Fluent", "5 - Fluent", "French", "5 - Fluent", "5 - Fluent"]
+    assert page.evaluate("[...document.querySelectorAll('input[type=checkbox]')].every(c => c.checked)")
+
+
+def test_websites_one_box_per_link(tenant_g):
+    page, _, _ = tenant_g
+    assert page.evaluate("[...document.querySelectorAll('input[id^=url]')].map(i => i.value)") == TENANT_G["links"]
+
+
+def test_dates_listed_for_typed_keys(filled):
+    page, _, _ = filled
+    targets = json.loads(page.evaluate("window.__jf.dateTargets()"))
+    assert [t["keys"] for t in targets] == ["032020"]  # DATA's From 2020-03, month padded for typing
+    assert {"x", "y"} <= targets[0].keys()
+
+
+MY_INFORMATION = """<div data-automation-id="progressBarActiveStep">My Information</div>
+<div data-automation-id="formField-addressLine1"><label for="a1">Address Line 1*</label><input id="a1"></div>
+<div data-automation-id="formField-city"><label for="city">City*</label><input id="city"></div>
+<div data-automation-id="formField-countryRegion"><label for="st">State*</label><button id="st">Select One</button></div>
+<div data-automation-id="formField-postalCode"><label for="zip">Postal Code*</label><input id="zip"></div>
+<div id="menu" role="listbox" hidden><div role="option">New Jersey</div><div role="option">New York</div></div>
+<script>document.addEventListener('click', (e) => {
+  if (e.target.id === 'st') document.getElementById('menu').hidden = false;
+  if (e.target.matches('[role=option]')) { document.getElementById('st').textContent = e.target.textContent; document.getElementById('menu').hidden = true; }
+});</script>"""
+
+
+def test_my_information_takes_home_address(chrome):
+    context = chrome.new_context()
+    page = context.new_page()
+    page.set_content(MY_INFORMATION)
+    page.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    page.evaluate("window.__jf.run({work: [], education: [], skills: [], languages: [], "
+                  "address: {street: '1 Main St', city: 'Springfield', state: 'New Jersey', zip: '07000'}})")
+    page.wait_for_function("window.__jf.S.done", timeout=30000)
+    assert page.evaluate("['a1', 'city', 'zip'].map(id => document.getElementById(id).value)") == ["1 Main St", "Springfield", "07000"]
+    assert page.evaluate("document.getElementById('st').textContent") == "New Jersey"
+    assert not [r for r in page.evaluate("window.__jf.S.report") if not r.startswith("OK")]
+    context.close()

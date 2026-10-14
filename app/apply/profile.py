@@ -74,8 +74,11 @@ def answers(master: dict, tailored: dict | None = None, roles: list[dict] | None
     } for s in master.get("education") or []]
     groups = tailored["skills"] if tailored else master.get("skills") or []
     skills = list(dict.fromkeys(item for g in groups for item in g["items"]))
+    contact = master.get("contact") or {}
+    links = [u if "://" in u else "https://" + u for u in [*contact.get("links", []), *contact.get("form_links", [])]]
     return {"work": work, "education": education, "skills": skills,
-            "languages": [language(line) for line in master.get("languages") or []]}
+            "languages": [language(line) for line in master.get("languages") or []],
+            "links": list(dict.fromkeys(links))}
 
 
 def work_authorization(config: dict) -> str:
@@ -88,7 +91,9 @@ def work_authorization(config: dict) -> str:
 
 
 def script(data: dict) -> str:
-    return FILLER.read_text(encoding="utf-8") + f"\nwindow.__jf.run({json.dumps(data, ensure_ascii=False)});\n'started'\n"
+    """Kept on the page as `window.__jf.data`: the next step's fill is `window.__jf.run(window.__jf.data)`."""
+    return (FILLER.read_text(encoding="utf-8")
+            + f"\nwindow.__jf.data = {json.dumps(data, ensure_ascii=False)};\nwindow.__jf.run(window.__jf.data);\n'started'\n")
 
 
 def main() -> None:
@@ -114,6 +119,7 @@ def main() -> None:
         return
     out.parent.mkdir(parents=True, exist_ok=True)
     data = answers(master, tailored, roles)
+    data["address"] = config.get("home_address") or {}  # My Information only; never on the resume
     out.write_text(script(data), encoding="utf-8")
     print(f"wrote {out} ({len(data['work'])} jobs, {len(data['education'])} schools, {len(data['skills'])} skills, "
           f"{'tailored' if tailored else 'own resume'} bullets)")

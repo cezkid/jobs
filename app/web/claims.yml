@@ -77,6 +77,7 @@ privacy-employers:
     rows: '^\| .* \| that employer''s '
     are:
     - '| Resume + answers you paste | that employer''s site (Recruitee ...) | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Workday site | That employer, as soon as it''s chosen (kept on your account there) - before Submit |'
     - '| Work history, education, skills, work-permit answers you apply with | that employer''s Workday site | That employer, once you click Save |'
     - '| Resume (and cover letter) you apply with | that employer''s Ashby site | That employer, as soon as the file is chosen - before Submit |'
     - '| Contact details, answers you apply with | that employer''s Ashby site | That employer, as each box is filled - before Submit |'
