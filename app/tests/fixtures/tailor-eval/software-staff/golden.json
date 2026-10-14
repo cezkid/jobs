@@ -1,6 +1,6 @@
 {
   "summary": "Senior frontend engineer shipping Vue and TypeScript product UI",
-  "headline_title": null,
+  "headline_title": "Software Engineer",
   "entries": [
     {"id": "acme", "title_mirror": null, "bullets": [
       {"text": "Cut checkout INP 410ms -> 170ms moving cart recalculation to Web Workers", "sources": ["acme-inp"]},

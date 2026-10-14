@@ -1,6 +1,6 @@
 {
   "summary": null,
-  "headline_title": null,
+  "headline_title": "Data Analyst",
   "entries": [
     {"id": "buckeye-analytics", "title_mirror": null, "bullets": [
       {"text": "Cleaned 50,000 rows of survey data in Python before the quarterly review", "sources": ["buckeye-analytics-2"]},
