@@ -50,6 +50,7 @@ COMMANDS = {
     "clear-signins": (None, "empty sign-ins + site data of pages opened in the Job Finder window (VS Code keeps them outside this folder) - before removing the app"),
     "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
     "window-update": (None, "after update: the new window extension into Job Finder's profile now; says when the open window must restart"),
+    "doctor": ("doctor", "read-only offline self-check in plain words: morning check, window, AI, settings, resume, fonts, email; --json"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
 
