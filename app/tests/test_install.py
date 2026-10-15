@@ -257,3 +257,16 @@ def test_mac_promises_the_desktop_icon_only_when_it_is_there():
     assert 'bash "$DIR/app/install/make-icon-mac.sh" || true' in body
     check = body[body.index('if [ -d "$HOME/Desktop/CEZ Job Finder.app" ]; then'):body.index("Opening CEZ Job Finder")]
     assert "double-click" in check and "paste the same line in Terminal again" in check
+
+
+@pytest.mark.parametrize("name", ["install-mac.sh", "install-windows.ps1"])
+def test_install_release_checksum_checked_with_main_zip_fallback(name):
+    text = (INSTALL / name).read_text(encoding="utf-8")
+    assert "app/update-keys.txt" in text and "releases/latest" in text
+    assert "SHA256SUMS" in text
+    assert ("shasum -a 256" if name.endswith(".sh") else "Get-FileHash") in text
+    assert "heads/main.zip" in text  # fallback kept
+
+
+def test_install_release_mac_script_parses():
+    assert subprocess.run(["bash", "-n", str(INSTALL / "install-mac.sh")]).returncode == 0
