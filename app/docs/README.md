@@ -13,6 +13,8 @@
   the switch on each AI account, what it doesn't cover.
 - [For students](../../Guides/For%20students.md) - internships, part-time jobs, a first job, GPA,
   F-1 questions, unpaid internships, job scams, AI plans for students.
+- [Online coding tests](../../Guides/Online%20coding%20tests.md) - CodeSignal-style tests: rules,
+  proctoring, a built-in AI helper, how to prepare, w/ strength of each fact.
 
 **AI assistant + contributors** - measured facts + evidence behind the code. Read the area's doc
 before changing it: each records what was measured and rejected, so a retired rule stays retired.

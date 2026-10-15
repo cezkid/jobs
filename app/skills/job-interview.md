@@ -98,7 +98,9 @@ design, clinical or legal detail they managed but didn't do themselves.
   question, then they answer ALOUD to a phone timer and type what they said. Critique adds: the
   point in the first sentence, done in time. Need more time for a disability -> #Accommodation.
 - Online test (coding, numbers, a work-situation quiz): practise the kind the invitation names, on
-  questions you make up for it, before the test. Never one copied from a live test.
+  questions you make up for it, before the test. Never one copied from a live test. Coding test
+  (CodeSignal, HackerRank ...): rules, AI helper, setup - `app/docs/apply/interview.md` #Online
+  coding tests; user guide `Guides/Online coding tests.md` - open it for them.
 - Excel, SQL or data exercise (risk, audit, AML analytics), only when the invitation names one -
   none of 852 compliance + risk postings did (2026-10-09): made-up data of the kind the posting
   names (a loan list, an alerts queue, a control-test sample), small enough to paste. Critique:

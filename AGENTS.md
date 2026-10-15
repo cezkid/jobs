@@ -328,7 +328,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
   what.md`, `What makes a good resume.md`, `Unfair hiring - what's known, what helps.md`, `Keep
-  your chats out of AI training.md`, `Following up.md`, `For students.md`); link,
+  your chats out of AI training.md`, `Following up.md`, `For students.md`, `Online coding
+  tests.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Settings/About me.yml` - their notes beyond the resume (`about`, below).
