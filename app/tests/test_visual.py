@@ -44,7 +44,9 @@ def merged(base, patch):
 
 
 def master_of(spec: dict) -> dict:
-    master = merged(copy.deepcopy(schema.load(BASES[spec["base"]])), spec.get("patch", {}))
+    # Patch the file as written, then load it: ids + derived fields come from schema.expand.
+    raw = yaml.safe_load(BASES[spec["base"]].read_text(encoding="utf-8"))
+    master = merged(raw, spec.get("patch", {}))
     if n := spec.get("repeat_roles"):
         roles = []
         for i in range(n):
@@ -57,7 +59,8 @@ def master_of(spec: dict) -> dict:
                         b["id"] = f"{b['id']}-{i}"
                 roles.append(r)
         master["roles"] = roles
-    return master
+    # No schema.validate: repeated roles break newest-first order, which the page doesn't need.
+    return schema.expand(master)
 
 
 def compile_png(template, model) -> list[bytes]:
