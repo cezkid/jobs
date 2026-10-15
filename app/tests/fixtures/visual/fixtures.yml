@@ -1,0 +1,45 @@
+# Made-up inputs for the pixel snapshot tests (app/tests/test_visual.py).
+# base: example | student. patch: merged over the base (dicts merge, lists replace).
+# repeat_roles: copies the base's roles N times (dense two-page page).
+resume-example:
+  kind: resume
+  base: example
+
+resume-long:
+  kind: resume
+  base: example
+  patch:
+    roles:
+      - company: International Association of Distributed Systems and Cloud Infrastructure Engineers, Northern Europe Division
+        title: Principal Staff Software Engineer, Platform Reliability and Developer Experience Programme
+        location: Remote
+        blurb: Customer support platform | https://www.example.com/a/very/long/path/to/the/company/page/about-us
+        start: "2023-02"
+        end: present
+        bullets:
+          - Cut checkout latency by moving cart recalculation off the main thread, measured across 12 regional storefronts
+
+resume-dense:
+  kind: resume
+  base: example
+  repeat_roles: 4
+
+resume-student:
+  kind: resume
+  base: student
+
+resume-accents:
+  kind: resume
+  base: example
+  patch:
+    contact:
+      name: Zoë Łukasz Nguyễn
+      location: Kraków, Polska
+
+letter:
+  kind: letter
+  base: example
+  paragraphs:
+    - I am writing about the Senior Software Engineer role. At Acme I built retrieval search over support docs and cut checkout INP from 410ms to 170ms.
+    - At Globex I led a design system migration across 42 components and 6 teams, which is the kind of cross-team work your posting describes.
+    - I would welcome a conversation about how this experience fits your team. Thank you for your time and consideration.
