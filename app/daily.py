@@ -126,9 +126,14 @@ def work() -> None:
     config = cfg.load()
     check(config, senders(config)[0])
     refresh_today(config)
-    conn = store.connect(cfg.db_path(config))
-    n = conn.execute("SELECT COUNT(*) FROM jobs WHERE closed_at IS NULL").fetchone()[0]
-    print(f"ok {stamp()} {n} jobs")
+    # the count is decoration: it must never fail a finished check
+    try:
+        conn = store.connect(cfg.db_path(config))
+        n = conn.execute("SELECT COUNT(*) FROM jobs WHERE closed_at IS NULL").fetchone()[0]
+        tail = f" {n} jobs"
+    except Exception:
+        tail = ""
+    print(f"ok {stamp()}{tail}")
 
 
 def main() -> None:

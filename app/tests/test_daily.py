@@ -62,6 +62,15 @@ def test_today_page_failing_is_not_a_failed_check(monkeypatch):
     assert got == []
 
 
+def test_daily_ok_line_survives_count_failure(monkeypatch, capsys):
+    monkeypatch.setattr(daily.cfg, "load", lambda: {})
+    monkeypatch.setattr(daily, "check", lambda config, send: None)
+    monkeypatch.setattr(daily, "refresh_today", lambda config: None)
+    daily.work()
+    out = capsys.readouterr().out
+    assert out.startswith("ok ") and "jobs" not in out
+
+
 def test_daily_last_ok_reads_newest_ok_line(tmp_path):
     (tmp_path / "daily.log").write_text(
         "== 2026-01-01T07:00:00\nok 2026-01-01T07:01:00 5 jobs\n"
