@@ -244,6 +244,8 @@ function model(raw, sayJson) {
     })),
     todo: (Array.isArray(raw.todo) ? raw.todo : []).map(line).filter(Boolean),
     empty: line(raw.empty),
+    // the release just installed, shown once (today.py marks it seen): plain lines, no links
+    whatsNew: (Array.isArray(raw.whats_new) ? raw.whats_new : []).map((t) => str(t, 300).trim()).filter(Boolean),
     // words w/o a job number => a button; "job 12" ones stay example text (job 12 may not exist)
     asks: [],
     examples: [],
@@ -856,6 +858,10 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
         : `<div class="cards">${shown.map((c) => card(c, lead)).join("")}</div>`)
       + (more ? `<ul class="list more">${line(more, false, moreName)}</ul>` : "") + "</section>";
   };
+  const news = m.whatsNew && m.whatsNew.length
+    ? `<section class="later" aria-labelledby="s-news">${heading("s-news", "What's new")}<ul class="list">`
+      + `${m.whatsNew.map((t) => `<li><span>${h(t)}</span></li>`).join("")}</ul></section>` : "";
+  if (news) jumps.push(["s-news", "What's new"]);
   if (m.next) jumps.push(["s-next", "Next up"]);
   const next = m.next
     ? `<section class="next" aria-labelledby="s-next">${heading("s-next", "Next up")}`
@@ -887,7 +893,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   return `${head(nonce, fonts)}
 <body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${restart ? `<p class="note restart">${h(restart)}</p>` : ""}${tiles}</div></div>
 <p class="how" id="how">${h(howLine(mode))}</p>
-${next}${setup}${sections}${todo}${empty}
+${news}${next}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}${lookSwitch(lookOf(look))}</section>
 ${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;

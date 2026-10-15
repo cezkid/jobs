@@ -324,13 +324,37 @@ def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | Non
     return out
 
 
+def whats_new(data: Path | None = None) -> list[str]:
+    """Plain lines of the release just installed (update.py caches them in whats-new.md, first
+    line = its version) until Today has been shown once with them (whats-new-seen)."""
+    data = data or cfg.DATA
+    try:
+        version, *lines = (data / "whats-new.md").read_text(encoding="utf-8").splitlines()
+        if (data / "whats-new-seen").read_text(encoding="utf-8").strip() == version.strip():
+            return []
+    except OSError:
+        if not (data / "whats-new.md").exists():
+            return []
+    return [t for line in lines if (t := line.strip())]
+
+
+def mark_whats_new_seen(data: Path | None = None) -> None:
+    data = data or cfg.DATA
+    try:
+        version = (data / "whats-new.md").read_text(encoding="utf-8").splitlines()[0].strip()
+        (data / "whats-new-seen").write_text(version + "\n", encoding="utf-8")
+    except (OSError, IndexError):
+        pass
+
+
 def todo_item(line: str) -> dict:
     """`text Say: `words`` => its two parts (dashboard: text + a button)."""
     text, _, rest = line.partition(" Say: ")
     return {"text": text, "say": rest.strip("`") if rest else None}
 
 
-def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], root: Path = cfg.ROOT) -> dict:
+def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], root: Path = cfg.ROOT,
+          news: list[str] | None = None) -> dict:
     """What the page shows, as data: the Markdown page + the window's dashboard both drawn from it.
     Paths relative to root (the page's folder), `/` between parts."""
     now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
@@ -350,7 +374,8 @@ def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], ro
         "tiles": tiles(progress_counts(conn), len(new)),
         "sections": sections,
         "todo": [todo_item(t) for t in todo],
-        "empty": None if sections or todo else {"text": "Nothing new since the last check.", "say": words("find")},
+        **({"whats_new": news} if news else {}),
+        "empty": None if sections or todo or news else {"text": "Nothing new since the last check.", "say": words("find")},
         "examples": [list(s) for s in SAY],
         "guides": [{"title": title, "path": unquote(link)} for title, link in GUIDES],
     }
@@ -360,6 +385,8 @@ def render(m: dict) -> str:
     """Markdown page from the model: other AIs, the chat brief's twin, and the fallback when the
     window's own extension is missing."""
     out = ["# Today", "", f"{m['date']}." + (f" {m['progress']}" if m["progress"] else ""), ""]
+    if m.get("whats_new"):
+        out += ["## What's new", "", *(f"- {t}" for t in m["whats_new"]), ""]
     for sec in m["sections"]:
         out += section_md(sec)
     if m["todo"]:
@@ -377,7 +404,7 @@ def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], ro
     return render(model(conn, config, jobs_dir, now, todo, root))
 
 
-def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) -> str:
+def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], news: list[str] | None = None) -> str:
     """The page in a few lines for a new Claude chat (session-start hook, .claude/settings.json)
     => a plain "hi" gets what's next w/o a command. Job numbers, titles, companies only - the
     postings they work on reach the chat anyway; never resume text, name, contact or settings.
@@ -405,6 +432,8 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     if new := len(new_jobs(conn, config, now, ranked)):
         out.append(f"- New since last check: {new}")
     out += [f"- Not finished: {t.split(' Say: ')[0]}" for t in todo]
+    if news:
+        out.append("- What's new in Job Finder: " + " ".join(news))
     if len(out) == 1:
         out.append("- Nothing new since the last check.")
     return "\n".join(out)
@@ -427,7 +456,7 @@ def print_brief() -> None:
         conn = store.connect(cfg.db_path(config))
         try:
             print(brief(conn, config, cfg.resume_path(config, "jobs_dir"), datetime.now().astimezone(),
-                        unfinished(config)))
+                        unfinished(config), whats_new()))
         finally:
             conn.close()
     except Exception:
@@ -444,12 +473,14 @@ def write(config: dict, page: Path = PAGE, now: datetime | None = None) -> Path:
     try:
         with lock():
             m = model(conn, config, cfg.resume_path(config, "jobs_dir"), now or datetime.now().astimezone(),
-                      unfinished(config), page.parent)
+                      unfinished(config), page.parent, whats_new())
             # data first: the dashboard redraws on the page's change and finds today's data there
             dashboard = page.parent / DASHBOARD
             dashboard.parent.mkdir(parents=True, exist_ok=True)
             locks.write_atomic(dashboard, json.dumps(m, indent=1, ensure_ascii=False) + "\n")
             locks.write_atomic(page, render(m))
+            if m.get("whats_new"):
+                mark_whats_new_seen()
     finally:
         conn.close()
     return page

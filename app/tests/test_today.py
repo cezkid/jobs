@@ -424,6 +424,77 @@ def test_follow_up_days_per_stage(conn, tmp_path):
     assert sorted(quiet) == ["h", "i"]
 
 
+def test_whats_new_shows_once_after_an_update(conn, tmp_path, monkeypatch):
+    import update
+    data = tmp_path / ".data"
+    data.mkdir()
+    monkeypatch.setattr(cfg, "DATA", data)
+    monkeypatch.setattr(today, "unfinished", lambda config: [])
+    real_connect = store.connect
+    monkeypatch.setattr(store, "connect", lambda _path: real_connect(tmp_path / "jobs.db"))  # write() closes its own
+    monkeypatch.setattr(cfg, "resume_path", lambda c, key: tmp_path / "My Jobs")
+    config = cfg.merge(CONFIG, {"db": ".data/jobs.db"})
+    body = "## For users\n- Undo an update. See [guide](https://x.y)\n- Faster start\n## For developers\n- internals\n"
+    update.save_whats_new(tmp_path, "1.2.0", body)
+    assert today.whats_new() == ["Undo an update. See guide", "Faster start"]
+    line = "What's new in Job Finder: Undo an update. See guide Faster start"
+    assert line in today.brief(conn, config, tmp_path, NOW, [], today.whats_new())
+    page = today.write(config, tmp_path / "Today.md", NOW).read_text(encoding="utf-8")
+    assert "## What's new" in page and "internals" not in page and "http" not in page
+    page = today.write(config, tmp_path / "Today.md", NOW).read_text(encoding="utf-8")
+    assert "What's new" not in page
+    assert today.whats_new() == []
+    update.save_whats_new(tmp_path, "1.3.0", "## For users\n- Newer thing\n")
+    assert today.whats_new() == ["Newer thing"]
+
+
+def test_whats_new_drawn_in_the_window(tmp_path):
+    # the window draws the same data the page is written from: a note left out there = marked seen unseen
+    import shutil
+    import subprocess
+    if not shutil.which("node"):
+        pytest.skip("node not installed")
+    src = ROOT / "app" / "vscode"
+    data = tmp_path / "today.json"
+    for folder, news in (("a", ["Undo an update <b>now</b>", "Faster start"]), ("b", None)):
+        m = dashboard_model(tmp_path / folder)
+        if news:
+            m["whats_new"] = news
+        data.write_text(json.dumps(m), encoding="utf-8")
+        script = (f"const t = require({json.dumps(str(src / 'today.js'))});"
+                  f"const say = require({json.dumps(str(src / 'say.json'))});"
+                  f"const m = t.model(JSON.parse(require('fs').readFileSync({json.dumps(str(data))}, 'utf8')), say);"
+                  "console.log(t.render(m, { mode: 'claude', nonce: 'n' }))")
+        run = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=60)
+        assert run.returncode == 0, run.stderr
+        html = run.stdout.split("<body", 1)[1]
+        if news:
+            assert "What&#39;s new" in html or "What's new" in html
+            assert "Undo an update &lt;b&gt;now&lt;/b&gt;" in html and "Faster start" in html
+        else:
+            assert "s-news" not in html
+
+
+def test_whats_new_unsigned_body_ignored(tmp_path):
+    import hashlib
+
+    import httpx
+    import update
+    (tmp_path / ".data").mkdir()
+    news = b"## For users\n- Signed line\n"
+    client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, content=news)))
+    assets = {"WHATS-NEW.md": "https://dl.test/WHATS-NEW.md"}
+    update.save_whats_new(tmp_path, "9.0.0", update.signed_news(client, assets, {"WHATS-NEW.md": "0" * 64}))
+    assert today.whats_new(tmp_path / ".data") == []  # not in the signed list: nothing shown
+    ok = {"WHATS-NEW.md": hashlib.sha256(news).hexdigest()}
+    update.save_whats_new(tmp_path, "9.0.0", update.signed_news(client, assets, ok))
+    assert today.whats_new(tmp_path / ".data") == ["Signed line"]
+    long = "## For users\n" + "".join(f"- {'x' * 300}\n" for _ in range(12))
+    update.save_whats_new(tmp_path, "9.0.1", long)
+    got = today.whats_new(tmp_path / ".data")
+    assert len(got) == 8 and all(len(t) <= 200 for t in got)
+
+
 def test_follow_up_quiet_one_stretch_after_logged_then_suggests_closing(conn, tmp_path):
     store.upsert(conn, [job("old")], CHECK)
     applied(conn, "old", "2026-08-01T12:00:00Z")

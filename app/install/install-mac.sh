@@ -5,6 +5,8 @@
 # Per-user installs only => no admin prompt, no Apple developer tools.
 set -euo pipefail
 ZIP_URL=https://github.com/cezkid/jobs/archive/refs/heads/main.zip
+KEYS_URL=https://raw.githubusercontent.com/cezkid/jobs/main/app/update-keys.txt
+RELEASE_URL=https://api.github.com/repos/cezkid/jobs/releases/latest
 DIR="${JOBS_DIR:-$HOME/jobs}"
 BIN="$HOME/.local/bin"
 export PATH="$BIN:$PATH"
@@ -99,9 +101,26 @@ step 3 "downloading CEZ Job Finder to $DIR..."
 staging="$DIR/.data/install"
 rm -rf "$staging"
 mkdir -p "$staging"
-curl -fsSL -o "$staging/jobs.zip" "$ZIP_URL" || fail "could not download CEZ Job Finder."
+# keys file in main => releases are live: install the latest release, its sha256 checked.
+# No keys file, or no release reachable => main.zip as before
+if curl -fsSL -o /dev/null "$KEYS_URL" 2>/dev/null; then
+  tag=$(curl -fsSL "$RELEASE_URL" 2>/dev/null | sed -n 's/.*"tag_name"[^"]*"\([^"]*\)".*/\1/p' | head -n 1 || true)
+  if [ -n "$tag" ]; then
+    rel="https://github.com/cezkid/jobs/releases/download/$tag"
+    if curl -fsSL -o "$staging/SHA256SUMS" "$rel/SHA256SUMS" && curl -fsSL -o "$staging/jobs.zip" "$rel/jobs-$tag.zip"; then
+      want=$(awk -v n="jobs-$tag.zip" '{f=$2; sub(/^\*/,"",f); if (f==n) print tolower($1)}' "$staging/SHA256SUMS" | head -n 1)
+      got=$(shasum -a 256 "$staging/jobs.zip" | awk '{print $1}')
+      if [ -z "$want" ] || [ "$want" != "$got" ]; then fail "the download did not match its checksum."; fi
+    else
+      rm -f "$staging/jobs.zip"
+    fi
+  fi
+fi
+if [ ! -f "$staging/jobs.zip" ]; then
+  curl -fsSL -o "$staging/jobs.zip" "$ZIP_URL" || fail "could not download CEZ Job Finder."
+fi
 unzip -q "$staging/jobs.zip" -d "$staging"
-for entry in "$staging"/jobs-main/* "$staging"/jobs-main/.[!.]*; do
+for entry in "$staging"/jobs-*/* "$staging"/jobs-*/.[!.]*; do
   [ -e "$entry" ] || continue
   rm -rf "$DIR/$(basename "$entry")"
   mv "$entry" "$DIR/"
