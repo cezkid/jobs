@@ -870,6 +870,11 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const setup = blocking.length
     ? `<section aria-labelledby="s-setup">${heading("s-setup", "Finish setting up")}<ul class="list">${blocking.map((t) => line(t, false)).join("")}</ul></section>` : "";
   const sections = m.sections.map(section).join("");
+  // what's new: plain lines, shown while unseen (today.json `whats_new`, optional)
+  const news = Array.isArray(m.whats_new) ? m.whats_new.filter((x) => typeof x === "string" && x.trim()) : [];
+  if (news.length) jumps.unshift(["s-new", "What's new"]);
+  const whatsNew = news.length
+    ? `<section class="later" aria-labelledby="s-new">${heading("s-new", "What's new")}<ul class="list">${news.map((x) => `<li>${h(x)}</li>`).join("")}</ul></section>` : "";
   if (later.length) jumps.push(["s-later", "Not finished"]);
   const todo = later.length
     ? `<section class="later" aria-labelledby="s-later">${heading("s-later", "Not finished")}<ul class="list">${later.map((t) => line(t, false)).join("")}</ul></section>` : "";
@@ -887,7 +892,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   return `${head(nonce, fonts)}
 <body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${restart ? `<p class="note restart">${h(restart)}</p>` : ""}${tiles}</div></div>
 <p class="how" id="how">${h(howLine(mode))}</p>
-${next}${setup}${sections}${todo}${empty}
+${whatsNew}${next}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}${lookSwitch(lookOf(look))}</section>
 ${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
