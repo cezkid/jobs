@@ -136,12 +136,13 @@ def check(out_dir: Path, case: str) -> int:
         with rooted(root) as config:
             code = tailor.check(config, tailor.read_jd(job_dir(root))["public_slug"])
         failed = [gate_name(line) for line in seen[-1]["failed"]] if seen else []
+        looks = sorted({kind for kind, _ in seen[-1]["second_looks"]}) if seen else []
     except SystemExit as e:  # answer missing, not JSON, or off the schema: a failed run all the same
         print(e)
-        code, failed = 1, [SCHEMA_GATE]
+        code, failed, looks = 1, [SCHEMA_GATE], []
     finally:
         tailor.evaluate = real
-    log = runs(root) + [{"passed": code == 0, "failed": sorted(set(failed))}]
+    log = runs(root) + [{"passed": code == 0, "failed": sorted(set(failed)), "second looks": looks}]
     (root / RUNS).write_text(json.dumps(log, indent=1), encoding="utf-8")
     return code
 
@@ -171,6 +172,7 @@ def grade_case(out_dir: Path, case: str) -> dict:
         hits = []
     last = log[-1] if log else {"passed": False, "failed": []}
     return {"case": case, "passed": last["passed"], "runs": len(log), "gates failed": last["failed"], "traps": hits,
+            "second looks": last.get("second looks", []),
             "stopped": handoff.read_fails(answer)["fails"] >= handoff.STOP_AFTER if answer else False}
 
 

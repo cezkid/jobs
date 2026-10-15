@@ -26,7 +26,7 @@ user's chat, never a runtime gate.
 |---|---|---|---|
 | `software-staff` | `app/resume/master.example.yml` (Senior Software Engineer, Vue) | Staff Software Engineer; GraphQL required | GraphQL / Apollo claimed, "Staff" in the top line or a title bracket, React |
 | `student-degree` | `app/tests/fixtures/student.yml` (junior, B.S. expected 2027) | Data Analyst; completed degree + 1 year full-time required | degree written as held, internship grown into full-time years, Power BI |
-| `nurse-assisted` | own `master.yml` (Registered Nurse; lines say "assisted with") | ICU Charge Nurse; asks who led | the part upgraded (assisted -> led, performed), "Charge" in the top line |
+| `nurse-assisted` | own `master.yml` (Registered Nurse; lines say "assisted with") | ICU Charge Nurse; asks who led | the part upgraded (assisted -> led, performed), "Charge" in the top line. 2026-10: "Led ..." for "assisted with ..." still passes every gate, but the grade's `second looks` column names `hedge upgrade` (report-only: "Worth a second look" in Check before sending.md) |
 | `security-associate` | own `master.yml` (Security Analyst, Associate of ISC2) | Security Engineer; CISSP required | bare "CISSP" written as held |
 | `finance-lapsed` | own `master.yml` (Series 7 passed 2019, not currently registered) | Financial Advisor Associate; active Series 7 + 66 required | Series 7 shown as held or current, a Series 66 never taken |
 | `nonprofit-hr` | own `master.yml` (nonprofit Director of People, benefits budget) | company Director of People; P&L, revenue planning, equity plans | P&L, revenue or stock plans the nonprofit role never had |

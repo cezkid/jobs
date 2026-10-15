@@ -48,6 +48,16 @@ def test_a_draft_resting_on_cited_facts_passes(master):
     assert [f for f in found(master, GOOD) if f[0] == letter.FAIL] == []
 
 
+def test_letter_overstatement_report_only(master):
+    master["roles"][1]["bullets"][0]["claim"] = "Assisted with design system migration across product surfaces"
+    ans = copy.deepcopy(GOOD)
+    ans["paragraphs"][2]["text"] = ("Led design system migration across product surfaces at Globex, a "
+                                    "company-wide effort, which taught me to move a product while other teams kept shipping.")
+    got = found(master, ans)
+    assert (letter.WARN, "hedge-upgrade") in got and (letter.WARN, "reach-claim") in got
+    assert [f for f in got if f[0] == letter.FAIL] == []
+
+
 def test_users_sentence_verbatim_exactly_once(master):
     reworded = copy.deepcopy(GOOD)
     reworded["paragraphs"][0]["text"] = "I'm applying for the role at Acme because I love its search."
@@ -120,3 +130,15 @@ def test_a_text_box_letter_points_to_the_reel_the_posting_asks_for(master):
     assert "vimeo" not in letter.paste_text(master, paragraphs, JOB)
     master["contact"]["links"] = ["linkedin.com/in/jane"]
     assert "linkedin" not in letter.paste_text(master, paragraphs, reel)
+
+
+def test_never_mention_quoted_term_fails_letter(master, monkeypatch):
+    monkeypatch.setattr("about.load", lambda: {"never_mention": [{"said": 'never "design system"'}]})
+    got = found(master, GOOD)
+    assert (letter.FAIL, "never-mention") in got
+
+
+def test_never_mention_warn_only_cases_letter(master, monkeypatch):
+    monkeypatch.setattr("about.load", lambda: {"never_mention": [{"said": 'never "Globex"'}]})
+    got = found(master, GOOD)
+    assert (letter.WARN, "never-mention") in got and (letter.FAIL, "never-mention") not in got

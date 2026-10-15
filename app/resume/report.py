@@ -217,6 +217,10 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
         out += [f"- {g['after']} to {g['before']}: {g['months']} months. "
                 + schema.gap_note(g["months"], schema.gap_is_current(g, today)) for g in gaps]
 
+    if looks := result.get("second_looks"):
+        out += ["", "## Worth a second look", "", "Says more than your resume does; none block sending. Fix it or keep it.", ""]
+        out += [f"- Worth a second look: {inert_md(line)} ({kind})" for kind, line in looks]
+
     notes = [f for f in result["findings"] if f.severity != lint.FAIL]
     if notes:
         out += ["", "## Wording notes", "", "Worth a look; none block sending.", ""]

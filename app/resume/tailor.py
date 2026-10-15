@@ -9,6 +9,7 @@ from pathlib import Path
 import httpx
 import pymupdf
 
+import about
 import cfg
 import store
 from apply import readahead
@@ -508,6 +509,7 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
             if ABBREVIATED.search(mirror):
                 violations.append(f"{where}: title_mirror {mirror!r} abbreviated")
     violations += check_headline_title(master, job, tailored.get("headline_title"), font, today, top_line)
+    violations += never_mention(master, job, tailored)[0]
 
     if tailored["summary"] and (rows := measure.fit(font, tailored["summary"], measure.SUMMARY)[0]) > render.MAX_SUMMARY_LINES:
         violations.append(f"summary: renders {rows} lines (max {render.MAX_SUMMARY_LINES}) - shorten it")
@@ -536,6 +538,18 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
             violations.append(f"coverage: requirement {c['requirement']} note says {report.RELATED.strip()!r} - "
                               "a related line is no evidence: leave `evidence` empty, keep the note")
     return violations
+
+
+def never_mention(master: dict, job: dict, tailored: dict) -> tuple[list[str], list[str]]:
+    """(fails, warnings): the user's never-mention words in what the AI wrote (about.never_check)."""
+    text = "\n".join([tailored.get("summary") or "", tailored.get("headline_title") or "",
+                      *(t.get("title_mirror") or "" for t in tailored["entries"]),
+                      *(b["text"] for t in tailored["entries"] for b in t["bullets"]),
+                      *(i for g in tailored["skills"] for i in g["items"])])
+    locked = [*(r.get(k) for r in master["roles"] for k in ("company", "title")),
+              *(s.get(k) for s in master.get("education") or [] for k in ("institution", "degree"))]
+    return about.never_check(text, posting=posting_text(job), company=job.get("company") or "",
+                             locked=[str(f) for f in locked if f])
 
 
 def levels(title: str) -> set[str]:
@@ -671,6 +685,25 @@ def posting_text(job: dict) -> str:
     return " ".join([job["title"], job.get("text") or "", *(r["text"] for r in job["requirements"])])
 
 
+def second_looks(master: dict, tailored: dict) -> list[tuple[str, str]]:
+    """(kind, line) per bullet that claims more than the facts it cites: a hedge upgraded, a reach no fact
+    makes, a vendor's work credited. Report-only 2026-10 (bullets.md "hedge upgrade" / "reach claim" /
+    "vendor credit": no operator count earned a FAIL) - never in `failed`, so the user's own line, and
+    a false hit, never costs a try."""
+    entries = entries_by_id(master)
+    out: list[tuple[str, str]] = []
+    for t in tailored["entries"]:
+        if t["id"] not in entries:
+            continue
+        for bullet in t["bullets"]:
+            facts = [b["claim"] for b in entries[t["id"]]["bullets"] if b["id"] in bullet["sources"]]
+            facts += [i["claim"] for i in tailored["inferences"] if set(i["sources"]) & set(bullet["sources"])]
+            if bullet["text"] in facts:
+                continue  # the user's own line
+            out += [(kind, f"{bullet['text']!r} - {detail}") for kind, detail in lint.overstatements(bullet["text"], facts)]
+    return out
+
+
 def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str = typeface.DEFAULT,
              top_line: bool = True) -> dict:
     model = page_model(master, tailored, job)
@@ -684,7 +717,9 @@ def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str =
         *(f"lint {f.rule} at {f.where}: {f.detail}" for f in findings if f.severity == lint.FAIL),
         *(f"gate {name}: {detail}" for name, ok, detail in gates if not ok),
     ]
-    return {"model": model, "pdf": pdf, "gates": gates, "findings": findings, "selection": selection, "failed": failed}
+    return {"model": model, "pdf": pdf, "gates": gates, "findings": findings, "selection": selection, "failed": failed,
+            "second_looks": second_looks(master, tailored)
+            + [("never mention", w) for w in never_mention(master, job, tailored)[1]]}
 
 
 JOB_DATA = ".data"

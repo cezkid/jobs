@@ -578,3 +578,49 @@ def test_a_number_keeps_the_word_qualifying_it(text, sources, dropped):
 def test_co_led_vouches_no_led():
     assert lint.upgraded_verb("Led the 2024 rebrand", ["Co-led the 2024 rebrand"]) == "Led"
     assert lint.upgraded_verb("Led the 2024 rebrand", ["I led it"]) is None
+
+
+@pytest.mark.parametrize("text, source", [
+    ("Led discharge planning", "Assisted with discharge planning"),
+    ("Led the payroll migration", "Contributed to the payroll migration"),
+])
+def test_hedge_upgrade_true_hits(text, source):
+    assert lint.hedge_upgrade(text, [source]) == [(source, text)]
+
+
+@pytest.mark.parametrize("text, source", [
+    ("Drove 40 routes", "Drove routes"),
+    ("Led the night shift handoff", "Led the night shift handoff"),
+    ("Ran the register", "Ran the register"),
+    ("Directed 3 short films", "Directed 3 shorts"),
+    ("Co-led the store reset", "Co-led the store reset"),
+    ("I'd welcome the chance to lead the payroll migration", "Contributed to the payroll migration"),
+])
+def test_hedge_upgrade_non_hits(text, source):
+    assert lint.hedge_upgrade(text, [source]) == []
+
+
+def test_hedge_upgrade_splits_clauses():
+    src = "Assisted with discharge planning; filed charts"
+    assert lint.hedge_upgrade("Filed charts, led discharge planning", [src])
+
+
+def test_reach_claim_true_hit():
+    out = lint.reach_claim("Rolled the checklist out company-wide", ["Rolled the checklist out to my team"])
+    assert out == ["company-wide"]
+
+
+def test_reach_claim_non_hits():
+    assert lint.reach_claim("Rolled it out company-wide", ["Rolled it out across the company"]) == []
+    assert lint.reach_claim("Drove 40 routes", ["Drove routes"]) == []
+
+
+def test_vendor_credit_true_hit():
+    src = "Managed a vendor who built the billing portal"
+    assert lint.vendor_credit("Built the billing portal", [src]) == [(src, "Built the billing portal")]
+
+
+def test_vendor_credit_non_hits():
+    assert lint.vendor_credit("Built the billing portal", ["Built the billing portal"]) == []
+    assert lint.vendor_credit("Managed a vendor who built the billing portal", ["Managed a vendor who built the billing portal"]) == []
+    assert lint.vendor_credit("Created 3 short films", ["Hired an agency for posters"]) == []

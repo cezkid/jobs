@@ -12,6 +12,20 @@ def test_elapsed_weeks_then_months(days, said):
     assert followup.elapsed(days) == said
 
 
+def test_never_mention_followup_quoted_term_in_strength_fails():
+    notes = {"never_mention": [{"said": 'never "dashboards"'}]}
+    subject, body = followup.draft("Nurse", "Mercy", 21, "applied", "Built 14 dashboards.", "Jane Doe")
+    fails, warns = followup.never_mention(subject, body, "Mercy", "Nurse", notes)
+    assert len(fails) == 1 and "dashboards" in fails[0] and not warns
+
+
+def test_never_mention_followup_employer_only_warns():
+    subject, body = followup.draft("Nurse", "Mercy", 21, "applied", None, "Jane Doe")
+    for term in ("Mercy", "Nurse"):
+        fails, warns = followup.never_mention(subject, body, "Mercy", "Nurse", {"never_mention": [{"said": f'never "{term}"'}]})
+        assert not fails and len(warns) == 1, term
+
+
 def test_names_role_company_and_asks_by_stage():
     subject, body = followup.draft("Data Analyst", "Acme", 24, "applied", None, "Jane Doe")
     assert subject == "Following up: Data Analyst application"

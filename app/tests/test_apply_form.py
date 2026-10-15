@@ -21,6 +21,38 @@ def q(title, kind="text", key=None, required=True, options=(), id=None):
     return questions.question(id or title, title, kind, required, options, key)
 
 
+NEVER_NOTES = {"never_mention": [{"said": 'never "Globex"'}]}
+
+
+def test_never_mention_form_ai_answer_fails():
+    a = {**q("Why us?"), "answer": "I admired Globex for years.", "source": "resume"}
+    fails, warns = form.never_mention([a], notes=NEVER_NOTES)
+    assert len(fails) == 1 and "Globex" in fails[0] and not warns
+
+
+def test_never_mention_form_users_own_answer_only_warns():
+    a = {**q("Why us?"), "answer": "I admired Globex for years.", "source": questions.USER_SAID}
+    fails, warns = form.never_mention([a], notes=NEVER_NOTES)
+    assert not fails and len(warns) == 1 and "ask them" in warns[0]
+
+
+def test_never_mention_form_employer_only_warns(monkeypatch, capsys):
+    monkeypatch.setattr(form.about, "load", lambda: NEVER_NOTES)
+    a = {**q("Why us?"), "answer": "I like Globex.", "source": "resume"}
+    form.refuse([a], "Globex")  # the employer written to: warns, no exit
+    assert "warning" in capsys.readouterr().out
+    with pytest.raises(SystemExit):
+        form.refuse([a])  # not the employer: fails
+
+
+def test_never_mention_form_clean_answers_and_employer_pass():
+    a = {**q("Why us?"), "answer": "Good fit.", "source": "resume"}
+    assert form.never_mention([a], notes=NEVER_NOTES) == ([], [])
+    b = {**q("Why us?"), "answer": "I like Globex.", "source": "resume"}
+    fails, warns = form.never_mention([b], company="Globex", notes=NEVER_NOTES)
+    assert not fails and len(warns) == 1
+
+
 # --- every system: same contract, so adding one never touches the shared code ---
 
 @pytest.mark.parametrize("module", [m.name for m in pkgutil.iter_modules(systems.__path__)])

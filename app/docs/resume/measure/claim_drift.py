@@ -20,6 +20,10 @@ Counts only; --show adds each hit with its line - claim text, so it stays on thi
   (d) longest run of words copied in order from the posting, per line: 5 / 6 / 7 / 8+
   (e) the posting's most used word: times on the tailored page vs the untailored one
   (f) bracket placeholders ("[Company]", "{metric}", "<team size>") no cited fact holds
+  (g) hedge upgrade: a cited fact opens hedged ("Assisted with") and the line opens "Led" / "Built" ...
+  (h) reach: "company-wide", "adopted by ..." in no cited fact (bullets + letter paragraphs, not summary)
+  (i) vendor credit: a cited fact names a vendor / contractor, the line opens "Built" and names none
+  Ship rule for each: FAIL only w/ >= 1 true hit and 0 false on 300+ lines; else report-only.
 """
 
 import argparse
@@ -43,6 +47,15 @@ FIRST_ONLY = re.compile(r"(?<![\w-])(first|only)(?![\w-])", re.I)
 PLACEHOLDER = re.compile(r"\[[^\]\n]*\]|\{[^}\n]*\}|<[^>\n]*>")
 RUNS = (5, 6, 7, 8)  # histogram buckets; the last is 8 or more
 TASK_FILE, ANSWER_FILE = "task.md", "tailored.json"
+HEDGE = re.compile(r"(assist(ed|ing)?|help(ed|ing)?|support(ed|ing)?|contribut(ed|ing)e?|participat(ed|ing)e?"
+                   r"|collaborat(ed|ing)e?|worked on|part of|involved in)(?![\w-])", re.I)
+STRONG_LEAD = {"led", "owned", "built", "drove", "directed", "managed", "architected", "spearheaded", "headed",
+               "founded", "launched", "created", "designed", "delivered", "established", "ran", "oversaw"}
+REACH = re.compile(r"(?<![\w-])((company|organization|organisation|department|enterprise|firm|team|org|business)-wide"
+                   r"|(across|throughout) (the )?(entire |whole )?(company|organization|organisation|enterprise|firm|business)"
+                   r"|adopted by [\w ]{3,30}|(entire|whole) (company|organization|organisation))(?![\w-])", re.I)
+VENDOR = re.compile(r"(?<![\w-])(vendors?|contractors?|outsourced|agency|third-party|consultants?|freelancers?"
+                    r"|offshore|subcontract\w*)(?![\w-])", re.I)
 PAYLOAD_START = re.compile(r"^(?:\{$|your_words:)", re.M)
 
 
@@ -113,10 +126,11 @@ class Tally:
         if self.show:
             self.lines.append(f"  ({key[0]}) {where}: {detail} - {text!r}")
 
-    def line(self, where: str, text: str, sources: list[str], posting: list[str], at: dict) -> None:
+    def line(self, where: str, text: str, sources: list[str], posting: list[str], at: dict,
+             per_source: bool = True) -> None:
         """One generated line vs the facts it rests on."""
         self.n["lines"] += 1
-        said = " ".join(sources)
+        said = " | ".join(sources)
         for found in lint.dropped_qualifier(text, sources):
             self.hit("a qualifier" if not lint.CO_WORD.match(found) else "b co", where, text, f"sources say {found!r}")
         for pattern, key in ((SUPERLATIVE, "c superlative"), (FIRST_ONLY, "c first/only")):
@@ -131,6 +145,20 @@ class Tally:
         for m in PLACEHOLDER.finditer(text):
             if m.group() not in said:
                 self.hit("f placeholder", where, text, f"{m.group()!r}")
+        if per_source:
+            self.sourced(where, text, said)
+
+    def sourced(self, where: str, text: str, said: str) -> None:
+        """Kinds g-i: one line against its own cited sources (never the whole resume)."""
+        lead = (re.match(r"\W*([A-Za-z-]+)", text) or [None, ""])[1].casefold()
+        if HEDGE.match(said.lstrip()) is not None or any(HEDGE.match(s.strip()) for s in said.split(" | ")):
+            if lead in STRONG_LEAD and not re.search(rf"(?<![\w-]){re.escape(lead)}", said, re.I):
+                self.hit("g hedge upgrade", where, text, f"sources hedge, line opens {lead!r}")
+        for m in REACH.finditer(text):
+            if not re.search(re.escape(m.group()), said, re.I):
+                self.hit("h reach", where, text, f"{m.group().casefold()!r} in no cited fact")
+        if VENDOR.search(said) and lead in STRONG_LEAD and not VENDOR.search(text):
+            self.hit("i vendor credit", where, text, "sources name a vendor, line does not")
 
 
 def measure_job(data: Path, tally: Tally) -> None:
@@ -154,7 +182,7 @@ def measure_job(data: Path, tally: Tally) -> None:
     page = []
     if summary := tailored.get("summary"):
         page.append(summary)
-        tally.line(f"{name} summary", summary, lint.master_strings(master), posting, at)
+        tally.line(f"{name} summary", summary, lint.master_strings(master), posting, at, per_source=False)
     for entry in tailored.get("entries", []):
         for i, bullet in enumerate(entry.get("bullets", []), 1):
             page.append(bullet["text"])
@@ -226,6 +254,9 @@ def report(tally: Tally) -> str:
         f"(e) posting's top word: more on the tailored page {terms['more']}, same {terms['same']}, "
         f"fewer {terms['fewer']} (total {terms['tailored']} tailored vs {terms['untailored']} untailored)",
         f"(f) bracket placeholder: {n['f placeholder']}",
+        f"(g) hedged source, stronger verb: {n['g hedge upgrade']} of {n['lines']} lines",
+        f"(h) reach no cited fact makes: {n['h reach']} of {n['lines']} lines",
+        f"(i) vendor's work credited: {n['i vendor credit']} of {n['lines']} lines",
     ]
     return "\n".join(out + tally.lines)
 

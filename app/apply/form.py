@@ -19,11 +19,13 @@ system's filler on it with synthetic answers - apply/trial.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
+import json
 import re
 import sys
 from datetime import date
 from pathlib import Path
 
+import about
 import cfg
 import status
 from apply import answers as saved_answers
@@ -225,7 +227,7 @@ def paste(slug: str) -> None:
     data = questions.load(folder / tailor.JOB_DATA / questions.FILE)
     if data is None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
-    refuse(data["questions"])
+    refuse(data["questions"], job_company(folder))
     out = ["# Application answers", "",
            "Paste each into the form, in this order. Options weren't read ahead - for a choice, pick the one "
            "that means your answer (the page may word it longer, e.g. \"No, I do not require sponsorship...\").",
@@ -244,8 +246,40 @@ def paste(slug: str) -> None:
     remember(config, folder, data)
 
 
-def refuse(qs: list[dict]) -> None:
+def never_mention(qs: list[dict], company: str = "", notes: dict | None = None) -> tuple[list[str], list[str]]:
+    """(fails, warnings): the user's never-mention words in the answers. An AI-written answer with a
+    quoted term fails; the user's own words ("you said") only warn - ask them."""
+    fails, warns = [], []
+    for a in qs:
+        answer = a.get("answer")
+        if questions.blank(answer) or isinstance(answer, bool):
+            continue
+        text = ", ".join(map(str, answer)) if isinstance(answer, list) else str(answer)
+        f, w = about.never_check(text, company=company, notes=notes)
+        own = str(a.get("source") or "").startswith(questions.USER_SAID)
+        title = a["title"] or questions.UNTITLED
+        fails += [f"{title}: {m}" for m in f if not own]
+        warns += [f"{title}: {m}" for m in w]
+        if own:
+            warns += [f"{title}: {m} - it is the user's own answer; ask them, never change it" for m in f]
+    return fails, warns
+
+
+def job_company(folder: Path) -> str:
+    """The employer of this job folder (its saved posting), '' when unreadable."""
+    try:
+        return str(json.loads((folder / tailor.JOB_DATA / "jd.json").read_text(encoding="utf-8")).get("company") or "")
+    except (OSError, ValueError, AttributeError):
+        return ""
+
+
+def refuse(qs: list[dict], company: str = "") -> None:
     """Answers nothing may type: the AI's on the user's own questions, any on agreeing or signing."""
+    fails, warns = never_mention(qs, company=company)
+    for w in warns:
+        print(f"warning: {w}")
+    if fails:
+        sys.exit("never-mention words in answers the AI wrote - take them out: " + "; ".join(fails))
     if bad := questions.on_page(qs):
         sys.exit("the user ticks or signs these on the page themselves - clear the answer: "
                  + "; ".join(a["title"] or questions.UNTITLED for a in bad))
@@ -272,7 +306,7 @@ def fill(slug: str, in_window: bool = False) -> None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
     if data.get("system") == PASTE:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
-    refuse(data["questions"])
+    refuse(data["questions"], job_company(folder))
     system = system_for(data["url"])
     # trial, off by default (apply/window.py): only systems checked in the window's tab
     opener = window_opener(system, "fill") if in_window else browser.page_at

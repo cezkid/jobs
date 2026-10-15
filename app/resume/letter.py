@@ -19,6 +19,7 @@ import pymupdf
 import typst
 import yaml
 
+import about
 import best
 import cfg
 from resume import gaps, handoff, knockout, lint, render, report, schema, tailor, typeface
@@ -136,6 +137,9 @@ def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> li
             found.append((FAIL, "letter-filler", f"paragraph {i}: {m.group()!r}"))
         if used := sorted(content_words(own) & gap_words):
             found.append((WARN, "gap-claim", f"paragraph {i}: {used}"))
+        # report-only: letters are unmeasured (bullets.md "hedge upgrade" / "reach claim" / "vendor credit", 2026-10)
+        for kind, detail in lint.overstatements(own, sources):
+            found.append((WARN, kind.replace(" ", "-"), f"paragraph {i}: {detail}"))
         for sentence in re.split(r"(?<=[.!?])\s+", own):
             words = content_words(sentence)
             if words and any(len(words & content_words(line)) / len(words) >= 0.8 for line in page_lines):
@@ -147,6 +151,11 @@ def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> li
         found.append((FAIL, "letter-length", f"{count} words (at most {MAX_WORDS}) - cut, never pad"))
     elif count < SHORT_WORDS:
         found.append((INFO, "letter-length", f"{count} words - short, fine if that's all that's true"))
+    locked = [str(e.get(k)) for e in master["roles"] for k in ("company", "title") if e.get(k)]
+    locked += [str(e.get(k)) for e in master.get("education") or [] for k in ("institution", "degree") if e.get(k)]
+    fails, warns = about.never_check("\n\n".join(p["text"].replace(why.strip(), " ") for p in answer["paragraphs"]),
+                                     posting=tailor.posting_text(job), company=job.get("company") or "", locked=locked)
+    found += [(FAIL, "never-mention", f) for f in fails] + [(WARN, "never-mention", w) for w in warns]
     found += prose(master, job, [p.replace(why.strip(), " ") for p in paragraphs])
     return found
 

@@ -11,6 +11,7 @@ and how to change it - and prints its path only: the page is for the user's eyes
 never pass through the chat. Rebuilt on each `about` command, so it never shows a forgotten note.
 """
 import argparse
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -92,6 +93,62 @@ def read(kind: str) -> list[str]:
 
 
 # --- the page --------------------------------------------------------------------------------
+
+# --- never-mention notes, enforced ------------------------------------------------------------
+
+QUOTED = re.compile(r'"([^"]+)"|“([^”]+)”')
+SHORT_NOTE_WORDS = 4
+
+
+def never_terms(notes: dict | None = None) -> list[tuple[str, str]]:
+    """(term, note) for every word the user put in double or curly quotes inside a never_mention
+    note. Only quoted words are terms: prose around them is never parsed."""
+    items = (load() if notes is None else notes).get("never_mention") or []
+    out = []
+    for item in items:
+        said = item["said"] if isinstance(item, dict) else str(item)
+        out += [(" ".join((m[1] or m[2]).split()), said) for m in QUOTED.finditer(said)
+                if (m[1] or m[2]).strip()]
+    return out
+
+
+def never_short_notes(notes: dict | None = None) -> list[tuple[str, str]]:
+    """(term, note) for a short never_mention note with no quotes: the whole note is the term.
+    Warn-only - the user may have meant a topic, not a word."""
+    items = (load() if notes is None else notes).get("never_mention") or []
+    said = [item["said"] if isinstance(item, dict) else str(item) for item in items]
+    return [(s.strip().rstrip("."), s) for s in said
+            if s.strip() and not QUOTED.search(s) and len(s.split()) <= SHORT_NOTE_WORDS]
+
+
+def has_term(text: str, term: str) -> bool:
+    return bool(re.search(rf"(?<!\w){re.escape(term)}(?!\w)", text, re.I))
+
+
+def never_check(text: str, *, posting: str = "", company: str = "", locked: list[str] = (),
+                notes: dict | None = None) -> tuple[list[str], list[str]]:
+    """(fails, warnings) for `text` the AI wrote. FAIL only on a quoted term. Warn only, and the
+    warning says to ask the user, when the term is in the posting, is the company written to, equals a
+    locked field (employer, title, school, degree - removing one is a push-back decision), or is a
+    short unquoted note."""
+    fails, warns = [], []
+    for term, note in never_terms(notes):
+        if not has_term(text, term):
+            continue
+        why = ("the posting itself says it" if has_term(posting, term) else
+               "it is the company this is written to" if company and (has_term(company, term) or has_term(term, company)) else
+               "it is in a job, title, school or degree on your resume" if any(
+                   has_term(f, term) or has_term(term, f) for f in locked if f) else "")
+        if why:
+            warns.append(f'Your notes say never mention "{term}", but {why}. Ask the user what to do; '
+                         "never drop a job or change a locked fact on your own")
+        else:
+            fails.append(f'Your notes say never mention "{term}" - take it out')
+    for term, note in never_short_notes(notes):
+        if has_term(text, term):
+            warns.append(f'Your notes say "{note}" - "{term}" appears. Ask the user whether it applies')
+    return fails, warns
+
 
 def yes_no(value) -> str:
     return {True: "yes", False: "no"}.get(value, "not asked yet - each application asks")
