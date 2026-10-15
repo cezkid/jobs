@@ -52,7 +52,48 @@ def test_doctor_last_ok_from_store_with_z(tmp_path):
 def test_doctor_morning_check_stale_names_failure(tmp_path):
     log(tmp_path, f"ok {(NOW - timedelta(days=4)).isoformat()} 10 jobs", "failed 2026-10-14T07:00:00 timed out")
     r = doctor.morning_check(env(tmp_path))
-    assert not r.ok and "hasn't run since" in r.say and "timed out" in r.say and r.fix
+    assert not r.ok and "hasn't run since" in r.say and "timed out" not in r.say and r.fix
+    assert "Wednesday 14 October" in r.say and "timed out" in r.detail
+
+
+def test_doctor_plain_words_old_failure_not_named(tmp_path):
+    log(tmp_path, "failed 2026-10-01T07:00:00 boom", f"ok {(NOW - timedelta(days=4)).isoformat()} 10 jobs")
+    r = doctor.morning_check(env(tmp_path))
+    assert not r.ok and "failed" not in r.say and r.detail == ""
+
+
+def test_doctor_plain_words_load_error(tmp_path):
+    bad = tmp_path / "bad.yml"
+    bad.write_text("passes: [not, a, pass]\n")
+    r = doctor.search_settings(env(tmp_path, settings_path=lambda: bad))
+    assert not r.ok and "pass" not in r.say and r.detail
+
+
+def test_doctor_font_chosen_must_be_installed(tmp_path):
+    assert doctor.fonts(env(tmp_path, chosen_font=lambda: "Caladea")).ok
+    r = doctor.fonts(env(tmp_path, fonts_installed=lambda: ["Other"], chosen_font=lambda: "Caladea"))
+    assert not r.ok and "Caladea" in r.say
+
+
+def test_doctor_font_chosen_default_from_defaults():
+    assert doctor.chosen_font_name()
+
+
+def test_doctor_schedule_windows_reads_program(tmp_path):
+    from types import SimpleNamespace as NS
+    here = tmp_path / "uvw.exe"
+    here.write_text("x")
+    asked = []
+
+    def run(script):
+        asked.append(script)
+        return NS(returncode=0, stdout=f'{here}\n')
+    program = doctor.windows_program(run)
+    assert program == str(here) and "Get-ScheduledTask" in asked[0] and "Register" not in asked[0]
+    assert doctor.schedule_program(env(tmp_path, scheduled_program=lambda: program)).ok
+    gone = doctor.windows_program(lambda s: NS(returncode=0, stdout=str(tmp_path / "gone.exe")))
+    assert not doctor.schedule_program(env(tmp_path, scheduled_program=lambda: gone)).ok
+    assert doctor.windows_program(lambda s: NS(returncode=1, stdout="")) is None
 
 
 def test_doctor_schedule_program(tmp_path):

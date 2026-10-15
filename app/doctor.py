@@ -23,6 +23,7 @@ class Result:
     ok: bool
     say: str
     fix: str = ""
+    detail: str = ""  # raw cause for --json only; never in the sentence the user reads
 
 
 @dataclass
@@ -38,11 +39,32 @@ class Env:
     resume_path: Path = field(default_factory=lambda: cfg.ROOT / "My Resume" / "Resume details.yml")
     fonts_installed: Callable[[], list[str]] = lambda: __import__("resume.typeface", fromlist=["x"]).installed()
     email_env: Path = field(default_factory=lambda: cfg.EMAIL_ENV)
+    chosen_font: Callable[[], str] = lambda: chosen_font_name()
+
+
+def windows_program(run: Callable[[str], object] | None = None) -> str | None:
+    """Program the Windows scheduled task starts, read the way autorun reads it (read-only);
+    None = no such task, "" = task there but its program can't be read."""
+    import autorun
+    run = run or autorun.powershell
+    result = run(f"(Get-ScheduledTask -TaskName '{autorun.TASK_NAME}' -ErrorAction Stop).Actions[0].Execute")
+    if getattr(result, "returncode", 1):
+        return None
+    return (getattr(result, "stdout", "") or "").strip().strip('"')
+
+
+def chosen_font_name() -> str:
+    try:
+        return cfg.resume_font(cfg.load_or_defaults())
+    except (Exception, SystemExit):
+        return cfg.resume_font(cfg.defaults())
 
 
 def scheduled_program() -> str | None:
-    """Program the macOS daily schedule starts; None = not readable here (other systems)."""
+    """Program the daily schedule starts; None = not readable here / no schedule."""
     import autorun
+    if sys.platform == "win32":
+        return windows_program()
     if sys.platform != "darwin" or not autorun.PLIST.exists():
         return None
     try:
@@ -58,14 +80,20 @@ def ai_extension_installed(name: str) -> bool:
     return extension is None or launch.has_extension(extension)
 
 
-def last_failed(data: Path) -> str | None:
+def last_failed(data: Path) -> tuple[datetime | None, str] | None:
+    """Newest failed line: (when, raw text); when None if its stamp can't be read."""
     try:
         lines = (data / "daily.log").read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
         return None
     for line in reversed(lines):
         if line.startswith("failed "):
-            return line[len("failed "):].strip()
+            raw = line[len("failed "):].strip()
+            try:
+                when = datetime.fromisoformat(raw.split()[0].replace("Z", "+00:00")).astimezone()
+            except (ValueError, IndexError):
+                when = None
+            return when, raw
     return None
 
 
@@ -86,9 +114,16 @@ def morning_check(env: Env) -> Result:
         return Result(name, True, f"Worked on {day_word(ran)}.")
     since = f"hasn't run since {day_word(ran)}" if ran else "hasn't run yet"
     say = f"The morning check {since} - your computer may have been off, or the check is failing."
+    detail = ""
     if failed := last_failed(env.data):
-        say += f" Last failure: {failed}"
-    return Result(name, False, say, "Run the job check now; if it fails, fix the cause, then switch the daily check off and on again.")
+        when, raw = failed
+        if when is None:
+            say += " It also failed on its last try."
+            detail = raw
+        elif not ran or when > ran:
+            say += f" It also failed on {day_word(when)}."
+            detail = raw
+    return Result(name, False, say, "Run the job check now; if it fails, fix the cause, then switch the daily check off and on again.", detail)
 
 
 def schedule_program(env: Env) -> Result:
@@ -130,7 +165,8 @@ def loads(name: str, path: Path, missing: str, load: Callable[[Path], object]) -
         load(path)
     except (Exception, SystemExit) as exc:
         reason = " ".join(str(exc).split())[:300] or type(exc).__name__
-        return Result(name, False, f"It can't be read: {reason}", "Show the user what is wrong in plain words and fix it with their OK.")
+        return Result(name, False, "It can't be read - something in the file is wrong.",
+                      "Show the user what is wrong in plain words and fix it with their OK.", reason)
     return Result(name, True, "Reads fine.")
 
 
@@ -148,9 +184,13 @@ def resume_details(env: Env) -> Result:
 def fonts(env: Env) -> Result:
     name = "Resume fonts"
     have = env.fonts_installed()
+    want = env.chosen_font()
     if not have:
         return Result(name, False, "No resume font files are installed.", "Run an update to restore the program's fonts.")
-    return Result(name, True, f"Installed: {', '.join(have)}.")
+    if want not in have:
+        return Result(name, False, f"Your resume font, {want}, is not installed.",
+                      f"Run an update to restore it, or ask the user to pick one of: {', '.join(have)}.")
+    return Result(name, True, f"{want} is installed.")
 
 
 def email(env: Env) -> Result:
