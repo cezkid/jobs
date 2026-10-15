@@ -315,7 +315,7 @@ def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | Non
             import daily
             last_ok = daily.last_ok(data)
         if last_ok is not None:
-            at = last_ok if last_ok.tzinfo else last_ok.astimezone()
+            at = last_ok.astimezone()
             if (datetime.now(timezone.utc) if now is None else now.astimezone()) - at > timedelta(hours=48):
                 out.append(f"Your morning job check hasn't run since {at:%A, %B} {at.day}. {say('check my job search setup')}")
     email = data / "email.env"

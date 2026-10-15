@@ -78,8 +78,10 @@ def morning_check(env: Env) -> Result:
     if not env.autorun_on():
         return Result(name, True, "Switched off - you asked for no daily check, or it was never set up.")
     import daily
-    ran = daily.last_ok(env.data)
-    now = env.now()
+    ran = daily.last_ok(env.data)  # timezone-aware UTC
+    now = env.now().astimezone()  # naive = local time
+    if ran:
+        ran = ran.astimezone()
     if ran and now - ran <= STALE_AFTER:
         return Result(name, True, f"Worked on {day_word(ran)}.")
     since = f"hasn't run since {day_word(ran)}" if ran else "hasn't run yet"

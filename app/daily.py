@@ -3,7 +3,7 @@ import sqlite3
 import sys
 import traceback
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timezone
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -90,8 +90,14 @@ def stamp() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
+def _utc(t: datetime) -> datetime:
+    """One kind of time: timezone-aware UTC. A naive time is this computer's local time."""
+    return t.astimezone(timezone.utc)
+
+
 def last_ok(data_dir: Path) -> datetime | None:
-    """When the morning check last worked: newest "ok" line in the log, else newest job fetch."""
+    """When the morning check last worked (timezone-aware UTC): newest "ok" line in the log,
+    else newest job fetch. The log writes local time, the store writes UTC with a Z."""
     best = None
     try:
         lines = (data_dir / "daily.log").read_text(encoding="utf-8", errors="replace").splitlines()
@@ -101,7 +107,7 @@ def last_ok(data_dir: Path) -> datetime | None:
         parts = line.split()
         if len(parts) >= 2 and parts[0] == "ok":
             try:
-                t = datetime.fromisoformat(parts[1])
+                t = _utc(datetime.fromisoformat(parts[1]))
             except ValueError:
                 continue
             if best is None or t > best:
@@ -117,7 +123,10 @@ def last_ok(data_dir: Path) -> datetime | None:
             row = conn.execute("SELECT MAX(fetched_at) FROM jobs").fetchone()
         finally:
             conn.close()
-        return datetime.fromisoformat(row[0]) if row and row[0] else None
+        if not (row and row[0]):
+            return None
+        t = datetime.fromisoformat(row[0])  # the store is UTC, with or without the Z
+        return t.replace(tzinfo=timezone.utc) if t.tzinfo is None else _utc(t)
     except (sqlite3.Error, ValueError):
         return None
 

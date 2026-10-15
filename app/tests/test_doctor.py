@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import doctor
 import jobs
@@ -32,6 +32,21 @@ def test_doctor_morning_check_ok_and_off(tmp_path):
     log(tmp_path, f"ok {(NOW - timedelta(hours=5)).isoformat()} 10 jobs")
     assert doctor.morning_check(env(tmp_path)).ok
     assert doctor.morning_check(env(tmp_path, autorun_on=lambda: False)).ok
+
+
+def test_doctor_last_ok_from_store_with_z(tmp_path):
+    import store
+    conn = store.connect(tmp_path / "jobs.db")
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(jobs)") if r[3] and r[4] is None]
+    stamp = (NOW - timedelta(hours=5)).astimezone().astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    conn.execute(f"INSERT INTO jobs ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})",
+                 [stamp if c.endswith("fetched_at") else "x" for c in cols])
+    conn.commit()
+    conn.close()
+    r = doctor.morning_check(env(tmp_path))
+    assert r.ok and "Worked on" in r.say
+    old = doctor.morning_check(env(tmp_path, now=lambda: NOW + timedelta(days=9)))
+    assert not old.ok and "hasn't run since" in old.say
 
 
 def test_doctor_morning_check_stale_names_failure(tmp_path):

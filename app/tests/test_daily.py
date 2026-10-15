@@ -75,7 +75,9 @@ def test_daily_last_ok_reads_newest_ok_line(tmp_path):
     (tmp_path / "daily.log").write_text(
         "== 2026-01-01T07:00:00\nok 2026-01-01T07:01:00 5 jobs\n"
         "failed 2026-01-03T07:01:00 boom\nok 2026-01-02T07:01:00 6 jobs\n")
-    assert daily.last_ok(tmp_path).isoformat() == "2026-01-02T07:01:00"
+    got = daily.last_ok(tmp_path)
+    assert got.utcoffset().total_seconds() == 0
+    assert got.astimezone().replace(tzinfo=None).isoformat() == "2026-01-02T07:01:00"
 
 
 def test_daily_last_ok_none_without_log_or_store(tmp_path):
@@ -91,4 +93,18 @@ def test_daily_last_ok_falls_back_to_store(tmp_path):
     conn.commit()
     conn.close()
     (tmp_path / "daily.log").write_text("failed 2026-02-03T07:00:00 boom\n")
-    assert daily.last_ok(tmp_path).isoformat() == "2026-02-02T08:00:00"
+    assert daily.last_ok(tmp_path).isoformat() == "2026-02-02T08:00:00+00:00"
+
+
+def test_daily_last_ok_store_fallback_with_z(tmp_path):
+    import store
+    conn = store.connect(tmp_path / "jobs.db")
+    cols = [r[1] for r in conn.execute("PRAGMA table_info(jobs)") if r[3] and r[4] is None]
+    conn.execute(f"INSERT INTO jobs ({','.join(cols)}) VALUES ({','.join('?' * len(cols))})",
+                 ["2026-02-02T08:00:00Z" if c.endswith("fetched_at") else "x" for c in cols])
+    conn.commit()
+    conn.close()
+    got = daily.last_ok(tmp_path)
+    assert got.isoformat() == "2026-02-02T08:00:00+00:00"
+    (tmp_path / "daily.log").write_text("ok 2026-02-03T07:00:00 1 jobs\n")
+    assert daily.last_ok(tmp_path) > got  # log and store compare like with like
