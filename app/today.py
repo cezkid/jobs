@@ -7,7 +7,7 @@ editor sits beside the chat, narrow. No counts of what the user has not done - p
 import argparse
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, unquote
 
@@ -298,7 +298,8 @@ def best_rows(conn, config: dict, now: datetime, ranked: list[dict] | None = Non
     return [dict(j, why=best.reasons(j, config, now)) if i < BEST_MAX else j for i, j in enumerate(rows)], facts is not None
 
 
-def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | None = None) -> list[str]:
+def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | None = None,
+               last_ok: datetime | None = None, now: datetime | None = None) -> list[str]:
     """Setup steps still open, only the ones that are. Email is optional: listed only when
     started and left half done, never as a nudge to add it."""
     out = []
@@ -306,8 +307,17 @@ def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | Non
         out.append(f"Your resume isn't in yet. {say(words('import'))}")
     elif not (data / "gaps.json").exists():
         out.append(f"Your resume lines could carry more of your own numbers. {say(words('gaps'))}")
-    if not (autorun.is_on() if morning_check_on is None else morning_check_on):
+    live = morning_check_on is None
+    if not (autorun.is_on() if live else morning_check_on):
         out.append(f"The morning job check is off. {say(words('morning'))}")
+    else:
+        if live and last_ok is None:
+            import daily
+            last_ok = daily.last_ok(data)
+        if last_ok is not None:
+            at = last_ok if last_ok.tzinfo else last_ok.astimezone()
+            if (datetime.now(timezone.utc) if now is None else now.astimezone()) - at > timedelta(hours=48):
+                out.append(f"Your morning job check hasn't run since {at:%A, %B} {at.day}. {say('check my job search setup')}")
     email = data / "email.env"
     if email.exists() and not all(dotenv_values(email).get(k) for k in ("SMTP_USER", "SMTP_PASSWORD")):
         out.append(f"Email alerts are half set up. {say(words('email'))}")
