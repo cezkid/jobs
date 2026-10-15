@@ -1,9 +1,11 @@
 import os
+import sqlite3
 import sys
 import traceback
 from collections.abc import Callable
 from datetime import datetime
 from email.message import EmailMessage
+from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
@@ -78,14 +80,55 @@ def guarded(work: Callable[[], None], ways: Callable[[], list[Sender]]) -> bool:
         return True
     except (Exception, SystemExit) as exc:
         traceback.print_exc()
+        reason = " ".join(str(exc).split()) or type(exc).__name__
+        print(f"failed {stamp()} {reason}")
         report_failure(exc, ways())
         return False
+
+
+def stamp() -> str:
+    return datetime.now().isoformat(timespec="seconds")
+
+
+def last_ok(data_dir: Path) -> datetime | None:
+    """When the morning check last worked: newest "ok" line in the log, else newest job fetch."""
+    best = None
+    try:
+        lines = (data_dir / "daily.log").read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        lines = []
+    for line in lines:
+        parts = line.split()
+        if len(parts) >= 2 and parts[0] == "ok":
+            try:
+                t = datetime.fromisoformat(parts[1])
+            except ValueError:
+                continue
+            if best is None or t > best:
+                best = t
+    if best:
+        return best
+    db = data_dir / "jobs.db"
+    if not db.exists():
+        return None
+    try:
+        conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+        try:
+            row = conn.execute("SELECT MAX(fetched_at) FROM jobs").fetchone()
+        finally:
+            conn.close()
+        return datetime.fromisoformat(row[0]) if row and row[0] else None
+    except (sqlite3.Error, ValueError):
+        return None
 
 
 def work() -> None:
     config = cfg.load()
     check(config, senders(config)[0])
     refresh_today(config)
+    conn = store.connect(cfg.db_path(config))
+    n = conn.execute("SELECT COUNT(*) FROM jobs WHERE closed_at IS NULL").fetchone()[0]
+    print(f"ok {stamp()} {n} jobs")
 
 
 def main() -> None:
