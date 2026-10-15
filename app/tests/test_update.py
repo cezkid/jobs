@@ -320,3 +320,36 @@ def test_update_release_gap_odd_zip_layout_is_not_file_in_use(tmp_path):
     assert said == update.BAD_PACK
     assert said != update.IN_USE
     assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+
+
+def test_update_undo_restores_entries_keeps_private_and_skips_undone(tmp_path):
+    with_keys(tmp_path)
+    write(tmp_path / "My Settings" / "s.yml", "mine")
+    assert update.update(tmp_path, client_for()) == update.UP_TO_DATE
+    write(tmp_path / ".data" / "note.txt", "private")
+    assert update.undo(tmp_path) == update.UNDONE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+    assert (tmp_path / "app" / "VERSION").read_text(encoding="utf-8") == "1.0.0"
+    assert (tmp_path / "app" / "update-keys.txt").is_file()
+    assert (tmp_path / "My Settings" / "s.yml").read_text(encoding="utf-8") == "mine"
+    assert (tmp_path / ".data" / "note.txt").read_text(encoding="utf-8") == "private"
+    assert update.installed_version(tmp_path) == "1.0.0"
+    # same release again: skipped; a newer one installs
+    assert update.update(tmp_path, client_for()) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+    assert update.update(tmp_path, client_for("2.1.0")) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "new"
+
+
+def test_update_undo_without_saved_copy_says_so(tmp_path):
+    write(tmp_path / "README.md", "x")
+    assert update.undo(tmp_path) == update.NO_UNDO
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "x"
+
+
+def test_update_undo_flag_runs_undo_not_update(monkeypatch, capsys):
+    monkeypatch.setattr(update.sys, "argv", ["update.py", "--undo"])
+    monkeypatch.setattr(update, "undo", lambda root: "undone")
+    monkeypatch.setattr(update, "update", lambda *a, **k: pytest.fail("update ran"))
+    update.main()
+    assert capsys.readouterr().out == "undone\n"

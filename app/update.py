@@ -52,28 +52,60 @@ def swap_in(archive: bytes, root: Path, keep_copy: bool = False) -> None:
             if (root / keys).is_file() and (src / keys.parent).is_dir() and not (src / keys).exists():
                 shutil.copy2(root / keys, src / keys)
             save_previous(src, root, staging, Path(tmp))
-        trash = Path(tmp) / "old"
-        trash.mkdir()
-        moved_out, moved_in = [], []
-        try:
-            # whole top-level entries replaced => files deleted upstream vanish here too
-            for new in sorted(src.iterdir()):
-                if new.name in PRIVATE:
-                    continue
-                old = root / new.name
-                if old.exists():
-                    old.rename(trash / new.name)
-                    moved_out.append(new.name)
-                new.rename(old)
-                moved_in.append(new.name)
-        except OSError:
-            # Windows refuses renaming folder w/ open file (antivirus scan, editor) => half-swapped
-            # copy mixes versions or loses app/ => every entry goes back
-            for name in reversed(moved_in):
-                (root / name).rename(src / name)
-            for name in reversed(moved_out):
-                (trash / name).rename(root / name)
-            raise
+        swap_entries(src, root, Path(tmp))
+
+
+def swap_entries(src: Path, root: Path, tmp: Path) -> None:
+    trash = tmp / "old"
+    trash.mkdir()
+    moved_out, moved_in = [], []
+    try:
+        # whole top-level entries replaced => files deleted upstream vanish here too
+        for new in sorted(src.iterdir()):
+            if new.name in PRIVATE:
+                continue
+            old = root / new.name
+            if old.exists():
+                old.rename(trash / new.name)
+                moved_out.append(new.name)
+            new.rename(old)
+            moved_in.append(new.name)
+    except OSError:
+        # Windows refuses renaming folder w/ open file (antivirus scan, editor) => half-swapped
+        # copy mixes versions or loses app/ => every entry goes back
+        for name in reversed(moved_in):
+            (root / name).rename(src / name)
+        for name in reversed(moved_out):
+            (trash / name).rename(root / name)
+        raise
+
+
+UNDONE = "Went back to the version before the last update. Close and reopen CEZ Job Finder."
+NO_UNDO = "Nothing to undo: there is no earlier version saved."
+
+
+def undo(root: Path) -> str:
+    previous = root / ".data" / "previous"
+    if not previous.is_dir() or not any(previous.iterdir()):
+        return NO_UNDO
+    bad = installed_version(root)
+    try:
+        with tempfile.TemporaryDirectory(dir=root / ".data", ignore_cleanup_errors=True) as tmp:
+            src = Path(tmp) / "back"
+            shutil.copytree(previous, src, symlinks=True)  # previous stays => a failed swap loses nothing
+            swap_entries(src, root, Path(tmp))
+    except OSError:
+        return IN_USE
+    data = root / ".data"
+    # bad version remembered => next launch skips it until a newer release
+    (data / "undone-version").write_text(bad + "\n", encoding="utf-8")
+    (data / "update-etag").unlink(missing_ok=True)
+    restored = root / "app" / "VERSION"
+    if restored.is_file():
+        (data / "app-version").write_text(restored.read_text(encoding="utf-8").strip() + "\n", encoding="utf-8")
+    else:
+        (data / "app-version").unlink(missing_ok=True)
+    return UNDONE
 
 
 def save_previous(src: Path, root: Path, staging: Path, tmp: Path) -> None:
@@ -144,6 +176,12 @@ def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
         release = response.json()
         assets = {a["name"]: a["browser_download_url"] for a in release["assets"]}
         tag = release["tag_name"]
+        try:
+            undone = (root / ".data" / "undone-version").read_text(encoding="utf-8")
+            if version_tuple(tag) <= version_tuple(undone):
+                return UP_TO_DATE
+        except (OSError, ValueError):
+            pass
         zip_name = f"jobs-{tag}.zip"
         fetched = {}
         for name in ("SHA256SUMS", "SHA256SUMS.sig", zip_name):
@@ -221,6 +259,9 @@ def update(root: Path, client: httpx.Client | None = None) -> str:
 
 
 def main() -> None:
+    if "--undo" in sys.argv[1:]:
+        print(undo(cfg.ROOT))
+        return
     said = update(cfg.ROOT)
     print(said)
     if said == UP_TO_DATE:

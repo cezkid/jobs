@@ -39,6 +39,7 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   Word (.doc) off a Mac, Pages, Google Docs: `resume-import` says the one step (save a copy as
   .docx or PDF); on a Mac too when its page header (name, contact) can't be read.
 - Something's wrong, no new jobs, a button does nothing: `uv run app/jobs.py doctor` first, fix what it names, never show its raw output.
+- "The latest update broke something": `uv run app/jobs.py update --undo` (or `uv run app/update.py --undo`), they close + reopen CEZ Job Finder; then ask the Framework-defects consent question, word for word.
 - Something fails: one plain sentence on what went wrong + what you're doing about it. Never
   show tracebacks or raw command output.
 - Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or
