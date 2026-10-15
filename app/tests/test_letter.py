@@ -48,6 +48,16 @@ def test_a_draft_resting_on_cited_facts_passes(master):
     assert [f for f in found(master, GOOD) if f[0] == letter.FAIL] == []
 
 
+def test_letter_overstatement_report_only(master):
+    master["roles"][1]["bullets"][0]["claim"] = "Assisted with design system migration across product surfaces"
+    ans = copy.deepcopy(GOOD)
+    ans["paragraphs"][2]["text"] = ("Led design system migration across product surfaces at Globex, a "
+                                    "company-wide effort, which taught me to move a product while other teams kept shipping.")
+    got = found(master, ans)
+    assert (letter.WARN, "hedge-upgrade") in got and (letter.WARN, "reach-claim") in got
+    assert [f for f in got if f[0] == letter.FAIL] == []
+
+
 def test_users_sentence_verbatim_exactly_once(master):
     reworded = copy.deepcopy(GOOD)
     reworded["paragraphs"][0]["text"] = "I'm applying for the role at Acme because I love its search."

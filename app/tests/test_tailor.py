@@ -191,6 +191,41 @@ def test_report_names_each_break_with_its_note(tmp_path):
     assert "- 2026-01 to 2026-09: 7 months. Your search so far - nothing to explain on the page." in text
 
 
+def second_look(master, tailored, claim, text):
+    """Master's first Acme bullet says `claim`, the page says `text`: the second looks, then the report."""
+    master["roles"][0]["bullets"][1]["claim"] = claim  # acme-inp, the fact the page cites
+    tailored["entries"][0]["bullets"][0]["text"] = text
+    assert tailor.check_selection(master, JOB, tailored) == []  # never a FAIL: report-only (bullets.md, 2026-10)
+    return tailor.second_looks(master, tailored)
+
+
+def test_hedge_upgrade_surfaced_in_tailor(master, tailored, tmp_path):
+    [(kind, line)] = second_look(master, tailored, "Assisted with checkout cart recalculation tuning",
+                                 "Led checkout cart recalculation tuning")
+    assert kind == "hedge upgrade" and "says led; your resume says assisted with checkout" in line
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": [],
+              "second_looks": [(kind, line)]}
+    assert "Worth a second look: 'Led checkout cart" in report.report_md(JOB, {}, result, [], [])
+    # the user's own line is never flagged
+    assert second_look(master, tailored, "Led checkout cart recalculation tuning",
+                       "Led checkout cart recalculation tuning") == []
+
+
+def test_reach_claim_surfaced_in_tailor(master, tailored):
+    [(kind, line)] = second_look(master, tailored, "Built a release checklist for the web team",
+                                 "Built a company-wide release checklist for the web team")
+    assert kind == "reach claim" and "company-wide" in line
+    assert second_look(master, tailored, "Built a company-wide release checklist",
+                       "Built a company-wide release checklist") == []
+
+
+def test_vendor_credit_surfaced_in_tailor(master, tailored):
+    [(kind, line)] = second_look(master, tailored, "Managed a vendor who built the billing portal",
+                                 "Built the billing portal")
+    assert kind == "vendor credit" and "says built; your resume says a vendor did that work" in line
+    assert second_look(master, tailored, "Built the billing portal", "Built the billing portal") == []
+
+
 def test_report_speaks_plain_words_and_gives_reasons(master, tailored):
     tailored["entries"][1]["bullets"][0]["text"] = master["roles"][1]["bullets"][0]["claim"]
     tailored["inferences"] = [{"claim": "Web Workers", "sources": ["acme-inp"]}]

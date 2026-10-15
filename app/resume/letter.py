@@ -136,6 +136,9 @@ def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> li
             found.append((FAIL, "letter-filler", f"paragraph {i}: {m.group()!r}"))
         if used := sorted(content_words(own) & gap_words):
             found.append((WARN, "gap-claim", f"paragraph {i}: {used}"))
+        # report-only: letters are unmeasured (bullets.md "hedge upgrade" / "reach claim" / "vendor credit", 2026-10)
+        for kind, detail in lint.overstatements(own, sources):
+            found.append((WARN, kind.replace(" ", "-"), f"paragraph {i}: {detail}"))
         for sentence in re.split(r"(?<=[.!?])\s+", own):
             words = content_words(sentence)
             if words and any(len(words & content_words(line)) / len(words) >= 0.8 for line in page_lines):

@@ -401,6 +401,15 @@ def vendor_credit(text: str, sources: list[str]) -> list[tuple[str, str]]:
     return out
 
 
+def overstatements(text: str, sources: list[str]) -> list[tuple[str, str]]:
+    """(kind, plain words) for each way `text` claims more than `sources` say; report-only everywhere."""
+    out = [("hedge upgrade", f"says {w.split()[0].lower()}; your resume says {s.lower()}") for s, w in hedge_upgrade(text, sources)]
+    out += [("reach claim", f"says {r!r}; your resume says nothing like it") for r in reach_claim(text, sources)]
+    out += [("vendor credit", f"says {w.split()[0].lower()}; your resume says a vendor did that work: {s.lower()}")
+            for s, w in vendor_credit(text, sources)]
+    return out
+
+
 def qualified_numbers(text: str) -> list[tuple[str, str | None]]:
     """(compare key, qualified form or None) for each number: "about 120" -> ("120", "about 120")."""
     out = []

@@ -97,6 +97,8 @@ def test_hold_slip_is_flagged(tmp_path, case, mutate, gates, trap):
     assert tailor_eval.check(tmp_path, case) == (1 if gates else 0)
     [row] = tailor_eval.grade(tmp_path)
     assert (row["passed"], row["runs"], row["gates failed"], row["traps"]) == (not gates, 1, gates, [trap]), row
+    # the nurse slip passes every gate; the report-only "hedge upgrade" second look is what names it
+    assert row["second looks"] == (["hedge upgrade"] if case == "nurse-assisted" else []), row
 
 
 def test_third_failed_run_is_graded_as_stopped(tmp_path, capsys):
