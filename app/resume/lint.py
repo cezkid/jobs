@@ -317,6 +317,90 @@ def upgraded_verb(text: str, sources: list[str]) -> str | None:
     return None
 
 
+TIER1 = r"assisted|helped|contributed|participated|took part|co-led|co-managed"
+TIER3 = r"led|owned|architected|headed|spearheaded"
+CLAUSE_SPLIT = re.compile(r";|,\s+and\s+|\s+\+\s+|,\s+(?=[A-Za-z]+(?:ed|ing)\b)", re.I)
+NOT_A_CLAIM = re.compile(r"\b(?:would|will|i'd|i'll|plan to|planning to|without|never|not)\b|in my first", re.I)
+CLAUSE_STOP = frozenset("""the and for with from into onto over under that this these those their our his her its
+    who whom which was were been being are have has had all any new per via a an of to in on at by as or my""".split())
+HEDGE_UPGRADE_VERBS = {1: TIER1, 3: TIER3}
+BUILD_VERBS = r"built|developed|wrote|coded|created|implemented"
+VENDOR_SOURCE = re.compile(r"\b(?:managed|oversaw|hired|coordinated|supervised)\b.*?\b(?:vendors?|contractors?|agency|agencies|"
+                           r"consultants?|consultancy|consultancies|outsourced|third-party)\b", re.I)
+REACH_FAMILIES = {
+    "scope": re.compile(r"\b(?:company|org|organi[sz]ation|firm|enterprise)-wide\b|"
+                        r"\bacross the (?:company|organi[sz]ation|org|business|firm|department)\b", re.I),
+    "adoption": re.compile(r"\badopted by\b|\bused daily by\b|\bstandard across\b|\brolled out to all\b", re.I),
+}
+
+
+def clauses(text: str) -> list[str]:
+    return [c.strip() for c in CLAUSE_SPLIT.split(text or "") if c and c.strip()]
+
+
+def verb_tier(clause: str) -> int | None:
+    """1 when `clause` opens with a hedge ("Assisted with"), 3 with an ownership verb ("Led"), else None.
+    "drove", "ran", "managed", "built" ... are ordinary duties in some jobs: not tiered."""
+    for tier, verbs in HEDGE_UPGRADE_VERBS.items():
+        if re.match(rf"\s*(?:{verbs})(?![\w-])", clause or "", re.I):
+            return tier
+    return None
+
+
+def _objects(clause: str, skip_verb: bool) -> set[str]:
+    words = re.findall(r"[a-z][a-z-]{2,}", (clause or "").lower())
+    if skip_verb and words:
+        words = words[1:]
+    return {w for w in words if w not in CLAUSE_STOP}
+
+
+def _live(c: str) -> bool:
+    return not NOT_A_CLAIM.search(c)
+
+
+def hedge_upgrade(text: str, sources: list[str]) -> list[tuple[str, str]]:
+    """(source clause, written clause) where a clause of `text` opens an ownership verb on work a
+    source clause opens with a hedge ("Assisted with discharge planning" -> "Led discharge planning")."""
+    out = []
+    src = [c for s in sources if s for c in clauses(s) if _live(c)]
+    for w in (c for c in clauses(text) if _live(c) and verb_tier(c) == 3):
+        mine = _objects(w, True)
+        if any(verb_tier(s) == 3 and len(mine & _objects(s, True)) >= 2 for s in src):
+            continue  # some source already owns it
+        for s in src:
+            if verb_tier(s) == 1 and len(mine & _objects(s, True)) >= 2:
+                out.append((s, w))
+                break
+    return out
+
+
+def reach_claim(text: str, sources: list[str]) -> list[str]:
+    """Reach phrases in `text` ("company-wide", "adopted by") none of `sources` says in the same family."""
+    held = " ".join(s for s in sources if s)
+    out = []
+    for pat in REACH_FAMILIES.values():
+        if not pat.search(held):
+            out += [m.group() for m in pat.finditer(text or "")]
+    return out
+
+
+def vendor_credit(text: str, sources: list[str]) -> list[tuple[str, str]]:
+    """(source clause, written clause) where a source says a vendor did the work the user managed and
+    `text` opens "Built" on it ("Managed a vendor who built the billing portal" -> "Built the billing portal")."""
+    out = []
+    srcs = [c for s in sources if s for c in clauses(s)]
+    for w in (c for c in clauses(text) if _live(c) and re.match(rf"\s*(?:{BUILD_VERBS})\b", c, re.I)):
+        mine = _objects(w, True)
+        own = any(re.match(rf"\s*(?:{BUILD_VERBS})\b", s, re.I) and len(mine & _objects(s, True)) >= 2 for s in srcs)
+        if own:
+            continue
+        for s in srcs:
+            if VENDOR_SOURCE.search(s) and len(mine & _objects(s, False)) >= 2:
+                out.append((s, w))
+                break
+    return out
+
+
 def qualified_numbers(text: str) -> list[tuple[str, str | None]]:
     """(compare key, qualified form or None) for each number: "about 120" -> ("120", "about 120")."""
     out = []
