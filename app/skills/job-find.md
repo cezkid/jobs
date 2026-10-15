@@ -3,6 +3,7 @@
 User not technical - `AGENTS.md` #User = not technical binds. `My Settings/Search settings.yml`
 missing -> `job-setup` skill instead.
 
+0. List empty or nothing new when jobs are expected -> `uv run app/jobs.py doctor` first, fix what it names.
 1. `uv run app/jobs.py find --limit 15` (checks for new jobs, then ranks). Row columns: `#12` job
    number (the user's name for it - same in email, Today page, every chat), `NEW` (not yet
    notified) or `-`, tier, `title | company`, `[why]` in plain words (place, pay, employer list,
