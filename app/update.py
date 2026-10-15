@@ -1,5 +1,6 @@
 import hashlib
 import io
+import re
 import shutil
 import subprocess
 import sys
@@ -158,6 +159,46 @@ def read_keys(path: Path) -> list[bytes]:
     return keys
 
 
+def for_users(body: object) -> list[str]:
+    """The release notes' "## For users" lines, plain text: bullets and markup stripped, no links."""
+    out, inside = [], False
+    for line in (body if isinstance(body, str) else "").splitlines():
+        if line.startswith("#"):
+            inside = line.lstrip("#").strip().lower() == "for users"
+        elif inside and (text := line.strip().lstrip("-*").strip()):
+            text = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+            text = re.sub(r"https?://\S+", "", text)
+            text = re.sub(r"[\x00-\x1f\x7f-\x9f`*_<>\[\]]", "", text).strip()[:200].strip()
+            if text:
+                out.append(text)
+    return out[:8]
+
+
+def save_whats_new(root: Path, version: str, body: object) -> None:
+    """Cache this release's user lines for Today (first line = version); best effort."""
+    lines = for_users(body)
+    target = root / ".data" / "whats-new.md"
+    try:
+        if lines:
+            target.write_text(version + "\n" + "\n".join(lines) + "\n", encoding="utf-8")
+        else:
+            target.unlink(missing_ok=True)
+    except OSError:
+        pass  # only a note; the update is in
+
+
+def signed_news(client: httpx.Client, assets: dict, listed: dict) -> str:
+    """WHATS-NEW.md text, only when its sha256 is in the signed SHA256SUMS; else "" (no What's new)."""
+    try:
+        part = client.get(assets["WHATS-NEW.md"])
+        part.raise_for_status()
+        if listed.get("WHATS-NEW.md") == hashlib.sha256(part.content).hexdigest():
+            return part.content.decode("utf-8", "replace")
+    except (httpx.HTTPError, KeyError):
+        pass
+    return ""
+
+
 def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
     etag_file = root / ".data" / "update-etag"
     headers = {"Accept": "application/vnd.github+json"}
@@ -222,6 +263,7 @@ def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
         swap_in(archive, root, keep_copy=True)
         (root / ".data").mkdir(exist_ok=True)
         (root / ".data" / "app-version").write_text(version + "\n", encoding="utf-8")
+        save_whats_new(root, version, signed_news(client, assets, listed))
     except OSError:
         return IN_USE
     except (zipfile.BadZipFile, ValueError):

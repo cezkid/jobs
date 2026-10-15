@@ -84,15 +84,20 @@ def check(root: Path, notes_path: Path, tag: str | None = None) -> tuple[str, st
     return version, tag
 
 
-def build(root: Path, tag: str, seed: bytes, out: Path) -> list[Path]:
+def build(root: Path, tag: str, seed: bytes, out: Path, users: str | None = None) -> list[Path]:
     out.mkdir(parents=True, exist_ok=True)
     zipf = out / f"jobs-{tag}.zip"
     _git(root, "archive", "--format=zip", f"--prefix=jobs-{tag}/", "-o", str(zipf), "HEAD")
+    files = [zipf]
+    if users:  # signed with the zip: Today's "What's new" reads this, never the unsigned GitHub body
+        news = out / "WHATS-NEW.md"
+        news.write_text("## For users\n" + users.strip() + "\n")
+        files.append(news)
     sums = out / "SHA256SUMS"
-    sums.write_text(f"{hashlib.sha256(zipf.read_bytes()).hexdigest()}  {zipf.name}\n")
+    sums.write_text("".join(f"{hashlib.sha256(f.read_bytes()).hexdigest()}  {f.name}\n" for f in files))
     sig = out / "SHA256SUMS.sig"
     sig.write_bytes(ed25519.sign(seed, sums.read_bytes()))
-    return [zipf, sums, sig]
+    return [*files, sums, sig]
 
 
 def new_key(dest: Path) -> str:
@@ -131,7 +136,7 @@ def main(argv=None, root: Path = REPO) -> int:
         version, tag = check(root, a.notes, a.tag)
         seed = read_key(a.key)
         out = a.out or root / ".data" / "release" / tag
-        files = build(root, tag, seed, out)
+        files = build(root, tag, seed, out, for_users(a.notes.read_text()))
         print(f"Release {tag} (version {version}) built in {out}:")
         for f in files:
             print(f"  {f.name}")
