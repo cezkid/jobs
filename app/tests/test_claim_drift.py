@@ -117,3 +117,40 @@ def test_reads_nothing_outside_my_jobs_and_writes_nothing(tmp_path):
     drift.measure(tmp_path, show=True)
     assert {p: p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()} == before
     assert drift.measure(data).n["tailored"] == 0
+
+
+def _kinds(master_bullets, bullets, tmp_path):
+    MASTER["roles"][0]["bullets"].extend(master_bullets)
+    try:
+        job_folder(tmp_path, tailored(bullets))
+        return drift.measure(tmp_path, show=True)
+    finally:
+        del MASTER["roles"][0]["bullets"][-len(master_bullets):]
+
+
+def test_claim_drift_kind_g_hedge_upgrade(tmp_path):
+    tally = _kinds([{"id": "acme-assist", "claim": "Assisted with the billing migration"}],
+                   [("Led the billing migration", ["acme-assist"]),
+                    ("Assisted with the billing migration", ["acme-assist"]),
+                    ("Built the onboarding course", ["acme-course"])], tmp_path)
+    assert tally.n["g hedge upgrade"] == 1 and tally.n["lines"] == 3
+    assert any("(g)" in line and "Led the billing" in line for line in tally.lines)
+    assert "(g) hedged source, stronger verb: 1 of 3 lines" in drift.report(tally)
+
+
+def test_claim_drift_kind_h_reach(tmp_path):
+    tally = _kinds([{"id": "acme-wide", "claim": "Rolled out a macro library across the support team"}],
+                   [("Rolled out a company-wide macro library", ["acme-wide"]),
+                    ("Rolled out a macro library, adopted by 40 agents", ["acme-wide"]),
+                    ("Rolled out a macro library across the support team", ["acme-wide"])], tmp_path)
+    assert tally.n["h reach"] == 2 and tally.n["lines"] == 3
+    assert "(h) reach no cited fact makes: 2 of 3 lines" in drift.report(tally)
+
+
+def test_claim_drift_kind_i_vendor_credit(tmp_path):
+    tally = _kinds([{"id": "acme-vendor", "claim": "Managed a vendor who built the ticket dashboard"}],
+                   [("Built the ticket dashboard", ["acme-vendor"]),
+                    ("Managed a vendor that built the ticket dashboard", ["acme-vendor"]),
+                    ("Built the onboarding course", ["acme-course"])], tmp_path)
+    assert tally.n["i vendor credit"] == 1 and tally.n["lines"] == 3
+    assert any("(i)" in line for line in tally.lines)
