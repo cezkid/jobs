@@ -8,6 +8,8 @@
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $ZipUrl = 'https://github.com/cezkid/jobs/archive/refs/heads/main.zip'
+$KeysUrl = 'https://raw.githubusercontent.com/cezkid/jobs/main/app/update-keys.txt'
+$ReleaseUrl = 'https://api.github.com/repos/cezkid/jobs/releases/latest'
 $Dir = if ($env:JOBS_DIR) { $env:JOBS_DIR } else { Join-Path $HOME 'jobs' }
 $AiArg = if ($args.Count) { "$($args[0])" } else { $env:JOBS_AI }
 $VsCodeBin = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin"
@@ -105,9 +107,30 @@ try {
     $staging = Join-Path $Dir '.data\install'
     if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
     New-Item -ItemType Directory -Force $staging | Out-Null
-    Invoke-WebRequest -UseBasicParsing $ZipUrl -OutFile "$staging\jobs.zip"
+    # keys file in main => releases are live: install the latest release, its sha256 checked.
+    # No keys file, or no release reachable => main.zip as before
+    $haveKeys = $false
+    try { Invoke-WebRequest -UseBasicParsing $KeysUrl -OutFile "$staging\keys.txt"; $haveKeys = $true } catch {}
+    if ($haveKeys) {
+        try {
+            $tag = (Invoke-RestMethod -UseBasicParsing $ReleaseUrl).tag_name
+            $rel = "https://github.com/cezkid/jobs/releases/download/$tag"
+            Invoke-WebRequest -UseBasicParsing "$rel/SHA256SUMS" -OutFile "$staging\SHA256SUMS"
+            Invoke-WebRequest -UseBasicParsing "$rel/jobs-$tag.zip" -OutFile "$staging\jobs.zip"
+        } catch {
+            if (Test-Path "$staging\jobs.zip") { Remove-Item "$staging\jobs.zip" -Force }
+        }
+        if (Test-Path "$staging\jobs.zip") {
+            $want = Get-Content "$staging\SHA256SUMS" | ForEach-Object { $p = "$_".Trim() -split '\s+'; if ($p.Count -eq 2 -and $p[1].TrimStart('*') -eq "jobs-$tag.zip") { $p[0].ToLower() } } | Select-Object -First 1
+            $got = (Get-FileHash -Algorithm SHA256 "$staging\jobs.zip").Hash.ToLower()
+            if (-not $want -or $want -ne $got) { throw 'The download did not match its checksum.' }
+        }
+    }
+    if (-not (Test-Path "$staging\jobs.zip")) {
+        Invoke-WebRequest -UseBasicParsing $ZipUrl -OutFile "$staging\jobs.zip"
+    }
     Expand-Archive "$staging\jobs.zip" $staging
-    Get-ChildItem -Force "$staging\jobs-main" | ForEach-Object {
+    Get-ChildItem -Force "$staging\jobs-*" -Directory | Select-Object -First 1 | Get-ChildItem -Force | ForEach-Object {
         $dest = Join-Path $Dir $_.Name
         if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
         Move-Item $_.FullName $dest
