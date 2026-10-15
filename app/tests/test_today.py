@@ -1,7 +1,7 @@
 import json
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -278,6 +278,22 @@ def test_closed_after_sending_still_counts_as_sent(conn, tmp_path):
         status.set_state(conn, status.resolve(conn, tmp_path, slug), "closed", CHECK)
     text = page(conn, tmp_path)
     assert "So far: 1 sent." in text and "## Follow up" not in text and "## Waiting on you" not in text
+
+
+def test_today_morning_check_stale(conn, tmp_path):
+    config = cfg.merge(CONFIG, {"resume": {"master": str(tmp_path / "Resume details.yml")}})
+    (tmp_path / "Resume details.yml").write_text("x", encoding="utf-8")
+    (tmp_path / "gaps.json").write_text("{}", encoding="utf-8")
+    now = datetime(2026, 10, 15, 9, 0).astimezone()
+    stale = now - timedelta(days=5)
+    todo = today.unfinished(config, tmp_path, morning_check_on=True, last_ok=stale, now=now)
+    assert len(todo) == 1 and "hasn't run since" in todo[0] and f"{stale:%A, %B} {stale.day}" in todo[0]
+    assert "`check my job search setup`" in todo[0]
+    assert "hasn't run since" in today.brief(conn, config, tmp_path, now, todo)
+    fresh = today.unfinished(config, tmp_path, morning_check_on=True, last_ok=now - timedelta(hours=20), now=now)
+    assert fresh == []
+    assert today.unfinished(config, tmp_path, morning_check_on=False, last_ok=stale, now=now)[0].startswith(
+        "The morning job check is off")
 
 
 def test_not_finished_only_when_true(tmp_path, monkeypatch):

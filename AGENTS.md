@@ -38,6 +38,7 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   onto My Resume. A path that arrives w/ a chat drop still works. Older
   Word (.doc) off a Mac, Pages, Google Docs: `resume-import` says the one step (save a copy as
   .docx or PDF); on a Mac too when its page header (name, contact) can't be read.
+- Something's wrong, no new jobs, a button does nothing: `uv run app/jobs.py doctor` first, fix what it names, never show its raw output.
 - Something fails: one plain sentence on what went wrong + what you're doing about it. Never
   show tracebacks or raw command output.
 - Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or
@@ -346,7 +347,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
-  `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
+  `doctor.py` (read-only self-check), `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
