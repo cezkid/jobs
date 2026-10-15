@@ -18,6 +18,7 @@ me?" to see it all on one page.
 | What you apply with | That employer, when you click Submit - many sites get your resume as soon as you choose it, a few get other parts as they're filled (Ashby: each answer as you fill its box, and a town or school letter by letter as you type it; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as you type it), and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | Your name, email, phone and town, on a JazzHR application | Gainsight, JazzHR's analytics company, when you click Submit - for about 1 in 100 applicants, picked by JazzHR's page |
 | Which companies are on your job list (just their names on the job search, nothing about you) | freehire.me, each morning, to find each company's website and whether it's a staffing firm |
+| Each time it starts, CEZ Job Finder asks GitHub if a newer version exists (nothing about you is sent) | GitHub |
 | A follow-up email you send | The person you send it to, from your own email |
 
 **Removing CEZ Job Finder:** sign-ins from pages opened in its window stay in VS Code after the
