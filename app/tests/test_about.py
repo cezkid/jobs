@@ -97,3 +97,16 @@ def test_list_gives_counts_only(home, monkeypatch, capsys):
     about.main()
     out = capsys.readouterr().out
     assert "values (sensitive): 1" in out and "defense" not in out
+
+
+def test_never_terms_reads_quoted_words_only():
+    notes = {"never_mention": [{"said": 'Never say "Acme Staffing" or “Hooli”, and no politics'},
+                               {"said": "no gaps talk"}]}
+    assert [t for t, _ in about.never_terms(notes)] == ["Acme Staffing", "Hooli"]
+    assert about.never_terms({}) == []
+
+
+def test_never_terms_whole_word_case_blind():
+    notes = {"never_mention": [{"said": 'never "Acme"'}]}
+    assert about.never_check("Worked at acme.", notes=notes)[0]
+    assert about.never_check("Acmeville", notes=notes) == ([], [])

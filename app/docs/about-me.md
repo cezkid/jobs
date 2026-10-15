@@ -22,6 +22,17 @@ any of the 3 AIs can read, plus one page listing everything, fixes both.
 | `values` (sensitive) | beliefs + causes they want weighed: ethics, faith, politics | ONLY when they ask whether a job or company fits | on a resume, form, letter; sent to the job search; in the chat brief |
 | `personal` (sensitive) | health, family, caregiving they want weighed | ONLY when they ask whether a job fits | same as values |
 
+### Never mention: enforced by code
+
+`about.never_terms()` reads the words the user put in double or curly quotes inside a `never_mention`
+note (whole word, case-insensitive). Tailoring + letter checks (`about.never_check`):
+
+- Quoted term on the page -> FAIL, in plain words: `Your notes say never mention "Acme Staffing"`.
+- WARN only, never FAIL, telling the AI to ask the user: the whole short note (no quotes) is the term;
+  the term is in the posting itself; it is the company written to; it equals a locked field
+  (employer, title, school, degree) - removing a job is a push-back decision, not ours.
+- Prose around the quotes is never parsed. Letters: the user's own sentence is not checked.
+
 Commute, hours, pay, place, work permit stay in search settings (one source each); a note never
 repeats them.
 

@@ -130,3 +130,15 @@ def test_a_text_box_letter_points_to_the_reel_the_posting_asks_for(master):
     assert "vimeo" not in letter.paste_text(master, paragraphs, JOB)
     master["contact"]["links"] = ["linkedin.com/in/jane"]
     assert "linkedin" not in letter.paste_text(master, paragraphs, reel)
+
+
+def test_never_mention_quoted_term_fails_letter(master, monkeypatch):
+    monkeypatch.setattr("about.load", lambda: {"never_mention": [{"said": 'never "design system"'}]})
+    got = found(master, GOOD)
+    assert (letter.FAIL, "never-mention") in got
+
+
+def test_never_mention_warn_only_cases_letter(master, monkeypatch):
+    monkeypatch.setattr("about.load", lambda: {"never_mention": [{"said": 'never "Globex"'}]})
+    got = found(master, GOOD)
+    assert (letter.WARN, "never-mention") in got and (letter.FAIL, "never-mention") not in got

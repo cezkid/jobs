@@ -993,3 +993,24 @@ def test_credit_roles_and_nda_clients_stay_as_held_in_the_rules():
     rules = tailor.system(typeface.DEFAULT)
     assert "Assistant Editor -> editor" in rules and "never a name or title for it" in rules
     assert "`other[i].lines[j]`" in rules and "`links[i]`" in rules
+
+
+NEVER = lambda said: {"never_mention": [{"said": said}]}
+
+
+def test_never_mention_quoted_term_fails(master, tailored, monkeypatch):
+    monkeypatch.setattr("about.load", lambda: NEVER('never "Vite"'))
+    tailored["entries"][1]["bullets"][0]["text"] = "Led design system migration w/ Vite"
+    tailored["inferences"] = [{"claim": "Vite build", "sources": ["globex-design-system"]}]
+    assert any('Your notes say never mention "Vite"' in v for v in tailor.check_selection(master, JOB, tailored))
+
+
+def test_never_mention_warns_only_for_posting_company_locked_or_bare_note(master, tailored, monkeypatch):
+    for term, job in [("Vue", JOB), ("Acme", JOB), ("Globex", JOB)]:
+        monkeypatch.setattr("about.load", lambda t=term: NEVER(f'never "{t}"'))
+        tailored["entries"][1]["bullets"][0]["text"] = f"Led design system migration at {term}"
+        assert not [v for v in tailor.check_selection(master, job, tailored) if "never mention" in v]
+        assert tailor.never_mention(master, job, tailored)[1], term
+    monkeypatch.setattr("about.load", lambda: NEVER("migration"))
+    fails, warns = tailor.never_mention(master, JOB, tailored)
+    assert fails == [] and warns
