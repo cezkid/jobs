@@ -1,3 +1,4 @@
+import hashlib
 import io
 import subprocess
 import zipfile
@@ -6,6 +7,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+import ed25519
 import update
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -137,8 +139,113 @@ def test_update_hands_the_window_extension_to_the_new_program(monkeypatch, capsy
     # owner 2026-10-05: update shipped a new window extension, the window never got it until the
     # next cold launch. The NEW program installs it (this process still holds the old modules)
     calls = []
-    monkeypatch.setattr(update, "update", lambda root: said)
+    monkeypatch.setattr(update, "update", lambda root, client=None: said)
     monkeypatch.setattr(update.subprocess, "run", lambda args, check: calls.append(args))
     update.main()
     assert capsys.readouterr().out == f"{said}\n"
     assert calls == ([[update.sys.executable, str(update.cfg.ROOT / "app" / "jobs.py"), "window-update"]] if runs_new else [])
+
+
+# ---- signed release path (keys file present) ----
+SEED = bytes(range(32))
+OTHER = bytes(range(1, 33))
+
+
+def release_zip(version="2.0.0", marker=True):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr(f"jobs-v{version}/app/update.py", "SIGNED_RELEASE_PATH" if marker else "nope")
+        z.writestr(f"jobs-v{version}/app/VERSION", version)
+        z.writestr(f"jobs-v{version}/README.md", "new")
+    return buf.getvalue()
+
+
+def client_for(version="2.0.0", seed=SEED, marker=True, bad_sha=False, status=200, etag='"e1"'):
+    blob = release_zip(version, marker)
+    name = f"jobs-v{version}.zip"
+    digest = "0" * 64 if bad_sha else hashlib.sha256(blob).hexdigest()
+    sums = f"{digest}  {name}\n".encode()
+    sig = ed25519.sign(seed, sums)
+
+    def handler(request):
+        path = request.url.path
+        if path.endswith("/releases/latest"):
+            if status != 200:
+                return httpx.Response(status)
+            body = {"tag_name": f"v{version}", "assets": [
+                {"name": n, "browser_download_url": f"https://dl.test/{n}"} for n in (name, "SHA256SUMS", "SHA256SUMS.sig")]}
+            return httpx.Response(200, json=body, headers={"etag": etag})
+        return httpx.Response(200, content={name: blob, "SHA256SUMS": sums, "SHA256SUMS.sig": sig}[path[1:]])
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def with_keys(root, *seeds):
+    seeds = seeds or (SEED,)
+    write(root / "app" / "update-keys.txt", "# keys\n" + "\n".join(ed25519.public_key(s).hex() for s in seeds) + "\n")
+    write(root / "app" / "VERSION", "1.0.0")
+    write(root / "README.md", "old")
+
+
+def test_no_keys_means_main_zip_never_touches_releases(tmp_path, monkeypatch):
+    write(tmp_path / "README.md", "old")
+    monkeypatch.setattr(update, "download", lambda: archive({"README.md": "new"}))
+
+    def boom(request):
+        raise AssertionError("no release call")
+
+    assert update.update(tmp_path, httpx.Client(transport=httpx.MockTransport(boom))) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "new"
+
+
+def test_signed_newer_release_installs_and_keeps_copy(tmp_path):
+    with_keys(tmp_path)
+    write(tmp_path / "My Settings" / "s.yml", "mine")
+    assert update.update(tmp_path, client_for()) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "new"
+    assert (tmp_path / ".data" / "previous" / "README.md").read_text(encoding="utf-8") == "old"
+    assert (tmp_path / ".data" / "previous" / "app" / "VERSION").read_text(encoding="utf-8") == "1.0.0"
+    assert (tmp_path / ".data" / "app-version").read_text(encoding="utf-8").strip() == "2.0.0"
+    assert (tmp_path / "My Settings" / "s.yml").read_text(encoding="utf-8") == "mine"
+
+
+def test_either_key_verifies(tmp_path):
+    with_keys(tmp_path, OTHER, SEED)
+    assert update.update(tmp_path, client_for()) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "new"
+
+
+@pytest.mark.parametrize("kw, said", [
+    ({"seed": OTHER}, update.UNVERIFIED),
+    ({"bad_sha": True}, update.UNVERIFIED),
+    ({"marker": False}, update.UNVERIFIED),
+    ({"version": "1.0.0"}, update.UP_TO_DATE),
+    ({"version": "0.9.0"}, update.UP_TO_DATE),
+    ({"status": 403}, update.OFFLINE),
+    ({"status": 404}, update.OFFLINE),
+])
+def test_bad_release_keeps_this_version(tmp_path, kw, said):
+    with_keys(tmp_path)
+    assert update.update(tmp_path, client_for(**kw)) == said
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+    assert not (tmp_path / ".data" / "previous").exists()
+
+
+def test_offline_release_keeps_this_version(tmp_path):
+    with_keys(tmp_path)
+
+    def down(request):
+        raise httpx.ConnectError("no network")
+
+    assert update.update(tmp_path, httpx.Client(transport=httpx.MockTransport(down))) == update.OFFLINE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+
+
+def test_etag_cached_and_sent_back(tmp_path):
+    with_keys(tmp_path)
+    assert update.update(tmp_path, client_for()) == update.UP_TO_DATE
+    seen = []
+    c = httpx.Client(transport=httpx.MockTransport(lambda r: seen.append(r) or httpx.Response(304)))
+    assert update.update(tmp_path, c) == update.UP_TO_DATE
+    assert seen[0].headers["if-none-match"] == '"e1"'
+    assert len(seen) == 1

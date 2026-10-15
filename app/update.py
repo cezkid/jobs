@@ -1,3 +1,4 @@
+import hashlib
 import io
 import shutil
 import subprocess
@@ -9,8 +10,11 @@ from pathlib import Path
 import httpx
 
 import cfg
+import ed25519
 
 ZIP_URL = "https://github.com/cezkid/jobs/archive/refs/heads/main.zip"
+RELEASE_URL = "https://api.github.com/repos/cezkid/jobs/releases/latest"
+MARKER = "SIGNED_RELEASE_PATH"  # a release zip must carry it in app/update.py (loop prevention)
 DOWNLOAD_TIMEOUT_S = 60
 # gitignored => never in zip; swap must never touch them either
 PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}
@@ -21,6 +25,7 @@ KEEP = (Path(".claude") / "settings.local.json", Path(".vscode") / "settings.jso
 OFFLINE = "Could not check for updates; continuing."
 IN_USE = "Could not update now (a program file is open); continuing with this version."
 UP_TO_DATE = "Up to date."
+UNVERIFIED = "Could not verify the update; continuing with this version."
 
 
 def download(url: str = ZIP_URL) -> bytes:
@@ -29,7 +34,7 @@ def download(url: str = ZIP_URL) -> bytes:
     return response.content
 
 
-def swap_in(archive: bytes, root: Path) -> None:
+def swap_in(archive: bytes, root: Path, keep_copy: bool = False) -> None:
     # unzip fully before touching root => bad download leaves old copy intact
     staging = root / ".data"
     staging.mkdir(exist_ok=True)
@@ -40,6 +45,12 @@ def swap_in(archive: bytes, root: Path) -> None:
             # folder absent from the zip (.vscode is never shipped) => swap leaves it alone, file and all
             if (root / keep).is_file() and (src / keep.parent).is_dir():
                 shutil.copy2(root / keep, src / keep)
+        if keep_copy:
+            # a release w/o the keys file must not silently switch this install back to unsigned main.zip
+            keys = Path("app") / "update-keys.txt"
+            if (root / keys).is_file() and (src / keys.parent).is_dir() and not (src / keys).exists():
+                shutil.copy2(root / keys, src / keys)
+            save_previous(src, root, staging, Path(tmp))
         trash = Path(tmp) / "old"
         trash.mkdir()
         moved_out, moved_in = [], []
@@ -64,10 +75,120 @@ def swap_in(archive: bytes, root: Path) -> None:
             raise
 
 
-def update(root: Path) -> str:
+def save_previous(src: Path, root: Path, staging: Path, tmp: Path) -> None:
+    # copy every entry about to be replaced; staged => a failed copy never loses the last good copy
+    stage = tmp / "previous"
+    stage.mkdir()
+    for new in src.iterdir():
+        old = root / new.name
+        if new.name in PRIVATE or not old.exists():
+            continue
+        if old.is_dir():
+            shutil.copytree(old, stage / new.name, symlinks=True)
+        else:
+            shutil.copy2(old, stage / new.name)
+    final = staging / "previous"
+    shutil.rmtree(final, ignore_errors=True)
+    shutil.move(str(stage), str(final))
+
+
+def version_tuple(text: str) -> tuple[int, ...]:
+    return tuple(int(n) for n in text.strip().lstrip("v").split("."))
+
+
+def installed_version(root: Path) -> str:
+    for f in (root / ".data" / "app-version", root / "app" / "VERSION"):
+        try:
+            return f.read_text(encoding="utf-8").strip() or "0"
+        except OSError:
+            continue
+    return "0"
+
+
+def read_keys(path: Path) -> list[bytes]:
+    keys = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.split("#")[0].strip()
+        if line:
+            keys.append(bytes.fromhex(line))
+    return keys
+
+
+def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
+    etag_file = root / ".data" / "update-etag"
+    headers = {"Accept": "application/vnd.github+json"}
+    try:
+        cached = etag_file.read_text(encoding="utf-8").strip()
+    except OSError:
+        cached = ""
+    if cached:
+        headers["If-None-Match"] = cached
+    try:
+        response = client.get(RELEASE_URL, headers=headers)
+        if response.status_code == 304:
+            return UP_TO_DATE
+        if response.status_code != 200:  # 403 rate limit, 404 no release yet
+            return OFFLINE
+        release = response.json()
+        assets = {a["name"]: a["browser_download_url"] for a in release["assets"]}
+        tag = release["tag_name"]
+        zip_name = f"jobs-{tag}.zip"
+        fetched = {}
+        for name in ("SHA256SUMS", "SHA256SUMS.sig", zip_name):
+            part = client.get(assets[name])
+            part.raise_for_status()
+            fetched[name] = part.content
+    except httpx.HTTPError:
+        return OFFLINE
+    except (KeyError, TypeError, ValueError):
+        return UNVERIFIED
+    sums, sig, archive = fetched["SHA256SUMS"], fetched["SHA256SUMS.sig"], fetched[zip_name]
+    if not any(ed25519.verify(k, sums, sig) for k in keys):
+        return UNVERIFIED
+    listed = {}
+    for line in sums.decode("utf-8", "replace").splitlines():
+        parts = line.split()
+        if len(parts) == 2:
+            listed[parts[1].lstrip("*")] = parts[0].lower()
+    if listed.get(zip_name) != hashlib.sha256(archive).hexdigest():
+        return UNVERIFIED
+    etag = response.headers.get("etag", "")
+    try:
+        version = tag.lstrip("v")
+        if version_tuple(version) <= version_tuple(installed_version(root)):
+            etag_file.parent.mkdir(exist_ok=True)
+            etag_file.write_text(etag, encoding="utf-8")
+            return UP_TO_DATE
+        with zipfile.ZipFile(io.BytesIO(archive)) as z:
+            carries = any(n.endswith("app/update.py") and MARKER.encode() in z.read(n) for n in z.namelist())
+    except (ValueError, zipfile.BadZipFile):
+        return UNVERIFIED
+    if not carries:
+        return UNVERIFIED
+    try:
+        swap_in(archive, root, keep_copy=True)
+        (root / ".data").mkdir(exist_ok=True)
+        (root / ".data" / "app-version").write_text(version + "\n", encoding="utf-8")
+        etag_file.write_text(etag, encoding="utf-8")
+    except (OSError, zipfile.BadZipFile, ValueError):
+        return IN_USE
+    return UP_TO_DATE
+
+
+def update(root: Path, client: httpx.Client | None = None) -> str:
     if (root / ".git").exists():
         pulled = subprocess.run(["git", "-C", str(root), "pull", "--ff-only", "-q"], check=False)
         return UP_TO_DATE if pulled.returncode == 0 else OFFLINE
+    keys_file = root / "app" / "update-keys.txt"
+    if keys_file.is_file():
+        try:
+            keys = read_keys(keys_file)
+        except (OSError, ValueError):
+            keys = []
+        if not keys:
+            return UNVERIFIED
+        with client or httpx.Client(follow_redirects=True, timeout=DOWNLOAD_TIMEOUT_S) as c:
+            return update_release(root, keys, c)
     try:
         archive = download()
     except httpx.HTTPError:
