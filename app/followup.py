@@ -9,6 +9,7 @@ import argparse
 import json
 import sys
 
+import about
 import cfg
 import status
 import store
@@ -45,6 +46,13 @@ def draft(role: str, company: str, days: int, state: str, strength: str | None, 
         ask = ASK_LATER
     lines = ["Hello,", opening, *([f"For context: {strength}"] if strength else []), ask, "Thanks for your time.", name]
     return subject, "\n\n".join(lines)
+
+
+def never_mention(subject: str, body: str, company: str = "", role: str = "",
+                  notes: dict | None = None) -> tuple[list[str], list[str]]:
+    """(fails, warnings): the user's never-mention words in the draft (about.never_check). The
+    employer written to (company, role) only warns."""
+    return about.never_check(f"{subject}\n{body}", posting=role, company=company, notes=notes)
 
 
 def strength(master: dict, job_dir) -> str | None:
@@ -92,6 +100,11 @@ def main() -> None:
     shown = inert_md if folder else str
     subject, body = draft(shown(job["title"]), shown(job["company"] or "your company"), days, row["state"],
                           strength(master, folder) if folder else None, args.name or master["contact"]["name"])
+    fails, warns = never_mention(subject, body, job["company"] or "", job["title"] or "")
+    for w in warns:
+        print(f"warning: {w}")
+    if fails:
+        sys.exit("; ".join(fails) + " - nothing written; leave out the line that carries it, or ask the user")
     text = f"Subject: {subject}\n\n{body}\n"
     if folder:
         (folder / FILE).write_text(text, encoding="utf-8")
