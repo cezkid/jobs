@@ -249,3 +249,74 @@ def test_etag_cached_and_sent_back(tmp_path):
     assert update.update(tmp_path, c) == update.UP_TO_DATE
     assert seen[0].headers["if-none-match"] == '"e1"'
     assert len(seen) == 1
+
+
+def raw_release_client(files: dict[str, str], skip: str = ""):
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for n, t in files.items():
+            z.writestr(n, t)
+    blob = buf.getvalue()
+    sums = f"{hashlib.sha256(blob).hexdigest()}  jobs-v2.0.0.zip\n".encode()
+    sig = ed25519.sign(SEED, sums)
+    served = {"jobs-v2.0.0.zip": blob, "SHA256SUMS": sums, "SHA256SUMS.sig": sig}
+
+    def handler(request):
+        path = request.url.path
+        if path.endswith("/releases/latest"):
+            return httpx.Response(200, json={"tag_name": "v2.0.0", "assets": [
+                {"name": n, "browser_download_url": f"https://dl.test/{n}"} for n in served if n != skip]})
+        return httpx.Response(200, content=served[path[1:]])
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_update_release_gap_etag_write_error_keeps_version(tmp_path, monkeypatch):
+    with_keys(tmp_path)
+
+    def boom(self, *a, **k):
+        raise OSError("read-only")
+
+    monkeypatch.setattr(update.Path, "write_text", boom)
+    assert update.update(tmp_path, client_for(version="1.0.0")) == update.UP_TO_DATE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+
+
+def test_update_release_gap_marker_needs_exact_app_segment(tmp_path):
+    with_keys(tmp_path)
+    client = raw_release_client({"jobs-v2.0.0/xapp/update.py": "SIGNED_RELEASE_PATH", "jobs-v2.0.0/README.md": "new"})
+    assert update.update(tmp_path, client) == update.UNVERIFIED
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+
+
+@pytest.mark.parametrize("missing", ["jobs-v2.0.0.zip", "SHA256SUMS", "SHA256SUMS.sig"])
+def test_update_release_gap_missing_asset_keeps_version(tmp_path, missing):
+    with_keys(tmp_path)
+    client = raw_release_client({"jobs-v2.0.0/app/update.py": "SIGNED_RELEASE_PATH"}, skip=missing)
+    assert update.update(tmp_path, client) == update.UNVERIFIED
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"
+
+
+def test_update_release_gap_failed_move_keeps_earlier_copy(tmp_path, monkeypatch):
+    write(tmp_path / "README.md", "current")
+    write(tmp_path / ".data" / "previous" / "README.md", "earlier")
+    src = tmp_path / "src"
+    write(src / "README.md", "new")
+    (tmp_path / "tmp").mkdir()
+
+    def boom(a, b):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(update.shutil, "move", boom)
+    with pytest.raises(OSError):
+        update.save_previous(src, tmp_path, tmp_path / ".data", tmp_path / "tmp")
+    assert (tmp_path / ".data" / "previous" / "README.md").read_text(encoding="utf-8") == "earlier"
+
+
+def test_update_release_gap_odd_zip_layout_is_not_file_in_use(tmp_path):
+    with_keys(tmp_path)
+    client = raw_release_client({"a/app/update.py": "SIGNED_RELEASE_PATH", "b/README.md": "new"})
+    said = update.update(tmp_path, client)
+    assert said == update.BAD_PACK
+    assert said != update.IN_USE
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == "old"

@@ -25,6 +25,7 @@ KEEP = (Path(".claude") / "settings.local.json", Path(".vscode") / "settings.jso
 OFFLINE = "Could not check for updates; continuing."
 IN_USE = "Could not update now (a program file is open); continuing with this version."
 UP_TO_DATE = "Up to date."
+BAD_PACK = "Could not update: the new version is not packed as expected; continuing with this version."
 UNVERIFIED = "Could not verify the update; continuing with this version."
 
 
@@ -88,8 +89,19 @@ def save_previous(src: Path, root: Path, staging: Path, tmp: Path) -> None:
         else:
             shutil.copy2(old, stage / new.name)
     final = staging / "previous"
-    shutil.rmtree(final, ignore_errors=True)
-    shutil.move(str(stage), str(final))
+    aside = staging / "previous-old"
+    shutil.rmtree(aside, ignore_errors=True)
+    if final.exists():
+        final.rename(aside)
+    try:
+        shutil.move(str(stage), str(final))
+    except OSError:
+        # earlier copy goes back => a failed move never loses it
+        shutil.rmtree(final, ignore_errors=True)
+        if aside.exists():
+            aside.rename(final)
+        raise
+    shutil.rmtree(aside, ignore_errors=True)
 
 
 def version_tuple(text: str) -> tuple[int, ...]:
@@ -156,11 +168,14 @@ def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
     try:
         version = tag.lstrip("v")
         if version_tuple(version) <= version_tuple(installed_version(root)):
-            etag_file.parent.mkdir(exist_ok=True)
-            etag_file.write_text(etag, encoding="utf-8")
+            try:
+                etag_file.parent.mkdir(exist_ok=True)
+                etag_file.write_text(etag, encoding="utf-8")
+            except OSError:
+                pass  # only a cache; this version stays
             return UP_TO_DATE
         with zipfile.ZipFile(io.BytesIO(archive)) as z:
-            carries = any(n.endswith("app/update.py") and MARKER.encode() in z.read(n) for n in z.namelist())
+            carries = any(n.split("/")[-2:] == ["app", "update.py"] and MARKER.encode() in z.read(n) for n in z.namelist())
     except (ValueError, zipfile.BadZipFile):
         return UNVERIFIED
     if not carries:
@@ -169,9 +184,14 @@ def update_release(root: Path, keys: list[bytes], client: httpx.Client) -> str:
         swap_in(archive, root, keep_copy=True)
         (root / ".data").mkdir(exist_ok=True)
         (root / ".data" / "app-version").write_text(version + "\n", encoding="utf-8")
-        etag_file.write_text(etag, encoding="utf-8")
-    except (OSError, zipfile.BadZipFile, ValueError):
+    except OSError:
         return IN_USE
+    except (zipfile.BadZipFile, ValueError):
+        return BAD_PACK
+    try:
+        etag_file.write_text(etag, encoding="utf-8")
+    except OSError:
+        pass  # only a cache; the update is in
     return UP_TO_DATE
 
 
