@@ -454,8 +454,9 @@ def job_gaps(job: dict, facts: dict) -> set[tuple[str, str]]:
             continue
         if knockout.credentials_missing(text, facts["credentials"]):
             continue  # said above, folded
-        if (years := knockout.years_asked(text)) is not None:
-            most = max(most, years)  # one years ask per job: the longest
+        years = knockout.years_asked(text)
+        if years is not None and (facts.get("years") or 0) < years:
+            most = max(most, years)  # one years ask per job: the longest; only when the resume falls short
         elif degree := knockout.degree_asked(text):
             out.add(("degree", degree))
         elif asked := best.languages(text) - {"english"}:

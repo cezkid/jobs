@@ -718,6 +718,15 @@ def test_rank_gaps_years_once_per_job_and_language():
     assert ("language", "Spanish") in found
 
 
+def test_rank_gaps_years_tool():
+    job = make_job("a", enrichment=req("5+ years of OneTrust"))
+    found = rank.job_gaps(job, gap_facts(years=10))
+    assert ("tool", "Onetrust") in {(k, w.title()) for k, w in found}
+    assert not [g for g in found if g[0] == "years"]
+    short = rank.job_gaps(job, gap_facts(years=2))
+    assert ("years", "5+ years") in short
+
+
 OTHER_LINES = ["Ran month-end close and account reconciliations in NetSuite", "Built payroll audits in Excel"]
 
 
