@@ -554,6 +554,138 @@ def rebuild_today(config: dict) -> None:
         print("Today page: updates at next start")
 
 
+# status progress: how the search is going. Small numbers => floors: a verdict needs p < 0.05 AND
+# at least MIN_REPLIES replies on each side. 4+ jobs set to applied on one day = a catch-up
+# (recorded after the fact): left out of timing + comparisons
+REPLY_STATES = ("heard_back", "interview", "no", "offer")
+MIN_REPLIES, ALPHA, CATCH_UP_JOBS, FAST_DAYS = 5, 0.05, 4, 3
+NO_REPLY_END = ("closed", "not_sending")
+
+
+def fisher_p(a: int, b: int, c: int, d: int) -> float:
+    """Two-sided Fisher's exact test on [[a, b], [c, d]] (pure Python)."""
+    from math import comb
+    r1, r2, c1, n = a + b, c + d, a + c, a + b + c + d
+    if n == 0:
+        return 1.0
+    denom = comb(n, c1)
+
+    def pmf(x: int) -> float:
+        return comb(r1, x) * comb(r2, c1 - x) / denom
+
+    seen = pmf(a)
+    return min(1.0, sum(p for x in range(max(0, c1 - r2), min(r1, c1) + 1)
+                        if (p := pmf(x)) <= seen * (1 + 1e-9)))
+
+
+def _sent_jobs(conn) -> list[dict]:
+    """One dict per sent job: applied_at, first reply (at), state, key."""
+    log: dict[str, list[tuple[str, str]]] = {}
+    for key, state, at in conn.execute("SELECT key, state, at FROM application_log ORDER BY at, rowid"):
+        log.setdefault(key, []).append((state, at))
+    out = []
+    for key, steps in log.items():
+        applied = next((at for s, at in steps if s == "applied"), None)
+        replies = [at for s, at in steps if s in REPLY_STATES]
+        if applied is None and not replies:
+            continue
+        app = get(conn, key) or {}
+        out.append({"key": key, "applied_at": applied or min(replies), "reply_at": min(replies) if replies else None,
+                    "states": {s for s, _ in steps}, "state": app.get("state"), "row": app})
+    return out
+
+
+def _median(xs: list[float]) -> float:
+    xs = sorted(xs)
+    m = len(xs) // 2
+    return xs[m] if len(xs) % 2 else (xs[m - 1] + xs[m]) / 2
+
+
+def _listed_job(conn, row: dict):
+    return (row.get("public_slug") and conn.execute(
+        "SELECT jobs.first_fetched_at, companies.staffing FROM jobs LEFT JOIN companies"
+        " ON companies.slug = jobs.company_slug WHERE jobs.public_slug = ?", (row["public_slug"],)).fetchone())
+
+
+def _verdict(label_a: str, label_b: str, ga: list[dict], gb: list[dict]) -> str | None:
+    """ga / gb = sent jobs on each side. Waiting jobs never count as no reply: only a job that
+    got a reply, or ended (closed / not sending) w/o one, enters the test."""
+    def tally(g):
+        got = sum(1 for j in g if j["reply_at"])
+        return got, got + sum(1 for j in g if not j["reply_at"] and j["state"] in NO_REPLY_END)
+    (ra, na), (rb, nb) = tally(ga), tally(gb)
+    if not ga or not gb:
+        return None
+    p = fisher_p(ra, na - ra, rb, nb - rb)
+    if p < ALPHA and min(ra, rb) >= MIN_REPLIES:
+        more = ra / na > rb / nb
+        hi, lo = (label_a, label_b) if more else (label_b, label_a)
+        hr, hn, lr, ln = (ra, na, rb, nb) if more else (rb, nb, ra, na)
+        return (f"{hi.capitalize()} heard back more often than {lo} ({hr} of {hn} vs {lr} of {ln}) -"
+                f" a pattern in your jobs, it may not hold for the next ones.")
+    short = max(0, MIN_REPLIES - min(ra, rb))
+    rate = max((ra + rb) / max(na + nb, 1), 0.1)
+    more_jobs = -(-short // rate) if short else MIN_REPLIES
+    return f"{label_a.capitalize()} vs {label_b}: no clear difference yet - {int(more_jobs)} more sent jobs would help."
+
+
+def progress(conn, now: str | None = None) -> list[str]:
+    """How the search is going, from what the user recorded. Never counts unsent jobs."""
+    jobs = _sent_jobs(conn)
+    if not jobs:
+        return ["Nothing marked as sent yet, so there is nothing to show."]
+    per_day: dict[str, int] = {}
+    for j in jobs:
+        per_day[j["applied_at"][:10]] = per_day.get(j["applied_at"][:10], 0) + 1
+    steady = [j for j in jobs if per_day[j["applied_at"][:10]] < CATCH_UP_JOBS]
+    replied = [j for j in jobs if j["reply_at"]]
+    out = [f"Sent: {len(jobs)}. Heard back: {len(replied)}."
+           f" Interviews: {sum('interview' in j['states'] or 'offer' in j['states'] for j in jobs)}."
+           f" Offers: {sum('offer' in j['states'] for j in jobs)}."]
+    if not replied:
+        out.append("No replies yet. That is common and says nothing about you or your resume.")
+        return out
+    days = [_days(j["applied_at"], j["reply_at"]) for j in steady if j["reply_at"]]
+    if days:
+        out.append(f"Half of the replies came within {_median(days):.0f} days of sending.")
+    skipped = len(jobs) - len(steady)
+    if skipped:
+        out.append(f"{skipped} jobs recorded on a catch-up day are left out of timing and comparisons.")
+    out.append(f"{sum(1 for j in jobs if j['state'] == 'applied')} still waiting - waiting is not counted as no reply.")
+    first, kind, band = {}, {}, {}
+    for j in steady:
+        found = _listed_job(conn, j["row"])
+        kind[j["key"]] = "list" if found else "pasted"
+        if found:
+            first[j["key"]] = (_days(found["first_fetched_at"], j["applied_at"]) <= FAST_DAYS) \
+                if found["first_fetched_at"] else None
+            first[("staff", j["key"])] = None if found["staffing"] is None else bool(found["staffing"])
+    totals = {r["key"]: r["total"] for r in conn.execute(
+        "SELECT key, total FROM score_snapshots WHERE state = 'applied' AND total IS NOT NULL")}
+    mid = _median(list(totals.values())) if totals else None
+    tests = [
+        ("applied within 3 days of first seen", "applied later",
+         [j for j in steady if first.get(j["key"]) is True], [j for j in steady if first.get(j["key"]) is False]),
+        ("staffing firm jobs", "direct employer jobs",
+         [j for j in steady if first.get(("staff", j["key"])) is True],
+         [j for j in steady if first.get(("staff", j["key"])) is False]),
+        ("jobs from the list", "pasted jobs",
+         [j for j in steady if kind[j["key"]] == "list"], [j for j in steady if kind[j["key"]] == "pasted"]),
+    ]
+    if mid is not None:
+        tests.append(("higher-scored jobs", "lower-scored jobs",
+                      [j for j in steady if j["key"] in totals and totals[j["key"]] > mid],
+                      [j for j in steady if j["key"] in totals and totals[j["key"]] <= mid]))
+    verdicts = [v for t in tests if (v := _verdict(*t))]
+    if not verdicts:  # no comparison has jobs on both sides yet
+        got = sum(1 for j in steady if j["reply_at"])
+        need = max(0, 2 * MIN_REPLIES - got)
+        rate = max(got / max(len(steady), 1), 0.1)
+        verdicts = [f"Between kinds of jobs: no clear difference yet - {int(-(-need // rate)) if need else MIN_REPLIES}"
+                    f" more sent jobs would help."]
+    return out + verdicts
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Where each job stands: saved, resume made, applied, heard back ...")
     steps = ap.add_subparsers(dest="step")
@@ -562,6 +694,7 @@ def main() -> None:
     steps.add_parser("open", help="each job in progress: open, may be closed, or can't tell - and why")
     steps.add_parser("sent", help="each job not marked sent: sent page in this computer's browser history? sent,"
                      " likely not sent, can't tell - and why")
+    steps.add_parser("progress", help="how the search is going: sent, replies, timing; honest about small numbers")
     steps.add_parser("sort", help="file every job folder under the stage its status names (launch does it too)")
     for name, helptext in (("show", "one job's status, its history + its folder"),
                            ("set", "record a job's status; its folder moves to that stage"),
@@ -588,6 +721,9 @@ def main() -> None:
         if args.step in (None, "list"):
             rows = numbered(conn, all_statuses(conn))
             print("\n".join(map(line, rows)) if rows else "no jobs w/ a status yet")
+            return
+        if args.step == "progress":
+            print("\n".join(progress(conn)))
             return
         if args.step == "ask":
             now = store.utc_now()

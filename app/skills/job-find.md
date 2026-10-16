@@ -84,6 +84,9 @@ Daily check questions: `uv run app/jobs.py autorun status` (on/off, last run, lo
 on/off w/ `autorun on|off`; change time = `schedule.local_daily` in search settings + `autorun
 on`. New jobs arrive as notification, or email when `.data/email.env` set (`job-setup` #5).
 
+"How's the search going?" -> `uv run app/jobs.py status progress`; pass its lines on, no more sure than
+they are, no blame on zero replies. Only when asked.
+
 Privacy question ("who sees my stuff?") -> `AGENTS.md` #Private vs shared table.
 
 Edits go to `My Settings/Search settings.yml` only. Noise caused by tracked code (ranking bug,

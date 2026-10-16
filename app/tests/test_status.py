@@ -618,3 +618,70 @@ def test_fill_prints_the_ask_with_the_job_number(conn, tmp_path, capsys, monkeyp
     status.filled(d, {})
     out = capsys.readouterr().out
     assert "same reply as the handover" in out and "Did you send it?" in out and " applied" in out
+
+
+def sent_job(conn, tmp_path, n, day, reply=None, end=None):
+    job = status.resolve(conn, tmp_path, None, f"Co{n}", "Analyst", f"https://co{n}.com/j/{n}")
+    status.set_state(conn, job, "applied", f"2026-09-{day:02d}T10:00:00Z")
+    if reply:
+        status.set_state(conn, job, reply, f"2026-09-{day + 4:02d}T10:00:00Z")
+    if end:
+        status.set_state(conn, job, end, f"2026-09-{day + 5:02d}T10:00:00Z")
+
+
+def test_status_progress_fisher_matches_known_value():
+    assert status.fisher_p(1, 9, 11, 3) == pytest.approx(0.00276, abs=1e-4)
+    assert status.fisher_p(5, 5, 5, 5) == 1.0
+
+
+def test_status_progress_nothing_sent_and_zero_replies_are_one_plain_line(conn, tmp_path):
+    assert "Nothing marked as sent" in status.progress(conn)[0]
+    sent_job(conn, tmp_path, 1, 1)
+    out = status.progress(conn)
+    assert len(out) == 2 and "No replies yet" in out[1] and "Sent: 1" in out[0]
+
+
+def test_status_progress_counts_median_and_waiting_never_no_reply(conn, tmp_path):
+    sent_job(conn, tmp_path, 1, 1, reply="interview")
+    sent_job(conn, tmp_path, 2, 3, reply="heard_back")
+    sent_job(conn, tmp_path, 3, 5, reply="offer")
+    sent_job(conn, tmp_path, 4, 7)
+    text = "\n".join(status.progress(conn))
+    assert "Sent: 4. Heard back: 3. Interviews: 2. Offers: 1." in text
+    assert "within 4 days" in text
+    assert "1 still waiting" in text
+    assert "unsent" not in text.lower() and "resume made" not in text.lower()
+
+
+def test_status_progress_catch_up_day_left_out_of_timing(conn, tmp_path):
+    for n in range(1, 5):  # four jobs set to applied on one day, after the fact
+        sent_job(conn, tmp_path, n, 10, reply="heard_back")
+    sent_job(conn, tmp_path, 9, 1, reply="heard_back")
+    text = "\n".join(status.progress(conn))
+    assert "4 jobs recorded on a catch-up day" in text
+    assert "within 4 days" in text
+
+
+def test_status_progress_small_numbers_give_no_verdict(conn, tmp_path):
+    for n in range(1, 4):
+        store.upsert(conn, [make_job(f"s{n}")], NOW)
+        sent_job(conn, tmp_path, n, 1, reply="heard_back")
+    for n in range(4, 8):
+        sent_job(conn, tmp_path, n, 12 + n, end="closed")
+    text = "\n".join(status.progress(conn))
+    assert "no clear difference yet" in text and "more sent jobs would help" in text
+    assert "more often" not in text
+
+
+def test_status_progress_verdict_needs_p_and_five_replies_each_side(conn, tmp_path):
+    for n in range(1, 11):  # listed: every one replied
+        store.upsert(conn, [make_job(f"v{n}")], NOW)
+        job = status.resolve(conn, tmp_path, f"v{n}")
+        status.set_state(conn, job, "applied", f"2026-09-{n:02d}T10:00:00Z")
+        status.set_state(conn, job, "heard_back", f"2026-09-{n + 3:02d}T10:00:00Z")
+    for n in range(20, 26):  # pasted: replied
+        sent_job(conn, tmp_path, n, n - 18, reply="heard_back")
+    for n in range(30, 50):  # pasted: none replied, ended
+        sent_job(conn, tmp_path, n, 1 + n % 20, end="closed")
+    text = "\n".join(status.progress(conn))
+    assert "Jobs from the list heard back more often than pasted jobs (10 of 10 vs 6 of 26)" in text
