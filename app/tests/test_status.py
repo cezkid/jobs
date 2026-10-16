@@ -237,6 +237,26 @@ def test_passed_check_records_resume_made_without_moving_a_job_on(conn, tmp_path
     assert status.get(conn, "https://acme.com/j/1") is None
 
 
+def snaps(conn, key):
+    return [tuple(r) for r in conn.execute(
+        "SELECT state, at, match, title_fit, total FROM score_snapshots WHERE key = ? ORDER BY rowid", (key,))]
+
+
+def test_score_snapshot_at_resume_made_and_applied(conn, tmp_path):
+    d = make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    status.record_made(conn, d, NOW, {"match": 0.8, "title_fit": 0.5, "total": 0.7})
+    status.set_state(conn, status.resolve(conn, tmp_path, PASTED_URL), "applied", LATER,
+                     {"match": 0.9, "title_fit": 0.6, "total": 0.75})
+    assert snaps(conn, PASTED_URL) == [("resume_made", NOW, 0.8, 0.5, 0.7), ("applied", LATER, 0.9, 0.6, 0.75)]
+
+
+def test_score_snapshot_pasted_job_stores_null(conn, tmp_path):
+    d = make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    status.record_made(conn, d, NOW)
+    status.set_state(conn, status.resolve(conn, tmp_path, PASTED_URL), "heard_back", LATER)  # no snapshot
+    assert snaps(conn, PASTED_URL) == [("resume_made", NOW, None, None, None)]
+
+
 def test_resume_made_untouched_14_days_drops_out_quietly(conn, tmp_path):
     made_on(conn, tmp_path, "Old - Nurse", "https://old.example/1", "2026-09-10T12:00:00Z")    # 19 days
     made_on(conn, tmp_path, "Edge - Nurse", "https://edge.example/1", "2026-09-15T12:00:01Z")  # just under 14

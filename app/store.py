@@ -75,6 +75,16 @@ CREATE TABLE IF NOT EXISTS application_log (
     state TEXT NOT NULL,
     at TEXT NOT NULL
 );
+-- the job's score when its resume was made / when it was sent (to learn later whether higher scores
+-- hear back more); NULL scores = pasted job, none to give. state = resume_made | applied
+CREATE TABLE IF NOT EXISTS score_snapshots (
+    key TEXT NOT NULL,
+    state TEXT NOT NULL,
+    at TEXT NOT NULL,
+    match REAL,
+    title_fit REAL,
+    total REAL
+);
 -- last time the chat asked "did you send it?" about a job (status.to_ask): never twice in 3 days
 CREATE TABLE IF NOT EXISTS asked (
     key TEXT PRIMARY KEY,

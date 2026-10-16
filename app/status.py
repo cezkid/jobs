@@ -205,11 +205,32 @@ def filled(job_dir: Path, config: dict) -> None:
               f" Not sending -> status set {num} not_sending")
 
 
-def record_made(conn, job_dir: Path, at: str) -> None:
-    """`tailor check` passed => resume made, w/o the user saying so."""
+def snapshot(conn, key: str, state: str, at: str, scores: dict | None) -> None:
+    """Keep the job's score at this moment; no scores (pasted job) = NULLs. Caller commits."""
+    s = scores or {}
+    conn.execute("INSERT INTO score_snapshots VALUES (?, ?, ?, ?, ?, ?)",
+                 (key, state, at, s.get("match"), s.get("title_fit"), s.get("total")))
+
+
+def scores_of(config: dict, job: dict, now=None) -> dict | None:
+    """match / title fit / total of one listed job (best.score); None for a pasted job or no data."""
+    if not job.get("public_slug"):
+        return None
+    try:
+        import best
+        now = now or datetime.now(timezone.utc)
+        row = best.score([job], config, now, best.resume_facts(config, now.date()))[0]
+        return {"match": row["best_parts"]["match"], "title_fit": row["best_parts"]["title"], "total": row["best"]}
+    except Exception:
+        return None
+
+
+def record_made(conn, job_dir: Path, at: str, scores: dict | None = None) -> None:
+    """`tailor check` passed => resume made, w/o the user saying so. `scores` = the caller's."""
     f = folder(job_dir)
     if f and f["state"] == "resume_made":
         _record(conn, f, at)
+        snapshot(conn, folder_key(f), "resume_made", at, scores)
         conn.commit()
 
 
@@ -268,7 +289,7 @@ def resolve(conn, jobs_dir: Path, job: str | None = None, company: str | None = 
     return found
 
 
-def set_state(conn, job: dict, state: str, at: str) -> None:
+def set_state(conn, job: dict, state: str, at: str, scores: dict | None = None) -> None:
     conn.execute(
         "INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (key) DO UPDATE SET"
         " state = excluded.state, state_at = excluded.state_at,"
@@ -276,6 +297,8 @@ def set_state(conn, job: dict, state: str, at: str) -> None:
         " public_slug = COALESCE(applications.public_slug, excluded.public_slug)",
         (job["key"], job["url"], job["company"], job["title"], job["public_slug"], state, at, at))
     _log(conn, job["key"], state, at)
+    if state == "applied":
+        snapshot(conn, job["key"], state, at, scores)
     conn.commit()
 
 
@@ -620,7 +643,12 @@ def main() -> None:
         try:
             job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)
             if args.step == "set":
-                set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
+                state = state_key(args.state)
+                scores = None
+                if state == "applied" and job.get("public_slug"):
+                    row = next((j for j in store.all_jobs(conn, True) if j["public_slug"] == job["public_slug"]), None)
+                    scores = scores_of(config, row) if row else None
+                set_state(conn, job, state, when(args.on, store.utc_now()), scores)
                 stuck = sort_folders(conn, jobs_dir, job["key"])[1]
             if args.step == "undo":
                 undo(conn, job["key"], state_key(args.was))
