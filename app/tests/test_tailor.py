@@ -723,6 +723,23 @@ def test_headline_title_level_words_beyond_senior_fail(master, tailored, posting
     assert any(v.startswith("headline_title") and ("claims" in v or "abbreviated" in v) for v in violations), violations
 
 
+@pytest.mark.parametrize("posting, company, title", [
+    ("Acme Fellows Program, AI Safety & Security", "Acme", "Acme Fellows Program"),
+    ("Acme Fellows Program, AI Safety & Security", "Acme", "Acme Fellows"),
+    ("Software Engineering Summer Internship", "Acme", "Software Engineering Summer Internship"),
+    ("Acme Engineer, Search", "Acme", "Acme Engineer"),
+])
+def test_headline_title_never_a_program_or_the_employer(master, tailored, posting, company, title):
+    """A program name in the top line reads as the role they hold (user report 2026-10-15): null keeps theirs."""
+    master["roles"][0]["title"], master["headline"] = "Software Engineer", "Software Engineer | Vue"
+    tailored["entries"][0]["title_mirror"], tailored["headline_title"] = None, title
+    job = {**JOB, "title": posting, "company": company}
+    assert any(v.startswith("headline_title") and "leave it null" in v for v in tailor.check_selection(master, job, tailored))
+    assert tailor.suggested_headline_title(master, job) is None
+    tailored["headline_title"] = None
+    assert not [v for v in tailor.check_selection(master, job, tailored) if v.startswith("headline_title")]
+
+
 def test_headline_title_level_is_judged_on_the_role_held_now(master, tailored):
     """Newest by start is not current: a newer part-time role never hides the running one's level."""
     master["roles"][0]["end"] = "present"
