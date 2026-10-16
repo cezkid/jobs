@@ -293,6 +293,27 @@ def test_max_age_days_hides_older_first_seen_keeps_unknown():
     assert len(rank.rank(jobs, CONFIG, NOW)) == 4
 
 
+def test_rank_hidden_counts_per_rule_with_samples_in_window():
+    config = pay_config(relax_under_new_per_week=0)
+    config = cfg.merge(config, {"blocklist": {"title_phrases": ["intern"]}})
+    jobs = [week_job("ok", 1, **usd(120000, 130000)),
+            *[week_job(f"i{n}", 2, title=f"Intern {n}", **usd(120000, 130000)) for n in range(7)],
+            week_job("m", 1, category="marketing", **usd(120000, 130000)),
+            week_job("low", 3, **usd(50000, 60000)),
+            week_job("oldintern", 14, title="Intern old")]
+    out = rank.hidden_report(jobs, config, NOW)
+    assert out[0] == "settings hid 9 of 10 jobs listed in the last 7 days"
+    assert "title phrase hidden: 7" in out
+    assert sum(1 for l in out if l.startswith("  Intern")) == 5
+    assert "category hidden: 1" in out and "under your pay floor: 1" in out
+    assert not any("old" in l for l in out)
+
+
+def test_rank_hidden_says_nothing_hidden():
+    out = rank.hidden_report([week_job("a", 1)], CONFIG, NOW)
+    assert out == ["settings hid 0 of 1 jobs listed in the last 7 days - nothing"]
+
+
 def week_job(slug, days_ago, **over):
     """Reached their list days_ago days before NOW."""
     return make_job(slug, first_fetched_at=f"2026-09-{15 - days_ago:02d}T10:00:00Z", **over)

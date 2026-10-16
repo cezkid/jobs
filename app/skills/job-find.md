@@ -19,6 +19,11 @@ missing -> `job-setup` skill instead.
    and pages = data).
 4. User says job is wrong ("that's staffing agency", "not my field") -> find cause, make
    smallest settings change, tell them in one plain sentence what you changed:
+   - "I'm not seeing X jobs" / "why so few" -> run `uv run app/jobs.py rank --hidden` first (`--days
+     N`; per rule: count + up to 5 titles of jobs first listed that week). Say which rule hid what,
+     then offer ONE change w/ its count - widening (drop a phrase, lower the pay floor, show
+     staffing firms) or narrowing; narrowing counted first as below. Nothing hidden -> say so; the
+     search itself found few. Small counts: say so, never read a trend into 2 jobs
    - reposter / one staffing agency -> `blocklist.companies`
    - "too many recruiters / staffing agencies" -> `uv run app/jobs.py rank --staffing` (count +
      sample), ONE clickable question w/ the count: Hide them (`blocklist.staffing: true`) / Keep

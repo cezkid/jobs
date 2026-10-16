@@ -817,6 +817,52 @@ def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
+def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
+    """The first setting that hides a row, in plain words; None = shown. Same tests as blocked(),
+    too_old, far and pay_filter, one rule per row (first match)."""
+    bl, rc = config["blocklist"], config["rank"]
+    if norm_company(job.get("company")) in {norm_company(c) for c in bl.get("companies") or []} \
+            or (job.get("company_slug") or "").lower() in {v.lower() for v in bl.get("companies") or []}:
+        return "company hidden"
+    if (job.get("source") or "").lower() in {v.lower() for v in bl.get("sources") or []}:
+        return "source hidden"
+    if (job.get("category") or "").lower() in {v.lower() for v in bl.get("categories") or []}:
+        return "category hidden"
+    if blocked(job, {"employment_types": bl.get("employment_types")}):
+        return "job type hidden"
+    if blocked(job, {"clearance": bl.get("clearance")}):
+        return "clearance jobs hidden"
+    if blocked(job, {"staffing": bl.get("staffing")}):
+        return "staffing firms hidden"
+    if blocked(job, {"software_kinds": bl.get("software_kinds")}):
+        return "kind of software work hidden"
+    if title_blocked(job.get("title") or "", bl):
+        return "title phrase hidden"
+    if too_old(job, rc, now):
+        return "older than your age limit"
+    if far(job, config):
+        return "too far from your cities"
+    why = pay_hidden(job, rc)
+    return {"below": "under your pay floor", "unlisted": "no pay listed"}.get(why)
+
+
+def hidden_report(jobs: list[dict], config: dict, now: datetime, days: int = 7, samples: int = 5) -> list[str]:
+    """What the settings hid among jobs first listed in the last `days` days: count per rule +
+    up to `samples` titles. Pay-floor rows the thin-week relax brought back are not counted."""
+    recent = [j for j in jobs if (d := listed_days(j, now)) is not None and d < days]
+    by_rule = defaultdict(list)
+    for j in recent:
+        if rule := hidden_rule(j, config, now):
+            by_rule[rule].append(j)
+    total = sum(len(v) for v in by_rule.values())
+    out = [f"settings hid {total} of {len(recent)} jobs listed in the last {days} days"
+           + ("" if total else " - nothing")]
+    for rule, rows in sorted(by_rule.items(), key=lambda kv: -len(kv[1])):
+        out.append(f"{rule}: {len(rows)}")
+        out += [f"  {j['title']} | {j['company']}" for j in rows[:samples]]
+    return out
+
+
 def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]]:
     cats = defaultdict(set)
     for j in jobs:
@@ -849,6 +895,9 @@ def main() -> None:
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
     ap.add_argument("--gaps", action="store_true", help="what open jobs ask that the resume doesn't show, counted"
                     " once per job by kind, plus jobs marked not sending (--limit = rows per kind)")
+    ap.add_argument("--hidden", action="store_true", help="what your settings hid, per rule, count + sample"
+                    " titles, among jobs first listed in the window")
+    ap.add_argument("--days", type=int, default=7, help="with --hidden: window in days (default 7)")
     args = ap.parse_args()
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
@@ -856,6 +905,9 @@ def main() -> None:
     if args.suspects:
         for company, categories in suspects(jobs, config["rank"]["suspect_min_categories"]):
             print(f"{company}: {', '.join(sorted(categories))}")
+        return
+    if args.hidden:
+        print("\n".join(hidden_report(jobs, config, datetime.now(timezone.utc), args.days)))
         return
     if args.would_hide:
         hidden = would_hide(jobs, args.would_hide, config["blocklist"])
