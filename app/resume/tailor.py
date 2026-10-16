@@ -984,7 +984,7 @@ def check(config: dict, slug: str) -> int:
     import status  # status files job folders; it reads them through this module
     conn = store.connect(cfg.db_path(config))
     try:
-        status.record_made(conn, job_dir, store.utc_now(), status.scores_of(config, job))
+        status.record_made(conn, job_dir, store.utc_now(), status.scores_of(config, job, conn=conn))
     finally:
         conn.close()
     return 0

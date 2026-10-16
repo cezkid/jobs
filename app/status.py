@@ -212,12 +212,17 @@ def snapshot(conn, key: str, state: str, at: str, scores: dict | None) -> None:
                  (key, state, at, s.get("match"), s.get("title_fit"), s.get("total")))
 
 
-def scores_of(config: dict, job: dict, now=None) -> dict | None:
-    """match / title fit / total of one listed job (best.score); None for a pasted job or no data."""
-    if not job.get("public_slug"):
+def scores_of(config: dict, job: dict, now=None, conn=None) -> dict | None:
+    """match / title fit / total of one listed job, scored from its jobs-table row (best.score);
+    None for a pasted job (no row) or no data."""
+    if not job.get("public_slug") or conn is None:
         return None
     try:
         import best
+        row = next((j for j in store.all_jobs(conn, True) if j["public_slug"] == job["public_slug"]), None)
+        if row is None:
+            return None
+        job = row
         now = now or datetime.now(timezone.utc)
         row = best.score([job], config, now, best.resume_facts(config, now.date()))[0]
         return {"match": row["best_parts"]["match"], "title_fit": row["best_parts"]["title"], "total": row["best"]}
@@ -643,7 +648,7 @@ def progress(conn, now: str | None = None) -> list[str]:
            f" Interviews: {sum('interview' in j['states'] or 'offer' in j['states'] for j in jobs)}."
            f" Offers: {sum('offer' in j['states'] for j in jobs)}."]
     if not replied:
-        out.append("No replies yet. That is common and says nothing about you or your resume.")
+        out.append("No replies yet. That says nothing about you or your resume.")
         return out
     days = [_days(j["applied_at"], j["reply_at"]) for j in steady if j["reply_at"]]
     if days:
@@ -782,8 +787,7 @@ def main() -> None:
                 state = state_key(args.state)
                 scores = None
                 if state == "applied" and job.get("public_slug"):
-                    row = next((j for j in store.all_jobs(conn, True) if j["public_slug"] == job["public_slug"]), None)
-                    scores = scores_of(config, row) if row else None
+                    scores = scores_of(config, job, conn=conn)
                 set_state(conn, job, state, when(args.on, store.utc_now()), scores)
                 stuck = sort_folders(conn, jobs_dir, job["key"])[1]
             if args.step == "undo":

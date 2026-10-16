@@ -257,6 +257,35 @@ def test_score_snapshot_pasted_job_stores_null(conn, tmp_path):
     assert snaps(conn, PASTED_URL) == [("resume_made", NOW, None, None, None)]
 
 
+def test_score_snapshot_pasted_null(conn, tmp_path):
+    import cfg
+    job = {"public_slug": "g-da", "url": PASTED_URL, "company": "Globex", "title": "Data Analyst"}
+    assert status.scores_of(cfg.defaults(), job, conn=conn) is None  # slug not in the jobs table
+    d = make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    status.record_made(conn, d, NOW, status.scores_of(cfg.defaults(), job, conn=conn))
+    assert snaps(conn, PASTED_URL) == [("resume_made", NOW, None, None, None)]
+
+
+def test_score_snapshot_made_uses_db_row(conn):
+    import best
+    import cfg
+    from datetime import datetime, timezone
+    config = cfg.load(cfg.PROFILES / "example.yml")
+    store.upsert(conn, [make_job("a")], NOW)
+    now = datetime(2026, 9, 29, 12, tzinfo=timezone.utc)
+    row = next(j for j in store.all_jobs(conn, True) if j["public_slug"] == "a")
+    want = best.score([row], config, now, best.resume_facts(config, now.date()))[0]
+    got = status.scores_of(config, {"public_slug": "a", "url": "x", "title": "t", "company": "c"}, now, conn)
+    assert got == {"match": want["best_parts"]["match"], "title_fit": want["best_parts"]["title"],
+                   "total": want["best"]}
+
+
+def test_status_progress_zero_replies_no_market_claim(conn, tmp_path):
+    sent_job(conn, tmp_path, 1, 1)
+    out = " ".join(status.progress(conn))
+    assert "No replies yet" in out and "common" not in out
+
+
 def test_resume_made_untouched_14_days_drops_out_quietly(conn, tmp_path):
     made_on(conn, tmp_path, "Old - Nurse", "https://old.example/1", "2026-09-10T12:00:00Z")    # 19 days
     made_on(conn, tmp_path, "Edge - Nurse", "https://edge.example/1", "2026-09-15T12:00:01Z")  # just under 14
