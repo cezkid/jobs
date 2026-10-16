@@ -75,6 +75,12 @@ missing -> `job-setup` skill instead.
    named tool, years, degree, language) how many open jobs ask it, once per job, plus jobs marked not
    sending. Say counts as they are; few jobs = rough. Tool they have -> `resume-gaps` w/ their own
    sentence; they don't -> a gap to know, never a word to add (Hold).
+   "What other jobs could I do?" / "other titles?" -> `uv run app/jobs.py rank --other-titles`: up to 5
+   titles their resume backs but never uses, each w/ the resume line + local count; never above their
+   level or a licence they lack. Then live counts per title: `uv run app/jobs.py probe --title "<title>"
+   <their params>` (the title words only leave the computer), ONE clickable multiSelect w/ those counts
+   ("tick all that fit, then Submit"). Save nothing without a pick; a pick = search change (step 4:
+   measure, state cost, then `title_phrases`/search words). Only when asked, never pushed.
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields
    (likely reposters) - offer to hide ones user agrees with.
 7. After changes: `uv run app/jobs.py check-settings`, then `uv run app/jobs.py rank --limit 15`;

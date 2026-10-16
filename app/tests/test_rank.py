@@ -716,3 +716,32 @@ def test_rank_gaps_years_once_per_job_and_language():
     found = rank.job_gaps(job, facts)
     assert [w for k, w in found if k == "years"] == ["7+ years"]
     assert ("language", "Spanish") in found
+
+
+OTHER_LINES = ["Ran month-end close and account reconciliations in NetSuite", "Built payroll audits in Excel"]
+
+
+def other_facts(**over):
+    import best
+    return gap_facts(stems=best.stems(" ".join(OTHER_LINES)), titles=best.stems("Accountant"), lines=OTHER_LINES, **over)
+
+
+def test_rank_other_titles_carry_backing_line_and_local_count():
+    facts = other_facts()
+    jobs = [make_job(s, title="Reconciliation Specialist", enrichment=req("Account reconciliations in NetSuite"))
+            for s in "ab"]
+    found = rank.other_titles(jobs, CONFIG, facts)
+    assert [(g["title"], g["count"], g["backing"]) for g in found] == \
+        [("Reconciliation Specialist", 2, OTHER_LINES[0])]
+    assert "2 open jobs" in "\n".join(rank.other_titles_report(jobs, CONFIG, facts))
+
+
+def test_rank_other_titles_skip_a_level_or_licence_reach():
+    facts = other_facts()
+    ask = req("Account reconciliations in NetSuite")
+    ok = make_job("a", title="Reconciliation Specialist", enrichment=ask, seniority="junior")
+    licence = make_job("b", title="Reconciliation Specialist", seniority="junior",
+                       enrichment=req("Account reconciliations", "Series 7 required"))
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "entry"}})
+    above = make_job("c", title="Reconciliation Specialist", enrichment=ask, seniority="director")
+    assert [g["count"] for g in rank.other_titles([ok, licence, above], config, facts)] == [1]

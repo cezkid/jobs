@@ -495,6 +495,49 @@ def gaps_report(jobs: list[dict], sent_off: list[dict], facts: dict, limit: int)
     return lines
 
 
+OTHER_MATCH = 0.6  # share of required asks backed
+OTHER_FIT = 0.34   # title words found in the resume: at or under = a title they don't use
+
+
+def other_titles(jobs: list[dict], config: dict, facts: dict, limit: int = 5) -> list[dict]:
+    """Titles in the local list the resume backs but never uses: high match, low title fit. Never one with a
+    level mismatch (a level 2+ rungs above theirs, a seniority demerit) or a required licence / certification
+    / clearance they lack. Grouped by title: {title, count, backing, match}, most jobs first, top `limit`."""
+    import best  # imports this module
+    from resume import knockout
+    rc = config["rank"]
+    groups = {}
+    for j in jobs:
+        share, _ = best.match(j, facts)
+        if share < OTHER_MATCH or best.title_fit(j, facts) > OTHER_FIT:
+            continue
+        if mismatches(j, rc) or best.above_level(j, config, facts) or credential_asks(j, facts["credentials"]):
+            continue
+        if any(knockout.clearance_short(t, facts["credentials"]) for t in required_lines(j)):
+            continue
+        line = next(filter(None, (best.backing(t, facts) for t in best.required(j))), None)
+        if line is None:
+            continue
+        g = groups.setdefault(norm(re.sub(r"\(.*?\)", " ", j.get("title") or "")),
+                              {"title": j["title"], "count": 0, "backing": line, "match": share})
+        g["count"] += 1
+        g["match"] = max(g["match"], share)
+    return sorted(groups.values(), key=lambda g: (-g["count"], -g["match"], g["title"]))[:limit]
+
+
+def other_titles_report(jobs: list[dict], config: dict, facts: dict, limit: int = 5) -> list[str]:
+    found = other_titles(jobs, config, facts, limit)
+    if not found:
+        return [f"No other titles stand out: nothing among {len(jobs)} open jobs reads as backed by your resume"
+                " under a title you don't use, within your level."]
+    lines = ["Other titles your resume backs (within your level, no licence you lack):"]
+    for g in found:
+        lines.append(f"  {g['title']} - {g['count']} open job{'s' if g['count'] != 1 else ''} here; your resume: {g['backing']}")
+    if len(jobs) < 20:
+        lines.append(f"Only {len(jobs)} open jobs: small numbers, read the counts as rough.")
+    return lines
+
+
 def graduation_span(graduation: str, today) -> tuple[int, int]:
     from resume import schema
     return schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
@@ -895,6 +938,8 @@ def main() -> None:
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
     ap.add_argument("--gaps", action="store_true", help="what open jobs ask that the resume doesn't show, counted"
                     " once per job by kind, plus jobs marked not sending (--limit = rows per kind)")
+    ap.add_argument("--other-titles", action="store_true", help="titles in the list your resume backs but never"
+                    " uses, never above your level or a licence you lack; --limit = titles (default 5 here)")
     ap.add_argument("--hidden", action="store_true", help="what your settings hid, per rule, count + sample"
                     " titles, among jobs first listed in the window")
     ap.add_argument("--days", type=int, default=7, help="with --hidden: window in days (default 7)")
@@ -946,6 +991,15 @@ def main() -> None:
         slugs = {r[0] for r in conn.execute("SELECT public_slug FROM applications WHERE state = 'not_sending'")}
         sent_off = [j for j in store.all_jobs(conn, include_closed=True) if j["public_slug"] in slugs]
         print("\n".join(gaps_report([j for j in rank(jobs, config, now) if not j["stale"]], sent_off, facts, args.limit)))
+        return
+    if args.other_titles:
+        import best  # imports this module
+        facts = best.resume_facts(config, now.date())
+        if facts is None:
+            print("No resume details yet: nothing to compare the open jobs with.")
+            return
+        print("\n".join(other_titles_report([j for j in rank(jobs, config, now) if not j["stale"]], config, facts,
+                                            args.limit if args.limit != 30 else 5)))
         return
     if args.best:
         import best  # imports this module
