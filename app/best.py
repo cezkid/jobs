@@ -198,7 +198,7 @@ def resume_facts(config: dict, today: date) -> dict | None:
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
     spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
     own = " ".join([master.get("headline") or ""] + [r.get("title") or "" for r in master.get("roles") or []])
-    return {"stems": stems(" ".join(parts)), "titles": stems(own), "years": knockout.dated_years(master, today),
+    return {"stems": stems(" ".join(parts)), "titles": stems(own), "lines": [p for p in parts if p.strip()], "years": knockout.dated_years(master, today),
             "credentials": knockout.credential_text(master), "portfolio": bool(knockout.portfolio_link(master)),
             "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
 
@@ -297,6 +297,23 @@ def backed(text: str, facts: dict, years_read: bool = False) -> bool | None:
         # "5+ years of experience": nothing past the years
         return years_read
     return sum(bool(f & facts["stems"]) for f in words) * 2 >= len(words)
+
+def backing(text: str, facts: dict) -> str | None:
+    """The resume line that backs one required ask: the line sharing the most of its words, when `backed`
+    says True. None = not backed, can't tell, or no lines read (facts w/o "lines"). Their own words, as written."""
+    if backed(text, facts) is not True:
+        return None
+    words = ask_words(text, {t for name in named(text) for t in name if root(t) in MAKERS | EDITIONS})
+    if not words:
+        return None
+    best_line, best_hits = None, 0
+    for line in facts.get("lines") or []:
+        have = stems(line)
+        hits = sum(bool(f & have) for f in words)
+        if hits > best_hits:
+            best_line, best_hits = line, hits
+    return " ".join(best_line.split()) if best_line and best_hits * 2 >= len(words) else None
+
 
 # a wish inside a line the job search tagged required: "is a plus", "preferred", "ideally" (2026-10-11,
 # 1,200 live rows: about 1 in 20 required lines carry one; finance 1 in 8). Never "5 plus years",

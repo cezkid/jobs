@@ -161,6 +161,7 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   computer (nothing fetched; what it finds goes to this chat - say so), each job not marked sent -> sent / likely not sent /
   can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable
   multiSelect "which did you send?", never more sure than its reason. Facts: `app/docs/apply/sent.md`.
+- "How's it going?" / "is this working?" -> `status progress`: say its lines as they are (small numbers = no verdict, "may" never cause); never push it unasked.
 - Still open? `status open`: each job in progress -> open / may be closed / can't tell, w/ its
   reason; say that reason, never more sure than it. A job from the list is asked about at the job
   search (its listing id only - privacy table); unreachable -> the list's own signals. Pasted or

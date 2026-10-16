@@ -433,3 +433,10 @@ def test_it_in_capitals_is_information_technology():
     assert "infotech" in best.words_of("Sr. IT Compliance Analyst")
     assert "infotech" in best.words_of("degree in Information Technology")
     assert best.words_of("make it work") == ["make"]
+
+
+def test_best_backing_returns_the_resume_line_only_when_backed():
+    f = {**facts(), "lines": ["Ran the month-end close in NetSuite", "Built reconciliations in Excel"]}
+    assert best.backing("Month-end close", f) == "Ran the month-end close in NetSuite"
+    assert best.backing("Experience with SAP", f) is None
+    assert best.backing("Month-end close", facts()) is None

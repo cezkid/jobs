@@ -216,3 +216,6 @@ jobs to apply to".
   description similarity), title fit (career-ops' title filter, here graded against the resume). Tried,
   not kept: a capped bonus for preferred asks backed (2026-10-12, below). Not yet: a score-band vs
   interview-rate report from their own statuses (career-ops `calibrate`, advisory, needs applications first).
+- Reply-rate report: built as `status progress` (on request only). Score band vs reply, plus speed,
+  staffing and list-vs-pasted: a verdict only at p < 0.05 (Fisher's exact) with 5+ replies on each
+  side, else "no clear difference yet". Waiting jobs are never no-reply; catch-up days left out.

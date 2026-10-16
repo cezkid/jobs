@@ -228,8 +228,8 @@ recorded wrong, different employers usually means real concurrent work), `bullet
 older role given more bullets than a newer one), `canonical-casing` (NginX, JQuery - one
 correct spelling per name, URLs exempt), `lead-bullet-weak`.
 
-Keywords the user is missing: measure, never guess. Their matched rows carry a `skills` list -
-count it across `jobs.db`, subtract what they list, show the top gaps w/ real percentages. Offer
+Keywords the user is missing: measure, never guess. `uv run app/jobs.py rank --gaps` counts
+what open jobs ask that their resume doesn't show, once per job; show the top gaps w/ real counts. Offer
 only ones their bullets already evidence (AWS when EC2 is on the page, LLM when they built AI
 tooling), each confirmed; a keyword they cannot defend in interview is worse than a missing one.
 

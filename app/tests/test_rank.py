@@ -293,6 +293,27 @@ def test_max_age_days_hides_older_first_seen_keeps_unknown():
     assert len(rank.rank(jobs, CONFIG, NOW)) == 4
 
 
+def test_rank_hidden_counts_per_rule_with_samples_in_window():
+    config = pay_config(relax_under_new_per_week=0)
+    config = cfg.merge(config, {"blocklist": {"title_phrases": ["intern"]}})
+    jobs = [week_job("ok", 1, **usd(120000, 130000)),
+            *[week_job(f"i{n}", 2, title=f"Intern {n}", **usd(120000, 130000)) for n in range(7)],
+            week_job("m", 1, category="marketing", **usd(120000, 130000)),
+            week_job("low", 3, **usd(50000, 60000)),
+            week_job("oldintern", 14, title="Intern old")]
+    out = rank.hidden_report(jobs, config, NOW)
+    assert out[0] == "settings hid 9 of 10 jobs listed in the last 7 days"
+    assert "title phrase hidden: 7" in out
+    assert sum(1 for l in out if l.startswith("  Intern")) == 5
+    assert "category hidden: 1" in out and "under your pay floor: 1" in out
+    assert not any("old" in l for l in out)
+
+
+def test_rank_hidden_says_nothing_hidden():
+    out = rank.hidden_report([week_job("a", 1)], CONFIG, NOW)
+    assert out == ["settings hid 0 of 1 jobs listed in the last 7 days - nothing"]
+
+
 def week_job(slug, days_ago, **over):
     """Reached their list days_ago days before NOW."""
     return make_job(slug, first_fetched_at=f"2026-09-{15 - days_ago:02d}T10:00:00Z", **over)
@@ -668,3 +689,68 @@ def test_avoided_skill_ranks_below_and_says_why():
     ranked = rank.rank([java, _asking("react", "Strong React")], config)
     assert [j["public_slug"] for j in ranked] == ["react", "java"]
     assert "asks Java" in rank.reasons(ranked[1], config)
+
+
+def gap_facts(**over):
+    return {"stems": set(), "titles": set(), "years": 10, "credentials": knockout.credential_text({}),
+            "portfolio": False, "degree": 2, "languages": set(), **over}
+
+
+def test_rank_gaps_counts_each_ask_once_per_job_grouped_by_kind():
+    facts = gap_facts()
+    jobs = [make_job("a", enrichment=req("FINRA Series 7 license (required)", "Series 7 required")),
+            make_job("b", enrichment=req("Series 7 required")),
+            make_job("c", enrichment=req("Must be a U.S. citizen"))]
+    assert len([g for g in rank.job_gaps(jobs[0], facts) if g[0] == "credential"]) == 1
+    assert rank.job_gaps(jobs[2], facts) == set()
+    lines = rank.gaps_report(jobs, [jobs[1]], facts, 10)
+    assert lines[0] == "Licences and certifications:"
+    assert "  Series 7 - 2 of 3 open jobs ask it; not on your resume." in lines
+    assert any(l.startswith("Jobs you chose not to send (1)") for l in lines)
+    assert any("small numbers" in l for l in lines)
+
+
+def test_rank_gaps_years_once_per_job_and_language():
+    facts = gap_facts(years=2)
+    job = make_job("a", enrichment=req("5+ years of experience", "7+ years of experience", "Fluent in Spanish"))
+    found = rank.job_gaps(job, facts)
+    assert [w for k, w in found if k == "years"] == ["7+ years"]
+    assert ("language", "Spanish") in found
+
+
+def test_rank_gaps_years_tool():
+    job = make_job("a", enrichment=req("5+ years of OneTrust"))
+    found = rank.job_gaps(job, gap_facts(years=10))
+    assert ("tool", "Onetrust") in {(k, w.title()) for k, w in found}
+    assert not [g for g in found if g[0] == "years"]
+    short = rank.job_gaps(job, gap_facts(years=2))
+    assert ("years", "5+ years") in short
+
+
+OTHER_LINES = ["Ran month-end close and account reconciliations in NetSuite", "Built payroll audits in Excel"]
+
+
+def other_facts(**over):
+    import best
+    return gap_facts(stems=best.stems(" ".join(OTHER_LINES)), titles=best.stems("Accountant"), lines=OTHER_LINES, **over)
+
+
+def test_rank_other_titles_carry_backing_line_and_local_count():
+    facts = other_facts()
+    jobs = [make_job(s, title="Reconciliation Specialist", enrichment=req("Account reconciliations in NetSuite"))
+            for s in "ab"]
+    found = rank.other_titles(jobs, CONFIG, facts)
+    assert [(g["title"], g["count"], g["backing"]) for g in found] == \
+        [("Reconciliation Specialist", 2, OTHER_LINES[0])]
+    assert "2 open jobs" in "\n".join(rank.other_titles_report(jobs, CONFIG, facts))
+
+
+def test_rank_other_titles_skip_a_level_or_licence_reach():
+    facts = other_facts()
+    ask = req("Account reconciliations in NetSuite")
+    ok = make_job("a", title="Reconciliation Specialist", enrichment=ask, seniority="junior")
+    licence = make_job("b", title="Reconciliation Specialist", seniority="junior",
+                       enrichment=req("Account reconciliations", "Series 7 required"))
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "entry"}})
+    above = make_job("c", title="Reconciliation Specialist", enrichment=ask, seniority="director")
+    assert [g["count"] for g in rank.other_titles([ok, licence, above], config, facts)] == [1]

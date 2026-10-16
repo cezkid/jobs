@@ -437,6 +437,108 @@ def credential_asks(job: dict, credentials: str) -> list[tuple[list[str], str]]:
     return [said for ask, said in asks.items() if not any(covered(ask, other) for other in asks)]
 
 
+GAP_KINDS = (("credential", "Licences and certifications"), ("tool", "Named tools"), ("years", "Years of experience"),
+             ("degree", "Degrees"), ("language", "Languages"))
+
+
+def job_gaps(job: dict, facts: dict) -> set[tuple[str, str]]:
+    """What a posting's required lines ask that the resume doesn't show, as (kind, wording): a licence or
+    certification, a named tool, years, a degree, a language. Each once per job. Asks no resume answers
+    (a trait, work permit, age) are never a gap: best.backed says None for them."""
+    import best  # imports this module
+    from resume import knockout
+    out = {("credential", said) for _, said in credential_asks(job, facts["credentials"])}
+    most = 0
+    for text in map(best.asked, required_lines(job)):
+        if not text or best.backed(text, facts) is not False:
+            continue
+        if knockout.credentials_missing(text, facts["credentials"]):
+            continue  # said above, folded
+        years = knockout.years_asked(text)
+        if years is not None and (facts.get("years") or 0) < years:
+            most = max(most, years)  # one years ask per job: the longest; only when the resume falls short
+        elif degree := knockout.degree_asked(text):
+            out.add(("degree", degree))
+        elif asked := best.languages(text) - {"english"}:
+            out.add(("language", " and ".join(sorted(a.title() for a in asked))))
+        else:
+            for name in best.named(text):
+                if name and not any(best.forms(t) & facts["stems"] for t in name):
+                    out.add(("tool", " ".join(w.upper() if len(w) < 4 else w.title() for w in name)))
+    if most:
+        out.add(("years", f"{most}+ years"))
+    return out
+
+
+def gaps_report(jobs: list[dict], sent_off: list[dict], facts: dict, limit: int) -> list[str]:
+    """Plain lines: per kind, each unbacked ask w/ how many of the open jobs carry it (once per job)."""
+    lines = []
+    found = {j["public_slug"]: job_gaps(j, facts) for j in jobs}
+    total = len(jobs)
+    counts = {}
+    for gs in found.values():
+        for g in gs:
+            counts[g] = counts.get(g, 0) + 1
+    for kind, heading in GAP_KINDS:
+        rows = sorted(((n, w) for (k, w), n in counts.items() if k == kind), key=lambda r: (-r[0], r[1]))[:limit]
+        if rows:
+            lines.append(f"{heading}:")
+            lines += [f"  {w} - {n} of {total} open jobs ask it; not on your resume." for n, w in rows]
+    if not lines:
+        lines.append(f"Nothing the open jobs ask is missing from your resume ({total} open jobs read).")
+    if sent_off:
+        lines.append(f"Jobs you chose not to send ({len(sent_off)}):")
+        for j in sent_off:
+            missing = sorted(w for _, w in job_gaps(j, facts))
+            lines.append(f"  {j['title']} | {j['company']}: " + (", ".join(missing) or "no missing ask found"))
+    if total < 20:
+        lines.append(f"Only {total} open jobs: small numbers, read the counts as rough.")
+    return lines
+
+
+OTHER_MATCH = 0.6  # share of required asks backed
+OTHER_FIT = 0.34   # title words found in the resume: at or under = a title they don't use
+
+
+def other_titles(jobs: list[dict], config: dict, facts: dict, limit: int = 5) -> list[dict]:
+    """Titles in the local list the resume backs but never uses: high match, low title fit. Never one with a
+    level mismatch (a level 2+ rungs above theirs, a seniority demerit) or a required licence / certification
+    / clearance they lack. Grouped by title: {title, count, backing, match}, most jobs first, top `limit`."""
+    import best  # imports this module
+    from resume import knockout
+    rc = config["rank"]
+    groups = {}
+    for j in jobs:
+        share, _ = best.match(j, facts)
+        if share < OTHER_MATCH or best.title_fit(j, facts) > OTHER_FIT:
+            continue
+        if mismatches(j, rc) or best.above_level(j, config, facts) or credential_asks(j, facts["credentials"]):
+            continue
+        if any(knockout.clearance_short(t, facts["credentials"]) for t in required_lines(j)):
+            continue
+        line = next(filter(None, (best.backing(t, facts) for t in best.required(j))), None)
+        if line is None:
+            continue
+        g = groups.setdefault(norm(re.sub(r"\(.*?\)", " ", j.get("title") or "")),
+                              {"title": j["title"], "count": 0, "backing": line, "match": share})
+        g["count"] += 1
+        g["match"] = max(g["match"], share)
+    return sorted(groups.values(), key=lambda g: (-g["count"], -g["match"], g["title"]))[:limit]
+
+
+def other_titles_report(jobs: list[dict], config: dict, facts: dict, limit: int = 5) -> list[str]:
+    found = other_titles(jobs, config, facts, limit)
+    if not found:
+        return [f"No other titles stand out: nothing among {len(jobs)} open jobs reads as backed by your resume"
+                " under a title you don't use, within your level."]
+    lines = ["Other titles your resume backs (within your level, no licence you lack):"]
+    for g in found:
+        lines.append(f"  {g['title']} - {g['count']} open job{'s' if g['count'] != 1 else ''} here; your resume: {g['backing']}")
+    if len(jobs) < 20:
+        lines.append(f"Only {len(jobs)} open jobs: small numbers, read the counts as rough.")
+    return lines
+
+
 def graduation_span(graduation: str, today) -> tuple[int, int]:
     from resume import schema
     return schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
@@ -759,6 +861,52 @@ def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
+def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
+    """The first setting that hides a row, in plain words; None = shown. Same tests as blocked(),
+    too_old, far and pay_filter, one rule per row (first match)."""
+    bl, rc = config["blocklist"], config["rank"]
+    if norm_company(job.get("company")) in {norm_company(c) for c in bl.get("companies") or []} \
+            or (job.get("company_slug") or "").lower() in {v.lower() for v in bl.get("companies") or []}:
+        return "company hidden"
+    if (job.get("source") or "").lower() in {v.lower() for v in bl.get("sources") or []}:
+        return "source hidden"
+    if (job.get("category") or "").lower() in {v.lower() for v in bl.get("categories") or []}:
+        return "category hidden"
+    if blocked(job, {"employment_types": bl.get("employment_types")}):
+        return "job type hidden"
+    if blocked(job, {"clearance": bl.get("clearance")}):
+        return "clearance jobs hidden"
+    if blocked(job, {"staffing": bl.get("staffing")}):
+        return "staffing firms hidden"
+    if blocked(job, {"software_kinds": bl.get("software_kinds")}):
+        return "kind of software work hidden"
+    if title_blocked(job.get("title") or "", bl):
+        return "title phrase hidden"
+    if too_old(job, rc, now):
+        return "older than your age limit"
+    if far(job, config):
+        return "too far from your cities"
+    why = pay_hidden(job, rc)
+    return {"below": "under your pay floor", "unlisted": "no pay listed"}.get(why)
+
+
+def hidden_report(jobs: list[dict], config: dict, now: datetime, days: int = 7, samples: int = 5) -> list[str]:
+    """What the settings hid among jobs first listed in the last `days` days: count per rule +
+    up to `samples` titles. Pay-floor rows the thin-week relax brought back are not counted."""
+    recent = [j for j in jobs if (d := listed_days(j, now)) is not None and d < days]
+    by_rule = defaultdict(list)
+    for j in recent:
+        if rule := hidden_rule(j, config, now):
+            by_rule[rule].append(j)
+    total = sum(len(v) for v in by_rule.values())
+    out = [f"settings hid {total} of {len(recent)} jobs listed in the last {days} days"
+           + ("" if total else " - nothing")]
+    for rule, rows in sorted(by_rule.items(), key=lambda kv: -len(kv[1])):
+        out.append(f"{rule}: {len(rows)}")
+        out += [f"  {j['title']} | {j['company']}" for j in rows[:samples]]
+    return out
+
+
 def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]]:
     cats = defaultdict(set)
     for j in jobs:
@@ -789,6 +937,13 @@ def main() -> None:
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
     ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
+    ap.add_argument("--gaps", action="store_true", help="what open jobs ask that the resume doesn't show, counted"
+                    " once per job by kind, plus jobs marked not sending (--limit = rows per kind)")
+    ap.add_argument("--other-titles", action="store_true", help="titles in the list your resume backs but never"
+                    " uses, never above your level or a licence you lack; --limit = titles (default 5 here)")
+    ap.add_argument("--hidden", action="store_true", help="what your settings hid, per rule, count + sample"
+                    " titles, among jobs first listed in the window")
+    ap.add_argument("--days", type=int, default=7, help="with --hidden: window in days (default 7)")
     args = ap.parse_args()
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
@@ -796,6 +951,9 @@ def main() -> None:
     if args.suspects:
         for company, categories in suspects(jobs, config["rank"]["suspect_min_categories"]):
             print(f"{company}: {', '.join(sorted(categories))}")
+        return
+    if args.hidden:
+        print("\n".join(hidden_report(jobs, config, datetime.now(timezone.utc), args.days)))
         return
     if args.would_hide:
         hidden = would_hide(jobs, args.would_hide, config["blocklist"])
@@ -824,6 +982,25 @@ def main() -> None:
         print(pay_probe(jobs, config, floor, args.hide_unlisted, now))
         if unit == "hour":
             print(f"to save: rank.salary_floor_usd: {floor}  rank.salary_floor_unit: hour  ({floor_words(config['rank'], floor)})")
+        return
+    if args.gaps:
+        import best  # imports this module
+        facts = best.resume_facts(config, now.date())
+        if facts is None:
+            print("No resume details yet: nothing to compare the open jobs with.")
+            return
+        slugs = {r[0] for r in conn.execute("SELECT public_slug FROM applications WHERE state = 'not_sending'")}
+        sent_off = [j for j in store.all_jobs(conn, include_closed=True) if j["public_slug"] in slugs]
+        print("\n".join(gaps_report([j for j in rank(jobs, config, now) if not j["stale"]], sent_off, facts, args.limit)))
+        return
+    if args.other_titles:
+        import best  # imports this module
+        facts = best.resume_facts(config, now.date())
+        if facts is None:
+            print("No resume details yet: nothing to compare the open jobs with.")
+            return
+        print("\n".join(other_titles_report([j for j in rank(jobs, config, now) if not j["stale"]], config, facts,
+                                            args.limit if args.limit != 30 else 5)))
         return
     if args.best:
         import best  # imports this module

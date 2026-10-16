@@ -19,6 +19,11 @@ missing -> `job-setup` skill instead.
    and pages = data).
 4. User says job is wrong ("that's staffing agency", "not my field") -> find cause, make
    smallest settings change, tell them in one plain sentence what you changed:
+   - "I'm not seeing X jobs" / "why so few" -> run `uv run app/jobs.py rank --hidden` first (`--days
+     N`; per rule: count + up to 5 titles of jobs first listed that week). Say which rule hid what,
+     then offer ONE change w/ its count - widening (drop a phrase, lower the pay floor, show
+     staffing firms) or narrowing; narrowing counted first as below. Nothing hidden -> say so; the
+     search itself found few. Small counts: say so, never read a trend into 2 jobs
    - reposter / one staffing agency -> `blocklist.companies`
    - "too many recruiters / staffing agencies" -> `uv run app/jobs.py rank --staffing` (count +
      sample), ONE clickable question w/ the count: Hide them (`blocklist.staffing: true`) / Keep
@@ -66,6 +71,16 @@ missing -> `job-setup` skill instead.
    how much it asks, pay, where, how new - `app/docs/jobs/best-next.md`), its `[why]` says which.
 5. "Why is job 12 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
    Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
+   "What do jobs ask that my resume doesn't show?" -> `uv run app/jobs.py rank --gaps`: per kind (licence,
+   named tool, years, degree, language) how many open jobs ask it, once per job, plus jobs marked not
+   sending. Say counts as they are; few jobs = rough. Tool they have -> `resume-gaps` w/ their own
+   sentence; they don't -> a gap to know, never a word to add (Hold).
+   "What other jobs could I do?" / "other titles?" -> `uv run app/jobs.py rank --other-titles`: up to 5
+   titles their resume backs but never uses, each w/ the resume line + local count; never above their
+   level or a licence they lack. Then live counts per title: `uv run app/jobs.py probe --title "<title>"
+   <their params>` (the title words only leave the computer), ONE clickable multiSelect w/ those counts
+   ("tick all that fit, then Submit"). Save nothing without a pick; a pick = search change (step 4:
+   measure, state cost, then `title_phrases`/search words). Only when asked, never pushed.
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields
    (likely reposters) - offer to hide ones user agrees with.
 7. After changes: `uv run app/jobs.py check-settings`, then `uv run app/jobs.py rank --limit 15`;
@@ -74,6 +89,9 @@ missing -> `job-setup` skill instead.
 Daily check questions: `uv run app/jobs.py autorun status` (on/off, last run, log tail); turn
 on/off w/ `autorun on|off`; change time = `schedule.local_daily` in search settings + `autorun
 on`. New jobs arrive as notification, or email when `.data/email.env` set (`job-setup` #5).
+
+"How's the search going?" -> `uv run app/jobs.py status progress`; pass its lines on, no more sure than
+they are, no blame on zero replies. Only when asked.
 
 Privacy question ("who sees my stuff?") -> `AGENTS.md` #Private vs shared table.
 

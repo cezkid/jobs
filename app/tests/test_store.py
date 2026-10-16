@@ -109,6 +109,19 @@ def test_jobs_by_link_prefers_open_then_newest(conn):
     assert store.jobs_by_link(conn, "https://elsewhere.test/1") is None
 
 
+def test_migrate_score_snapshots_on_old_db(tmp_path):
+    """A database from before score snapshots gains the table on connect; twice is harmless."""
+    import sqlite3
+    db = tmp_path / "old.db"
+    old = sqlite3.connect(db)
+    old.executescript(store.SCHEMA.split("-- the job's score when")[0])
+    old.close()
+    conn = store.connect(db)
+    store.connect(db).close()
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(score_snapshots)")}
+    assert cols == {"key", "state", "at", "match", "title_fit", "total"}
+
+
 def test_old_db_gains_clearance_column(tmp_path):
     """A user's database predates the column: connecting adds it, twice is harmless."""
     import sqlite3
