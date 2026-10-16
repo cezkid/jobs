@@ -50,6 +50,10 @@ SAME_WORK = {"developer": "engineer", "programmer": "engineer"}
 GRADES = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5}
 # words two titles share by accident, not by naming the same work
 TITLE_FILLER = {"and", "the", "for", "with"}
+# a posting title ending in one of these names a program, not a job anyone holds: "Acme Fellows
+# Program" printed as a top line read as their role (user report 2026-10-15) - null keeps their own
+NOT_A_ROLE = {"program", "programme", "programs", "fellowship", "internship", "apprenticeship", "residency",
+              "cohort", "bootcamp", "scholarship", "initiative", "opportunity", "opportunities"}
 # posting words a tailored title may not shorten; wider than schema.ABBREVIATED_TITLE, which also
 # judges the user's own file (their "Sales Mgr" is theirs to keep)
 ABBREVIATED = re.compile(r"\b(Sr|Jr|Snr|Jnr|Mgr)\b\.?", re.I)
@@ -171,7 +175,7 @@ Wording
 Summary
 - `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. A candidate still studying (an education entry with `expected` true, or an `end` after today) leads with the degree they are earning and when ("Statistics student, expected May 2027"), unless their current job is the work this posting is for - never a title they don't hold. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
 - A `headline` in master prints above the summary; the summary need not repeat it.
-- `headline_title`: {TOP_LINE_ON if top_line else TOP_LINE_OFF} Whole words of the posting's title copied exactly (same capitals); pick the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"). It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}) - one exception: "Senior" when their years in this kind of work (roles sharing a word with the title; Developer and Programmer count as Engineer) reach the posting's own years ask (at least {SENIOR_YEARS_FLOOR}), or {SENIOR_YEARS} when it states none; without them, leave the level word out ("Software Engineer" of "Senior Software Engineer"). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace.
+- `headline_title`: {TOP_LINE_ON if top_line else TOP_LINE_OFF} Whole words of the posting's title copied exactly (same capitals); pick the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"). It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. A posting title naming a program rather than a job ("Fellows Program", "Summer Internship") or the employer itself ("Acme Fellow"): null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}) - one exception: "Senior" when their years in this kind of work (roles sharing a word with the title; Developer and Programmer count as Engineer) reach the posting's own years ask (at least {SENIOR_YEARS_FLOOR}), or {SENIOR_YEARS} when it states none; without them, leave the level word out ("Software Engineer" of "Senior Software Engineer"). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
 
 Skills
@@ -326,6 +330,12 @@ def headline_title_problems(master: dict, job: dict, title: str, font: str = typ
     if (HEADLINE_BAR in title or not re.search(r"\w", title)
             or not re.search(rf"(?<!\w){re.escape(squeeze(title))}(?!\w)", squeeze(job["title"]), flags)):
         return [f"{where}: {title!r} not whole words of job title {job['title']!r}, capitals as written"]
+    words = re.findall(r"\w+", title.casefold())
+    if words[-1] in NOT_A_ROLE:
+        return [f"{where}: {title!r} names a program, not a job title - leave it null"]
+    company = (job.get("company") or "").casefold().strip()
+    if company and re.search(rf"(?<!\w){re.escape(company)}(?!\w)", title.casefold()):
+        return [f"{where}: {title!r} names the employer - reads as a job held there; leave it null"]
     if parts and lint.norm(title) == lint.norm(parts[0]):
         return [f"{where}: {title!r} repeats the headline's own title - leave it null"]
     out = []

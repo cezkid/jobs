@@ -52,7 +52,9 @@ title alone becomes one. No `|`, or a part before it sharing no word w/ any of t
 | "Senior" from years (owner 2026-10-12: "12+ years as Software Engineer, never titled Senior"): allowed when years in roles sharing a title word (past level words; overlaps once) reach the posting's own years ask, at least 5, or 8 when it states none (`tailor.senior_by_years`). Live 2026-10-12, US "Senior" titles, 30 days: 5 years the commonest ask in every field measured (software 25/61 stating years, finance 21/79, sales 22/79, marketing 21/84, healthcare 15/40); 8 covers 57/61 software asks | Senior is a level, not just a label -> asked under "To confirm" ("fair for the level you work at now?"). Only Senior: Lead, Staff, Principal, Manager, a grade numeral never come from years (they name a role or scope, not time). Top line only - work-history mirrors still fail it. Years in other work (12 as a cook) never count |
 
 Enforced: `tailor.check_headline_title` - whole words of the posting title (case kept), no `|`,
-not a repeat, no level word the current title / own headline title lacks ("Senior" aside, from
+not a repeat, never a program name (title ending Program, Fellowship, Internship, Cohort ... -
+`tailor.NOT_A_ROLE`; "Acme Fellows Program" printed as a top line read as their role, user report
+2026-10-15) or the employer's own name (reads as a job held there) - null then, theirs stays, no level word the current title / own headline title lacks ("Senior" aside, from
 years), no abbreviation (Sr,
 Snr, Mgr ...), never wraps a headline that fit one row (measured in the 600 weight). Its words
 count as generated words in the page budget (prompt says so). Lint's `unresolved-entity` skips
