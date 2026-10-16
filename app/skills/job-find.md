@@ -66,6 +66,10 @@ missing -> `job-setup` skill instead.
    how much it asks, pay, where, how new - `app/docs/jobs/best-next.md`), its `[why]` says which.
 5. "Why is job 12 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
    Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
+   "What do jobs ask that my resume doesn't show?" -> `uv run app/jobs.py rank --gaps`: per kind (licence,
+   named tool, years, degree, language) how many open jobs ask it, once per job, plus jobs marked not
+   sending. Say counts as they are; few jobs = rough. Tool they have -> `resume-gaps` w/ their own
+   sentence; they don't -> a gap to know, never a word to add (Hold).
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields
    (likely reposters) - offer to hide ones user agrees with.
 7. After changes: `uv run app/jobs.py check-settings`, then `uv run app/jobs.py rank --limit 15`;

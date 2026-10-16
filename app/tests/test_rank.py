@@ -668,3 +668,30 @@ def test_avoided_skill_ranks_below_and_says_why():
     ranked = rank.rank([java, _asking("react", "Strong React")], config)
     assert [j["public_slug"] for j in ranked] == ["react", "java"]
     assert "asks Java" in rank.reasons(ranked[1], config)
+
+
+def gap_facts(**over):
+    return {"stems": set(), "titles": set(), "years": 10, "credentials": knockout.credential_text({}),
+            "portfolio": False, "degree": 2, "languages": set(), **over}
+
+
+def test_rank_gaps_counts_each_ask_once_per_job_grouped_by_kind():
+    facts = gap_facts()
+    jobs = [make_job("a", enrichment=req("FINRA Series 7 license (required)", "Series 7 required")),
+            make_job("b", enrichment=req("Series 7 required")),
+            make_job("c", enrichment=req("Must be a U.S. citizen"))]
+    assert len([g for g in rank.job_gaps(jobs[0], facts) if g[0] == "credential"]) == 1
+    assert rank.job_gaps(jobs[2], facts) == set()
+    lines = rank.gaps_report(jobs, [jobs[1]], facts, 10)
+    assert lines[0] == "Licences and certifications:"
+    assert "  Series 7 - 2 of 3 open jobs ask it; not on your resume." in lines
+    assert any(l.startswith("Jobs you chose not to send (1)") for l in lines)
+    assert any("small numbers" in l for l in lines)
+
+
+def test_rank_gaps_years_once_per_job_and_language():
+    facts = gap_facts(years=2)
+    job = make_job("a", enrichment=req("5+ years of experience", "7+ years of experience", "Fluent in Spanish"))
+    found = rank.job_gaps(job, facts)
+    assert [w for k, w in found if k == "years"] == ["7+ years"]
+    assert ("language", "Spanish") in found

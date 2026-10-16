@@ -437,6 +437,64 @@ def credential_asks(job: dict, credentials: str) -> list[tuple[list[str], str]]:
     return [said for ask, said in asks.items() if not any(covered(ask, other) for other in asks)]
 
 
+GAP_KINDS = (("credential", "Licences and certifications"), ("tool", "Named tools"), ("years", "Years of experience"),
+             ("degree", "Degrees"), ("language", "Languages"))
+
+
+def job_gaps(job: dict, facts: dict) -> set[tuple[str, str]]:
+    """What a posting's required lines ask that the resume doesn't show, as (kind, wording): a licence or
+    certification, a named tool, years, a degree, a language. Each once per job. Asks no resume answers
+    (a trait, work permit, age) are never a gap: best.backed says None for them."""
+    import best  # imports this module
+    from resume import knockout
+    out = {("credential", said) for _, said in credential_asks(job, facts["credentials"])}
+    most = 0
+    for text in map(best.asked, required_lines(job)):
+        if not text or best.backed(text, facts) is not False:
+            continue
+        if knockout.credentials_missing(text, facts["credentials"]):
+            continue  # said above, folded
+        if (years := knockout.years_asked(text)) is not None:
+            most = max(most, years)  # one years ask per job: the longest
+        elif degree := knockout.degree_asked(text):
+            out.add(("degree", degree))
+        elif asked := best.languages(text) - {"english"}:
+            out.add(("language", " and ".join(sorted(a.title() for a in asked))))
+        else:
+            for name in best.named(text):
+                if name and not any(best.forms(t) & facts["stems"] for t in name):
+                    out.add(("tool", " ".join(w.upper() if len(w) < 4 else w.title() for w in name)))
+    if most:
+        out.add(("years", f"{most}+ years"))
+    return out
+
+
+def gaps_report(jobs: list[dict], sent_off: list[dict], facts: dict, limit: int) -> list[str]:
+    """Plain lines: per kind, each unbacked ask w/ how many of the open jobs carry it (once per job)."""
+    lines = []
+    found = {j["public_slug"]: job_gaps(j, facts) for j in jobs}
+    total = len(jobs)
+    counts = {}
+    for gs in found.values():
+        for g in gs:
+            counts[g] = counts.get(g, 0) + 1
+    for kind, heading in GAP_KINDS:
+        rows = sorted(((n, w) for (k, w), n in counts.items() if k == kind), key=lambda r: (-r[0], r[1]))[:limit]
+        if rows:
+            lines.append(f"{heading}:")
+            lines += [f"  {w} - {n} of {total} open jobs ask it; not on your resume." for n, w in rows]
+    if not lines:
+        lines.append(f"Nothing the open jobs ask is missing from your resume ({total} open jobs read).")
+    if sent_off:
+        lines.append(f"Jobs you chose not to send ({len(sent_off)}):")
+        for j in sent_off:
+            missing = sorted(w for _, w in job_gaps(j, facts))
+            lines.append(f"  {j['title']} | {j['company']}: " + (", ".join(missing) or "no missing ask found"))
+    if total < 20:
+        lines.append(f"Only {total} open jobs: small numbers, read the counts as rough.")
+    return lines
+
+
 def graduation_span(graduation: str, today) -> tuple[int, int]:
     from resume import schema
     return schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
@@ -789,6 +847,8 @@ def main() -> None:
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
     ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
+    ap.add_argument("--gaps", action="store_true", help="what open jobs ask that the resume doesn't show, counted"
+                    " once per job by kind, plus jobs marked not sending (--limit = rows per kind)")
     args = ap.parse_args()
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
@@ -824,6 +884,16 @@ def main() -> None:
         print(pay_probe(jobs, config, floor, args.hide_unlisted, now))
         if unit == "hour":
             print(f"to save: rank.salary_floor_usd: {floor}  rank.salary_floor_unit: hour  ({floor_words(config['rank'], floor)})")
+        return
+    if args.gaps:
+        import best  # imports this module
+        facts = best.resume_facts(config, now.date())
+        if facts is None:
+            print("No resume details yet: nothing to compare the open jobs with.")
+            return
+        slugs = {r[0] for r in conn.execute("SELECT public_slug FROM applications WHERE state = 'not_sending'")}
+        sent_off = [j for j in store.all_jobs(conn, include_closed=True) if j["public_slug"] in slugs]
+        print("\n".join(gaps_report([j for j in rank(jobs, config, now) if not j["stale"]], sent_off, facts, args.limit)))
         return
     if args.best:
         import best  # imports this module
