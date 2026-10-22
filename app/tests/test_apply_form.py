@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, zoho
+from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, workday, zoho
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -109,7 +109,8 @@ def test_link_picks_its_system_or_says_where_else():
     assert systems.for_url("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a") is ashby
     assert systems.for_url("https://boards.greenhouse.io/acme/jobs/1") is greenhouse
     assert systems.for_url("https://acme.recruitee.com/o/analyst") is None
-    assert "Workday" in systems.elsewhere("https://acme.wd5.myworkdayjobs.com/en-US/careers/job/x")
+    assert systems.for_url("https://acme.wd5.myworkdayjobs.com/en-US/careers/job/Remote/Analyst_R1") is workday
+    assert "Workday" in systems.elsewhere("https://wd5.myworkday.com/acme/d/inst/1$1/2.htmld")
 
 
 # --- shared answers: work the same for every system ---

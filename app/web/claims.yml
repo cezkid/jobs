@@ -33,7 +33,7 @@ home-freehire:
     rows: ^\| .* \| freehire\.me job search \|
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
-    - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
+    - '| Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting''s title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board''s copy of it (to find the employer''s own posting), or ask if it''s still open |'
     - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
 home-ai:
   page: index.html
@@ -55,7 +55,7 @@ privacy-freehire:
     rows: ^\| .* \| freehire\.me job search \|
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
-    - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
+    - '| Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting''s title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board''s copy of it (to find the employer''s own posting), or ask if it''s still open |'
     - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
 privacy-ai:
   page: privacy.html

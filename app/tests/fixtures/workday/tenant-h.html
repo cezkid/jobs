@@ -1,0 +1,67 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Workday "My Experience" as tenant H showed it (2026-10-22), for workday.js: "(Optional)" after the
+     section headings, a Skills box that takes "up to 10", pills the resume autofill added shown as
+     "<name> (Suggested)" whose search result is already ticked (a click takes it off), a search result that
+     ignores synthetic clicks (only a real click picks it), an acronym that is also another skill's bracket
+     ("Mortgage Cadence Platform (MCP)"), no Websites section but a LinkedIn box under "Social Network URLs"
+     that refuses a link without www. -->
+<div data-automation-id="progressBarActiveStep">current step 3 of 6 My Experience</div>
+<section>
+  <h3>Work History (Optional)</h3>
+  <button id="addWork">Add</button>
+</section>
+<section>
+  <h3>Skills and Strengths (Optional)</h3>
+  <p>Add up to 10 hard and/or soft skills that highlight your professional abilities.</p>
+  <div data-automation-id="formField-skills"><label for="skills">Type to Add Skills</label>
+    <div data-automation-id="selectedItemList" role="listbox" id="skillPills"></div><input id="skills"></div>
+</section>
+<section>
+  <h3>Social Network URLs</h3>
+  <div data-automation-id="formField-linkedInAccount"><label for="li">Please provide the URL to your LinkedIn profile.</label><input id="li" type="text">
+    <div data-automation-id="errorMessage" id="liError" hidden>Invalid LinkedIn URL</div></div>
+</section>
+<div id="prompt" hidden></div>
+<script>
+  const catalog = ['Mortgage Cadence Platform (MCP)', 'Model Context Protocol', 'React.js', 'Reels', 'CSS3', 'TypeScript',
+    'JavaScript', 'Node.js', 'PostgreSQL', 'Amazon Web Services (AWS)', 'Jest', 'Docker (Software)', 'GitLab', 'Figma', 'Python (Programming Language)'];
+  const picked = new Set();
+  const synthetic = new Set(['React.js']);  // only a real (trusted) click picks these
+  const pills = document.getElementById('skillPills');
+  const draw = () => {
+    pills.innerHTML = [...picked].map((s) => `<div data-automation-id="selectedItem" role="option"><div data-automation-id="promptOption">${s}${s === 'CSS3' && window.suggested ? ' (Suggested)' : ''}</div><span data-automation-id="DELETE_charm" data-skill="${s}">x</span></div>`).join('');
+  };
+  window.suggested = true; picked.add('CSS3'); draw();  // the resume autofill's pill
+  window.trusted = 0;
+  document.addEventListener('click', (e) => {
+    const el = e.target;
+    if (el.matches('[data-automation-id=DELETE_charm]')) { picked.delete(el.dataset.skill); window.suggested = false; draw(); return; }
+    const opt = el.closest('#prompt [data-automation-id=promptOption]');
+    if (opt) {
+      const name = opt.dataset.name;
+      if (synthetic.has(name) && !e.isTrusted) return;
+      if (e.isTrusted) window.trusted++;
+      if (picked.has(name)) picked.delete(name); else picked.add(name);
+      draw();
+      document.getElementById('prompt').hidden = true;
+    }
+  });
+  document.getElementById('li').addEventListener('focusout', (e) => {
+    document.getElementById('liError').hidden = /^https:\/\/www\.linkedin\.com\/in\//.test(e.target.value);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.id !== 'skills') return;
+    if (e.key === 'Escape') { document.getElementById('prompt').hidden = true; return; }
+    if (e.key !== 'Enter') return;
+    const typed = e.target.value.toLowerCase().replace(/[^a-z]/g, '');
+    setTimeout(() => {
+      const prompt = document.getElementById('prompt');
+      prompt.innerHTML = catalog.filter((c) => c.toLowerCase().replace(/[^a-z]/g, '').includes(typed.slice(0, 5)))
+        .map((c) => `<div data-automation-id="promptOption" data-name="${c}"><input type="checkbox"${picked.has(c) ? ' checked' : ''}> ${c}</div>`).join('');
+      prompt.hidden = false;
+    }, 200);
+  });
+</script>
+</body></html>

@@ -703,7 +703,7 @@ def say_labels(root: Path) -> dict[str, str]:
 
 def apply_systems(root: Path) -> tuple[set[str], set[str]]:
     """(filled from the resume, start box only) as the code has them: one module per system
-    (NAME), start-box ones define start_box(); Workday = ELSEWHERE (Chrome extension)."""
+    (NAME), start-box ones define start_box(); Workday is one of them (systems/workday.py)."""
     full, start = set(), set()
     folder = root / "app/apply/systems"
     for module in sorted(folder.glob("*.py")):
@@ -711,8 +711,6 @@ def apply_systems(root: Path) -> tuple[set[str], set[str]]:
         name = re.search(r'^NAME = "(.+)"', source, re.M)
         if name:
             (start if "def start_box(" in source else full).add(name.group(1))
-    if re.search(r'"myworkdayjobs\.com": "Workday', (folder / "__init__.py").read_text(encoding="utf-8")):
-        full.add("Workday")
     return full, start
 
 
