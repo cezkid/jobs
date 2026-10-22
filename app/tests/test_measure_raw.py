@@ -27,6 +27,7 @@ PAGE = """<!doctype html><body>
 <div id="app"><form><input id="field101"></form></div>
 <form name="form"><input name="cName"></form>
 <form id="job-application-form"><input name="candidate[first_name]"></form>
+<div><input name="rec-form_600000000000063542"></div>
 <div id="host"></div><div id="closed"></div>
 <script>
 const open = document.getElementById('host').attachShadow({mode: 'open'});

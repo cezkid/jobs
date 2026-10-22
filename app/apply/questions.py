@@ -18,7 +18,9 @@ KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "locatio
 # what a question is about when the system marks it (its own system field ids, or a title match)
 KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
         "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
-        "resume", "cover_letter", "linkedin", "github", "website", "portfolio", "street", "city", "state", "zip", None}
+        "resume", "cover_letter", "linkedin", "github", "website", "portfolio", "street", "city", "state", "zip",
+        # a skills box (Zoho Recruit's Skill Set): never drafted - marked so prepare can say it searches as typed
+        "skills", None}
 # an Education section's boxes, answered from one school in Resume details (question entry = which one)
 EDUCATION = {"school", "degree", "discipline", "school_start_month", "school_start_year", "school_end_month",
              "school_end_year"}
