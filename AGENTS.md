@@ -297,6 +297,9 @@ when asked, at setup, and before any step sending something new off computer.
 | Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
 | Resume you apply with | that employer's Taleo site | That employer, as soon as it's chosen and attached (only after you say yes) - before Submit; kept on your account there |
 | Contact details, work history, education, answers you apply with | that employer's Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |
+| Email you apply with | that employer's Zoho Recruit site | That employer, as you leave its box - before Submit (a form with screening questions checks it) |
+| Zip code, city, state, skills you type | that employer's Zoho Recruit site (each box searches Zoho Recruit's own list) | That employer, letter by letter as it's typed - before Submit |
+| Contact details, work history, education, answers, resume you apply with | that employer's Zoho Recruit site | That employer, once you click Submit |
 | Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
 | Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |

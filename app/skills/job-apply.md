@@ -211,6 +211,12 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Paylocity: email goes to the site as its box is left (its own email check), resume as the
    file is picked - both before Submit; say so before `fill`. Start date: they pick it in the
    page's calendar (typed keys don't take).
+   Zoho Recruit: on a form with screening questions the email goes to the site as its box is left;
+   zip, city, state and skills go letter by letter as typed; resume + the rest at Submit - say so
+   before `fill`. Experience Details question: one yes adds their jobs a row each (title, company,
+   dates, the tailored lines) - ask. Current Job Title: the employer's own list - none fits ->
+   leave it, never a title they don't hold. The cookie notice and the CAPTCHA are theirs on the
+   page. `app/docs/apply/zoho.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
