@@ -258,7 +258,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; `uv run app/jobs.py clear-signins` empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
-| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
+| Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting's title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board's copy of it (to find the employer's own posting), or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; a saved note about you, when it's used; Today summary (job numbers, titles, companies - Claude, as a chat opens); what browser history shows for jobs not marked sent (`status sent`, when asked); email app password, if they turn on email (typed in chat) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
 | Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications); titles + addresses of their open Chrome tabs | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
@@ -477,3 +477,6 @@ On finding one:
 3. Yes -> `report-defect` skill. No -> leave fix local, say so.
 
 Never push, fork or open PR/issue w/o that yes. PR mechanics: `.github/CONTRIBUTING.md`.
+Application filled through the Chrome extension because Job Finder has no filler for that system
++ a GitHub account attached -> after "Did you send it?", ask once to teach Job Finder that form
+(`job-apply` #Teach Job Finder this form); its yes is this consent.

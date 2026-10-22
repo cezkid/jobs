@@ -64,8 +64,8 @@ def discover() -> list:
 
 SYSTEMS = discover()
 # filled another way: say so instead of "not supported"
-ELSEWHERE = {"myworkdayjobs.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)",
-             "myworkday.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)"}
+# (Workday's public careers sites are a system here, systems/workday.py; its employee-side host is not)
+ELSEWHERE = {"myworkday.com": "Workday (employee sign-in host) - use `apply` + the Chrome extension (job-apply skill, Steps)"}
 
 
 def for_url(url: str):

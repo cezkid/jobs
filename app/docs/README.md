@@ -36,7 +36,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Jobs | [jobs/best-next.md](jobs/best-next.md) | "Best to apply next" order: Today, chat brief, email - each factor, weight, basis |
 | Jobs | [jobs/pay-filter.md](jobs/pay-filter.md) | Jobs under their lowest pay hidden on every list; closest back in a thin week |
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |
-| Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
+| Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled in Job Finder's Chrome (the Chrome extension as fallback) |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |
 | Applying | [apply/greenhouse.md](apply/greenhouse.md) | Greenhouse forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen |
 | Applying | [apply/vscode-browser.md](apply/vscode-browser.md) | Filling a form inside the Job Finder window's own tab - two routes measured (local form + one Greenhouse posting), costs, recommendation |

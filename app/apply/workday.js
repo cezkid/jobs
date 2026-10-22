@@ -26,7 +26,23 @@ window.__jf = (() => {
   }
   const out = (el) => { el.dispatchEvent(new FocusEvent('blur')); el.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); el.blur(); };
   const key = (el, k, code) => ['keydown', 'keyup'].forEach((t) => el.dispatchEvent(new KeyboardEvent(t, { key: k, keyCode: code, which: code, bubbles: true })));
-  const click = (el) => { el.scrollIntoView({ block: 'center' }); ['mousedown', 'mouseup'].forEach((t) => el.dispatchEvent(new MouseEvent(t, { bubbles: true }))); el.click(); };
+  // real clicks when a driver takes them (Job Finder's Chrome, apply/systems/workday.py): some skills-list
+  // options ignored synthetic clicks while a real click on the same option took every time (tenant H,
+  // 2026-10-22). The driver polls takeClick(), clicks at x/y with the mouse, then calls clicked(n)
+  const R = { on: false, want: null, done: 0 };
+  async function click(el) {
+    el.scrollIntoView({ block: 'center' });
+    if (R.on) {
+      const r = el.getBoundingClientRect(), n = R.done + 1;
+      R.want = { n, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
+      for (const t = Date.now() + 10000; R.done < n && Date.now() < t;) await sleep(50);
+      R.want = null;
+      return;
+    }
+    ['mousedown', 'mouseup'].forEach((t) => el.dispatchEvent(new MouseEvent(t, { bubbles: true }))); el.click();
+  }
+  const takeClick = () => (R.want ? JSON.stringify(R.want) : '');
+  const clicked = (n) => { R.done = n; };
   // where the form is: a synthetic Enter must never move it on (that is a Save the user never clicked)
   const where = () => `${location.href}|${txt(document.querySelector('[data-automation-id="progressBarActiveStep"]'))}`;
   function best(opts, wanted) {
@@ -70,7 +86,7 @@ window.__jf = (() => {
       const add = [...(section(heading)?.querySelectorAll('button') || [])].reverse().find((b) => /^add( another)?$/i.test(txt(b)));
       const before = entries(anchor).length;
       if (!add) return note(area, 'Add', 'FAIL', 'no Add button');
-      click(add);
+      await click(add);
       if (!await until(() => entries(anchor).length > before)) return note(area, 'Add', 'FAIL', 'no new entry appeared');
     }
     const extra = entries(anchor).length - n;
@@ -94,9 +110,9 @@ window.__jf = (() => {
     const cb = () => find()?.querySelector('input[type="checkbox"]');
     const el = cb();
     if (!el) return want && note(area, name, 'FAIL', 'checkbox not found');
-    if (el.checked !== want) { click(el); await sleep(300); }
+    if (el.checked !== want) { await click(el); await sleep(300); }
     if (el.checked !== want) return note(area, name, 'WARN', `checked=${el.checked}`);
-    keep(area, name, () => cb()?.checked === want, () => { const e = cb(); if (e && e.checked !== want) click(e); });
+    keep(area, name, () => cb()?.checked === want, async () => { const e = cb(); if (e && e.checked !== want) await click(e); });
   }
   async function date(area, name, find, ym) {
     if (!ym) return;
@@ -115,14 +131,14 @@ window.__jf = (() => {
   }
   // single-choice menu (Degree): options live in a listbox popup, not in the field
   async function choose(btn, wanted) {
-    click(btn);
+    await click(btn);
     // options can arrive late, and a list from the menu before can still show (tenant G, hidden
     // window): wait for a match, not for the first options
     let opts = [];
     const hit = await until(() => { opts = [...document.querySelectorAll('[role="listbox"] [role="option"]')].filter((o) => shown(o) && !picked(o)); return opts.length && best(opts, wanted); }, 4000);
     if (!opts.length) return { why: 'menu did not open' };
     if (!hit) { key(btn, 'Escape', 27); return { ask: `no match for ${wanted[0]}; choices: ${opts.map(txt).join(' | ')}` }; }
-    click(hit); await sleep(400);
+    await click(hit); await sleep(400);
     return { got: txt(hit) };
   }
   async function menu(area, name, find, wanted) {
@@ -158,18 +174,27 @@ window.__jf = (() => {
     if (already) return keep(area, name, () => has(already));
     const tried = [];
     for (const w of wanted) {
+      // the last search's results still up: a click meant for the box landed on one of them ("Reels",
+      // tenant H) - closed first
+      if (results(input).length) { key(input, 'Escape', 27); await until(() => !results(input).length, 1500); }
       const at = where();
       put(input, w); key(input, 'Enter', 13); await sleep(600);
       if (where() !== at || !document.contains(input)) throw new Error('Enter moved the form to another step - stopped filling; tell the user to check the page');
       // results can trail the typed words by a search (tenant G): wait for a match, not the first results
       let opts = [];
-      const hit = await until(() => { opts = [...document.querySelectorAll('[data-automation-id="promptOption"]')].filter((o) => shown(o) && !picked(o) && !box(input).contains(o) && !/no items/i.test(txt(o))); return opts.length && close(opts, w, mode); }, 3000);
+      const hit = await until(() => { opts = results(input); return opts.length && close(opts, w, mode); }, 3000);
       if (!hit) { tried.push(`${w}: ${opts.length ? opts.slice(0, 4).map(txt).join(' / ') : 'none'}`); continue; }
-      const before = pills(input).length;
-      click(hit.querySelector('input[type="checkbox"], input[type="radio"]') || hit); await sleep(400);
-      put(input, ''); key(input, 'Escape', 27); out(input);
+      const before = pills(input).length, tick = hit.querySelector('input[type="checkbox"], input[type="radio"]');
       const got = txt(hit);
-      if (pills(input).length <= before) return note(area, name, 'WARN', `"${got}" click did not register`);
+      // already ticked (a pill the page added, shown as "<name> (Suggested)"): a click would take it off
+      // again - CSS3 and Git went that way (tenant H)
+      if (tick?.checked || hit.getAttribute('aria-selected') === 'true') {
+        put(input, ''); key(input, 'Escape', 27); out(input);
+        return note(area, name, 'OK', `"${got}" already picked`);
+      }
+      await click(tick || hit); await sleep(400);
+      put(input, ''); key(input, 'Escape', 27); out(input);
+      if (pills(input).length <= before) return note(area, name, 'ASK', `"${got}" click did not register - pick it by hand (a real click takes it)`);
       keep(area, name, () => has(got));
       return note(area, name, norm(got) === norm(wanted[0]) ? 'OK' : 'ASK', `picked "${got}"`);
     }
@@ -177,12 +202,18 @@ window.__jf = (() => {
     note(area, name, 'ASK', `not on this form's list. Tried ${tried.join(' || ')}`);
   }
   async function unpick(input, re) {
-    for (const p of pills(input).filter((p) => re.test(txt(p)))) { const x = p.querySelector('[data-automation-id="DELETE_charm"]'); if (x) { click(x); await sleep(300); } }
+    for (const p of pills(input).filter((p) => re.test(txt(p)))) { const x = p.querySelector('[data-automation-id="DELETE_charm"]'); if (x) { await click(x); await sleep(300); } }
   }
+  // a search-pick box's popup results: never a picked pill (any field's), never the box's own
+  const results = (input) => [...document.querySelectorAll('[data-automation-id="promptOption"]')]
+    .filter((o) => shown(o) && !picked(o) && !box(input).contains(o) && !/no items/i.test(txt(o)));
 
+  // section headings: "Work Experience", "Education" (tenant A, G); "Work History (Optional)", "Education
+  // (Optional)", "Skills and Strengths (Optional)" (tenant H, 2026-10-22)
+  const WORK = /^work (experience|history)\b/i, EDUCATION = /^education\b/i, LANGUAGES = /^languages\b/i, WEBSITES = /^websites\b/i;
   async function work(list) {
     const anchor = /^job title/i;
-    await grow('Work', /^work experience$/i, anchor, list.length);
+    await grow('Work', WORK, anchor, list.length);
     for (const [i, w] of list.entries()) {
       const e = entries(anchor)[i], a = `Work ${i + 1}`;
       if (!e) break;
@@ -199,7 +230,7 @@ window.__jf = (() => {
   }
   async function education(list) {
     const anchor = /^school or university/i;
-    await grow('Education', /^education$/i, anchor, list.length);
+    await grow('Education', EDUCATION, anchor, list.length);
     for (const [i, d] of list.entries()) {
       const e = entries(anchor)[i], a = `Education ${i + 1}`;
       if (!e) break;
@@ -214,28 +245,53 @@ window.__jf = (() => {
     const find = () => { const l = labels(document).find((x) => /skills/i.test(said(x))); return l && ((l.htmlFor && document.getElementById(l.htmlFor)) || box(l)?.querySelector('input')); };
     const input = find();
     if (!input) return note('Skills', 'field', 'FAIL', 'not found on this step');
+    // "Add up to 10 hard and/or soft skills" (tenant H): the first 10 of the list, which arrives ordered
+    // by relevance to the posting; pills the page added itself (autofill) make room for them - the user
+    // asked for the ones closest to the posting (2026-10-22)
+    const cap = skillCap(input);
+    if (cap && pills(input).length) {
+      const n = pills(input).length;
+      await unpick(input, /./);
+      note('Skills', 'limit', 'NOTE', `the form takes ${cap}: took off ${n} the page had added, to fit the ${cap} closest to the posting`);
+    }
+    const full = () => cap && pills(find()).length >= cap;
     // some tenants (tenant A) take languages in the Skills box as "Spanish - Fluent", listed levels only
-    if (!section(/^languages$/i)) for (const g of languages) {
+    if (!section(LANGUAGES)) for (const g of languages) {
+      if (full()) break;
       await unpick(input, new RegExp(`^${g.name} - `, 'i'));
       await pick('Languages', g.name, find, g.levels.map((lv) => `${g.name} - ${lv}`), 'exact');
     }
-    for (const s of list) await pick('Skills', s, find, names(s), 'strict');
+    const left = [];
+    for (const s of list) if (full()) left.push(s); else await pick('Skills', s, find, names(s), 'strict');
+    if (left.length) note('Skills', 'limit', 'NOTE', `the form takes ${cap}: left out ${left.join(', ')}`);
+  }
+  function skillCap(input) {
+    let el = box(input);
+    for (let i = 0; el && i < 6; i++, el = el.parentElement) {
+      const m = txt(el).match(/\bup to (\d+)\b[^.]{0,40}\bskills\b/i);
+      if (m) return +m[1];
+    }
+    return null;
   }
   // other names a skills list files the same skill under (tenant G: AWS only as "Amazon Web Services")
   const ALIASES = { aws: ['Amazon Web Services'], rest: ['REST API', 'RESTful API'], claudecode: ['Anthropic Claude Code'],
     microfrontends: ['Microfrontends', 'Micro Frontends'], gcp: ['Google Cloud Platform'], agile: ['Agile Methodology'],
-    llms: ['Large Language Models'] };
+    llms: ['Large Language Models'], mcp: ['Model Context Protocol'] };
   // "JavaScript/ES6" -> each half; "WCAG 2.2 AA" -> "WCAG" (version + level dropped); then aliases
   function names(s) {
     const parts = s.split('/').map((x) => x.trim()).filter((x) => x.length > 2 && x !== s); // never CI/CD -> "CI"
     const bare = s.replace(/\s+v?\d[\d.]*(\s+[A-Z]{1,3})?$/, ''); // never "Agentic AI" -> "Agentic"
-    return [...new Set([s, ...parts, bare, ...(ALIASES[norm(s)] || [])].filter(Boolean))];
+    const aliases = ALIASES[norm(s)] || [];
+    // a short all-caps name: its own spelled-out name first - "MCP" alone matched "Mortgage Cadence Platform
+    // (MCP)" by its bracket (tenant H), while "Model Context Protocol" was on the list
+    if (/^[A-Z]{2,5}s?$/.test(s)) return [...new Set([...aliases, s, ...parts, bare].filter(Boolean))];
+    return [...new Set([s, ...parts, bare, ...aliases].filter(Boolean))];
   }
   // separate Languages section (tenant G): one entry per language - Language, "I am fluent in this
   // language", then a level menu per skill (Comprehension, Overall, Reading, Speaking, Writing)
   async function languageSection(list) {
     const anchor = /^language$/i, level = /^(comprehension|overall|reading|speaking|writing|proficiency|level)/i;
-    await grow('Languages', /^languages$/i, anchor, list.length);
+    await grow('Languages', LANGUAGES, anchor, list.length);
     for (const [i, g] of list.entries()) {
       const e = entries(anchor)[i], a = `Language ${i + 1}`;
       if (!e) break;
@@ -246,9 +302,23 @@ window.__jf = (() => {
       for (const l of labels(e).filter((x) => level.test(said(x)))) await menu(a, said(l), within(anchor, i, field, new RegExp(`^${said(l)}$`, 'i')), g.levels);
     }
   }
+  // one box per profile site (tenant H: "Social Network URLs" > "Please provide the URL to your LinkedIn
+  // profile."): the link written as its check takes it - "https://linkedin.com/in/x" got "Invalid LinkedIn
+  // URL", "https://www.linkedin.com/in/x" passed (2026-10-22)
+  const SITES = { linkedin: 'https://www.linkedin.com', github: 'https://github.com', twitter: 'https://twitter.com' };
+  const exact = (s) => new RegExp(`^${s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+  async function social(links) {
+    for (const l of labels(document)) {
+      const site = said(l).match(/\b(linkedin|github|twitter)\b/i)?.[1].toLowerCase();
+      const link = site && links.find((u) => new RegExp(`(^|[/.])${site}\\.com/`, 'i').test(u));
+      const find = () => { const f = field(document, exact(said(l))); return f?.tagName === 'INPUT' && f.type === 'text' ? f : null; };
+      if (!link || !find()) continue;
+      await text('Websites', said(l), find, link.replace(new RegExp(`^(https?://)?(www\\.)?${site}\\.com`, 'i'), SITES[site]));
+    }
+  }
   async function websites(list) {
     const anchor = /^url/i;
-    await grow('Websites', /^websites$/i, anchor, list.length);
+    await grow('Websites', WEBSITES, anchor, list.length);
     for (const [i, u] of list.entries()) await text('Websites', `URL ${i + 1}`, within(anchor, i, field, anchor), u);
   }
   // after the page settles, read every answer again: a re-render can clear one that showed when
@@ -283,9 +353,13 @@ window.__jf = (() => {
     try {
       if (only.includes('work')) { S.step = 'work'; await work(data.work); }
       if (only.includes('education')) { S.step = 'education'; await education(data.education); }
-      if (only.includes('skills') && section(/^languages$/i) && data.languages.length) { S.step = 'languages'; await languageSection(data.languages); }
+      if (only.includes('skills') && section(LANGUAGES) && data.languages.length) { S.step = 'languages'; await languageSection(data.languages); }
       if (only.includes('skills')) { S.step = 'skills'; await skills(data.skills, data.languages); }
-      if (only.includes('websites') && data.links?.length) { S.step = 'websites'; await websites(data.links); }
+      if (only.includes('websites') && data.links?.length) {
+        S.step = 'websites';
+        if (section(WEBSITES)) await websites(data.links);
+        await social(data.links);
+      }
       S.step = 'verify'; await verify();
     } catch (err) { note(S.step, 'error', 'FAIL', String(err)); }
     S.step = 'done'; S.done = true;
@@ -327,24 +401,27 @@ window.__jf = (() => {
   // mark, option list per shown field. Never an answer: no value, checked state, picked pill or a
   // menu's shown choice; no search-popup options (they echo what was typed). `page` (host, title,
   // site name) only tells `apply-form workday-fixture` what to strip - it drops it (workday.md #Fixtures)
+  const aid = (el) => el?.getAttribute('data-automation-id') || '';
+  const opt = (el) => txt(el.labels?.[0] || el.closest('label')) || el.getAttribute('aria-label') || '';
+  const controlsShown = () => [...document.querySelectorAll('input:not([type="hidden"]), textarea, select, button')]
+    .filter((c) => shown(c) || c.type === 'file');
+  function kind(b, cs) {
+    const has = (sel) => cs.filter((c) => c.matches(sel));
+    if (has('[type="file"]').length) return 'file';
+    if (has('[data-automation-id*="dateSection"]').length) return 'date';
+    if (has('[type="radio"]').length) return 'radio';
+    if (has('[type="checkbox"]').length) return has('[type="checkbox"]').length > 1 ? 'checkboxes' : 'checkbox';
+    if (has('select').length) return 'select';
+    if (has('textarea').length) return 'textarea';
+    // a search list says how many are picked ("0 items selected", tenant H's How Did You Hear + phone code)
+    if (b.querySelector('[data-automation-id="selectedItem"], [data-automation-id*="multiselect" i]') || has('[aria-haspopup]:not(button)').length
+      || /\b\d+ items? selected\b/i.test(txt(b))) return 'search-pick';
+    if (has('input').length) return has('input')[0].type === 'text' ? 'text' : has('input')[0].type;
+    return has('button').length ? 'menu' : 'other';
+  }
   function snapshot() {
-    const aid = (el) => el?.getAttribute('data-automation-id') || '';
-    const opt = (el) => txt(el.labels?.[0] || el.closest('label')) || el.getAttribute('aria-label') || '';
-    const controls = [...document.querySelectorAll('input:not([type="hidden"]), textarea, select, button')]
-      .filter((c) => shown(c) || c.type === 'file');
+    const controls = controlsShown();
     const boxes = [...new Set(controls.map((c) => c.closest('[data-automation-id^="formField"], fieldset')).filter(Boolean))];
-    const kind = (b, cs) => {
-      const has = (sel) => cs.filter((c) => c.matches(sel));
-      if (has('[type="file"]').length) return 'file';
-      if (has('[data-automation-id*="dateSection"]').length) return 'date';
-      if (has('[type="radio"]').length) return 'radio';
-      if (has('[type="checkbox"]').length) return has('[type="checkbox"]').length > 1 ? 'checkboxes' : 'checkbox';
-      if (has('select').length) return 'select';
-      if (has('textarea').length) return 'textarea';
-      if (b.querySelector('[data-automation-id="selectedItem"], [data-automation-id*="multiselect" i]') || has('[aria-haspopup]:not(button)').length) return 'search-pick';
-      if (has('input').length) return has('input')[0].type === 'text' ? 'text' : has('input')[0].type;
-      return has('button').length ? 'menu' : 'other';
-    };
     const fields = boxes.map((b) => {
       // a pill's own delete button is the applicant's pick, not the field
       const cs = controls.filter((c) => b.contains(c) && !c.closest('[data-automation-id="selectedItem"]'));
@@ -369,6 +446,55 @@ window.__jf = (() => {
       page: { host: location.hostname, title: document.title, site },
     });
   }
+  // the step's questions for Job Finder's Chrome (apply/systems/workday.py): every shown field, tagged
+  // data-jf-id so the driver finds it again. Never a value read back - only whether the box shows one.
+  // A box = its formField / fieldset, else the nearest block holding its label (questions without a hook)
+  function fields() {
+    const controls = controlsShown().filter((c) => !c.closest('[data-automation-id="selectedItem"]'));
+    const heads = [...document.querySelectorAll('h2, h3, h4, legend')].filter(shown);
+    const holder = (c) => {
+      const hooked = c.closest('[data-automation-id^="formField"], fieldset');
+      if (hooked) return hooked;
+      const l = c.id && document.querySelector(`label[for="${CSS.escape(c.id)}"]`);
+      let el = l && c.parentElement;
+      while (el && !el.contains(l)) el = el.parentElement;
+      return el || null;
+    };
+    const boxes = [...new Set(controls.map(holder).filter(Boolean))].filter((b) => !boxes_in_pill(b));
+    const used = new Map();
+    return JSON.stringify(boxes.map((b) => {
+      const cs = controls.filter((c) => b.contains(c));
+      const l = labels(b)[0], k = kind(b, cs);
+      const label = l ? said(l) : cs.map((c) => c.getAttribute('aria-label')).find(Boolean) || '';
+      const hook = aid(b), named = cs.map((c) => c.id).find((x) => x.includes('--'));
+      // the control's own id when Workday names it ("address--city", "primaryQuestionnaire--<hash>",
+      // tenant H); radios carry made-up ids per load ("whfv9"), so then the box's hook, then the label
+      let id = named || (hook.startsWith('formField-') && boxes.filter((x) => aid(x) === hook).length === 1 && hook)
+        || `q-${norm(label).slice(0, 60)}`;
+      used.set(id, (used.get(id) || 0) + 1);
+      if (used.get(id) > 1) id += `-${used.get(id)}`;
+      b.setAttribute('data-jf-id', id);
+      const head = heads.filter((h) => h.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING && !h.contains(b)).pop();
+      const filled = k === 'menu' ? !/^(select one)?$/i.test(txt(cs.find((c) => c.tagName === 'BUTTON')))
+        : k === 'search-pick' ? !!b.querySelector('[data-automation-id="selectedItem"]')
+          : /radio|checkbox/.test(k) ? cs.some((c) => c.checked)
+            : k === 'file' ? false : cs.some((c) => /INPUT|TEXTAREA/.test(c.tagName) && c.value);
+      const f = { id, label, kind: k, section: head ? txt(head) : '',
+        required: (!!l && /\*\s*$/.test(txt(l))) || cs.some((c) => c.required || c.getAttribute('aria-required') === 'true'),
+        filled, options: [] };
+      if (k === 'radio' || k === 'checkboxes') f.options = cs.filter((c) => /radio|checkbox/.test(c.type)).map(opt);
+      if (k === 'select') f.options = [...cs.find((c) => c.tagName === 'SELECT').options].map(txt);
+      return f;
+    }));
+  }
+  const boxes_in_pill = (b) => !!b.closest('[data-automation-id="selectedItem"]');
+  // the step's Resume/CV file box tagged for the driver's file chooser; '' when there is none
+  function resumeInput() {
+    const b = resumeBox(), input = b?.querySelector('input[type="file"]');
+    if (!input) return '';
+    input.setAttribute('data-jf-file', 'resume');
+    return 'tagged';
+  }
   // a tenant may keep a date only from real key presses (tenant G: Save said "From is required"
   // over every filled date). Centre each month box in turn; same spot per column, so the AI clicks
   // there and types `keys` (MMYYYY) with the extension's real keys
@@ -380,5 +506,5 @@ window.__jf = (() => {
     }));
   }
   const aim = (i) => { S.dates[i]?.get()?.scrollIntoView({ block: 'center' }); return i; };
-  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, S };
+  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, fields, resumeInput, takeClick, clicked, R, S };
 })();

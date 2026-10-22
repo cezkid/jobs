@@ -6,6 +6,45 @@ language levels) are each employer's. `app/apply/workday.js` finds every field b
 never id -> one filler, every tenant. Each fact names its tenant by letter, never the employer
 (public repo; a name shows where the user applied). Add yours as a new line; never rewrite one.
 
+## Job Finder's Chrome (2026-10-22)
+
+Workday is filled in Job Finder's own Chrome like every other system (`apply-form prepare` + `fill`,
+`apply/systems/workday.py`); the Claude Chrome extension route (`apply` + `workday.js` sent by the AI,
+job-apply skill Steps) stays the fallback. One step per page, the user's own tab (found by the posting's
+`<title>_<requisition>` part, kept in the address through every step - tenant H):
+
+| Page | `prepare` reads | `fill` does |
+|---|---|---|
+| Posting | the start choice (Autofill with Resume / Apply Manually / Use My Last Application, tenants G + H) | clicks Apply + the choice (measured live 2026-10-22 on tenant H, writes blocked: Apply, then the account page loaded, 0 writes) |
+| Create Account/Sign In | stops: the user signs in or creates the account there | - |
+| Autofill with Resume | the resume box | chooses the tailored PDF (`upload_on_apply` or a yes) |
+| My Information, Application Questions, Voluntary Disclosures, other steps | every shown field by its label (`workday.js` `fields()`), each tagged `data-jf-id`: the control's own id when Workday names it (`address--city`, `primaryQuestionnaire--<hash>`, tenant H), else the box's `formField-*` hook, else the label. Menus opened once to read their options (Escape after); a two-level search list read as `<category> > <option>`. Boxes the page filled already left out unless resume or settings answer them (Country, phone code) | types with real keys (focus leaves the box after), picks menu options and list options with real clicks, ticks radios + boxes by their label |
+| My Experience | one yes/no: work history, education, skills, profile links from the tailored resume; the Resume/CV box | `workday.js` `run()` with real clicks: it asks (`takeClick()`), Python clicks with the mouse, then `clicked(n)` |
+| Review | nothing: the user's Submit | - |
+
+Unmeasured through this route (no account of ours - the steps after sign-in were measured through the
+extension on the user's own application, never driven from Python live): reading the steps, the menus'
+option reads, typed dates, the run on My Experience. Modelled on the steps tenant H showed
+(`tests/test_apply_workday.py`, `fixtures/workday/tenant-h.html`).
+
+## Tenant H (2026-10-22, one application, through the extension)
+
+| Seen | Rule |
+|---|---|
+| Section headings "Work History (Optional)", "Education (Optional)", "Skills and Strengths (Optional)" | headings matched from their start (`WORK`, `EDUCATION`, `LANGUAGES`, `WEBSITES`); `^work experience$` / `^education$` found none |
+| No Websites section; "Social Network URLs" holds one box "Please provide the URL to your LinkedIn profile." - `https://linkedin.com/in/x` refused ("Invalid LinkedIn URL"), `https://www.linkedin.com/in/x` taken | `social()`: a LinkedIn / GitHub / Twitter box gets that link with the site's own `https://www.` form |
+| Skills help text "Add up to 10 hard and/or soft skills"; the filler had added 39 | `skillCap()`: the first N of the list (it arrives ordered by relevance to the posting); the pills the page added itself (autofill, "(Suggested)") taken off first to make room - the user asked for the ones closest to the posting. Each one left out named (`NOTE Skills > limit`) |
+| "MCP" picked "Mortgage Cadence Platform (MCP)" (strict match on the bracket); "Model Context Protocol" is on the list | alias `mcp`; a short all-caps name tries its spelled-out aliases before itself (AWS -> "Amazon Web Services (AWS)" still) |
+| Synthetic clicks on some search results did not register (React.js, JavaScript, Next.js, PostgreSQL, MySQL, GitHub Actions, Webpack); a real click on the same option took every time | Job Finder's Chrome: every click real (above). Extension route: `ASK ... click did not register - pick it by hand` - the AI clicks it with the extension's real click |
+| A result already ticked (autofill's "CSS3 (Suggested)", "Git (Suggested)"): clicking it took the pill off | an option already ticked is left alone, reported picked |
+| A real click on the Skills box while the last search's results were still open landed on one of them ("Reels") | the open results closed (Escape) before the next search |
+| "How Did You Hear About Us?": two-level list (Current or Former Employee / External Career Site Sources / Referral, each its own list; External: Alumni Network ... Job Board, LinkedIn Connection Post, Search Engine (Google, Bing etc.), the employer's own careers site, ...); draws only the rows in view; typing in its Search did not filter | options read by scrolling (`LIST_ALL`), answered `<category> > <option>`. A job from Job Finder's list: "External Career Site Sources > Job Board" is the true answer |
+| My Information: "previously worked for <company>" Yes/No radio (made-up ids per load), Country menu (set), Legal Name First/Last (autofill filled), Address Line 1, City, State menu, Postal Code, Phone Device Type menu (Mobile / ...), Country Phone Code list (set), Phone Number | as the table above; legal name boxes keyed `legal_first` / `legal_last` under a "Legal Name" heading |
+| Application Questions: I-9 understanding, unrestricted right to work, sponsorship, US government employment in 5 years, post-government restrictions attestation, debarment, citizen of an embargoed country, future openings contact, truthful-answers acknowledgement - all Yes/No menus; preferred location text area | each a question of its own; work-permit wording other than setup's is asked (`questions.work_permit`) |
+| Voluntary Disclosures: Gender, Veterans, Ethnicity menus, then a required "Yes, I have read and consent to the terms and conditions" box | saved voluntary answers after `fill_on_forms`; the terms box is the user's, on the page |
+| Resume autofill made one work entry per job with the page's mirrored titles ("Lead Developer (Software Engineer)") | the fill writes the real titles over them (kept) |
+| Skill and field-of-study names typed into Workday's search boxes | the search runs on Workday's site as each is entered - before Save (unmeasured: not seen in the requests) |
+
 ## Widgets (all tenants)
 
 | Widget | Behaviour | Filler rule |

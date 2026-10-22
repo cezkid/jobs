@@ -6,7 +6,7 @@ small plug-in.
 
 | System | Link looks like | Route | Facts |
 |---|---|---|---|
-| Workday | `<co>.wd<N>.myworkdayjobs.com` | `apply` script, run by the Claude Chrome extension (sign-in wall, multi-page) | `workday.md` |
+| Workday | `<co>.wd<N>.myworkdayjobs.com/[<lang>/]<site>/job/.../<title>_<req>` (also `wd<N>.myworkdaysite.com/recruiting/<co>/...`) | `apply-form`, Job Finder's own Chrome; start choice after Apply, then the user's sign-in; one step per page read off the user's tab, My Experience by `workday.js` with real clicks. Fallback: `apply` script run by the Claude Chrome extension | `workday.md` |
 | Ashby | `jobs.ashbyhq.com/<co>/<id>` | `apply-form`, Job Finder's own Chrome | `ashby.md` |
 | Greenhouse | `job-boards.greenhouse.io/<co>/jobs/<id>` (also `boards.`, `.eu.`, `embed/job_app?for=<co>&token=<id>`, employer's own page `?gh_jid=<id>`) | `apply-form`, Job Finder's own Chrome | `greenhouse.md` |
 | Lever | `jobs.lever.co/<co>/<id>` (also `jobs.eu.`, `/apply`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions read off the public `/apply` page | `lever.md` |
@@ -29,6 +29,11 @@ small plug-in.
 Careers-site postings (freehire `source` radancy): the job list's link is the employer's own page;
 `prepare` reads it once and goes on with the system its Apply leads to (`apply/careers_page.py`,
 [taleo.md](taleo.md) #Careers-site postings) - Taleo, iCIMS and Workday seen.
+
+Job boards' copies (freehire `source` echojobs): the board shows the employer's Apply only to its own
+signed-in users, so `prepare` finds the employer's own posting on the job search - same title, same
+opening text, a link a system here fills (`apply/listing_copy.py`; 96 of 180 copies found one,
+2026-10-22) - and goes on with that link.
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and

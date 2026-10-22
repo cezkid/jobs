@@ -1,9 +1,10 @@
 # job-apply
 
-Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
-or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (every one listed in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
-#Other systems below. A system w/o a filler whose questions were read ahead
+Fill a job application for the user, stopping before every Save/Submit. Every supported system
+(every one listed in `app/docs/apply/apply-systems.md`, Workday too since 2026-10-22) through Job
+Finder's own Chrome window - #Other systems below. Workday through the Claude Chrome extension
+(Steps below) only as the fallback: a step the window route can't fill, or the user already applying
+there. A system w/o a filler whose questions were read ahead
 (Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
 `apply-form paste <job>` writes `Application answers.md` to paste from - say options weren't read
 ahead. None read ahead: `prepare` says so - offer the tailored PDF + answers by hand, and mention it
@@ -121,7 +122,7 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
   all employment history gets all - leaving jobs out there is a false answer (`apply
   --complete-history` on Workday; UKG reads the form).
 
-## Steps
+## Steps (Workday through the Chrome extension - fallback)
 
 1. Tailored resume for this job exists (`status show 12` prints its `folder:`)? No -> `job-tailor`
    steps 1-6 now, no question first (its step 7 question is skipped: they already said apply).
@@ -177,8 +178,23 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    from the link, writes the job's `.data/application.json`, prints every question: `ok` (from
    resume or search settings) or `NEEDED`. Rerun keeps answers already written. The job list's
    link may be the employer's own careers page (a Radancy careers site): pass it as is -
-   `prepare` reads that page once and follows its Apply ("the posting's Apply leads to ...");
-   Workday there -> Steps above with that link.
+   `prepare` reads that page once and follows its Apply ("the posting's Apply leads to ...").
+   A job board's copy (EchoJobs: its Apply shows only to its own signed-in users): `prepare` finds
+   the employer's own posting on the job search ("the posting is a copy - the employer's own posting
+   is ...") and goes on with that; none found -> it says so: `jobs.py open` the posting, ask the user
+   for the employer's link.
+   Workday (`app/docs/apply/workday.md` #Job Finder's Chrome): one step per page. On the posting,
+   `prepare` asks how to start (Autofill with Resume / Apply Manually / Use My Last Application -
+   ask which, clickable); `fill` clicks Apply + that choice; the user signs in or creates the account
+   in Job Finder's Chrome (never typed for them), then `prepare` + `fill` again on each step: the
+   autofill's resume box (`upload_on_apply`), My Information, My Experience (one question: work
+   history, education, skills, profile links from the tailored resume - answer Yes, their Apply asked
+   for it; run its `fill` with a 10-minute command timeout: a skill takes ~4 s), Application
+   Questions, Voluntary Disclosures (the terms box is theirs), Review (theirs: Submit). How Did You
+   Hear's options read "<category> > <option>": a job from their list came from a job board -
+   "... > Job Board" (or the saved answer when it is listed). `NOTE Skills > limit` = the form takes
+   N skills: the N closest to the posting went in - say which were left out. Save and Continue
+   between steps is the user's click.
 3. Fill each blank `answer` in that file: a question marked "yours to answer" or "sensitive" gets
    only what the user tells you, its `source` set to "you said" (`fill` + `paste` refuse anything
    else). A question printed "(at most N characters)": draft within N - the page cuts a longer
@@ -274,3 +290,22 @@ One question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
 - **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
 Say what was recorded in one line ("Job 12 marked sent - its folder is now in My Jobs, Applied").
 Never click Submit to make the answer true (hard limits).
+
+## Teach Job Finder this form (extension-only applications)
+
+The run needed the Claude Chrome extension because Job Finder has no filler of its own for this
+system (any system `prepare` calls "not supported yet" that you filled by hand in Chrome; a Workday
+step the window route couldn't fill, done through the extension Steps instead - teach that step). The next person on that system shouldn't need the extension (owner 2026-10-22).
+
+- When: after "Did you send it?" is answered (never in the same ask - one question per ask), and
+  only when a GitHub account is attached: `gh auth status` logged in, or `.data/ai` is copilot
+  (signed in to GitHub in VS Code). None attached -> don't ask; no account to send it under.
+- ONE clickable question: "This form needed the Chrome extension. Teach Job Finder to fill <system>
+  in its own window, so you and everyone else using it won't need the extension next time? Only
+  the code change goes to the maintainer - none of your resume or answers."
+  - Teach it (Recommended) - "I build and test it now, then send it under your GitHub account"
+  - Not now -> not asked again for that system in this chat
+- Yes = the `AGENTS.md` #Framework defects consent: build it per `app/docs/apply/apply-systems.md`
+  #Add a system from what this run measured (labels, widgets, quirks - never their answers or
+  details; fixtures anonymised), tests, then `report-defect`. Their application is already done:
+  this never runs while they wait on a form (`AGENTS.md` #Speed).

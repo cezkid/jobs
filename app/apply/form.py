@@ -29,7 +29,7 @@ import about
 import cfg
 import status
 from apply import answers as saved_answers
-from apply import browser, careers_page, questions, readahead, systems
+from apply import browser, careers_page, listing_copy, questions, readahead, systems
 from resume import render, schema, tailor
 from text import inert_md
 
@@ -150,12 +150,32 @@ def window_opener(system, step: str):
     return window.page_at
 
 
+def copied_from(config: dict, url: str) -> str | None:
+    """The employer's own posting link for a board's copy on the job list (apply/listing_copy.py)."""
+    import store
+    conn = store.connect(cfg.db_path(config))
+    try:
+        row = store.jobs_by_link(conn, url)
+    finally:
+        conn.close()
+    return listing_copy.apply_link(row["description"] if row else None, config["api"]["base"])
+
+
 def prepare(slug: str, url: str, in_window: bool = False) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
     folder = job_dir(config, slug)
     system = systems.for_url(url)
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
+    if system is None and listing_copy.matches(url):
+        # a board's copy (EchoJobs): the job search's row of the employer's own system for the same posting
+        if found := copied_from(config, url):
+            print(f"the posting is a copy - the employer's own posting is {found}")
+            url, system = found, systems.for_url(found)
+        else:
+            sys.exit("this posting is a job board's copy whose Apply shows only to that board's signed-in users, and the "
+                     "job search lists no copy from the employer's own site - ask the user to open the posting "
+                     "(jobs.py open), find the employer's own posting, and give its link")
     if system is None and not systems.elsewhere(url) and not (form and form.get("found")):
         # an employer's careers page (Radancy): its Apply names the system - a plain read of the posting page
         try:
