@@ -348,3 +348,80 @@ def test_closed_posting_page_told_apart_before_any_step(chrome, name, closed):
     said = workday.gone(pg, POSTING)
     assert (said is not None and "closed" in said) if closed else said is None
     context.close()
+
+
+# --- a Workday tenant (2026-10-23): typed-only dates, School a search list, footer over the skills results ---
+
+def tenant_w(chrome):
+    context = chrome.new_context(viewport={"width": 1000, "height": 700})
+    context.route("**/*", lambda route: route.fulfill(path=str(FIXTURES / "tenant-w.html"))
+                  if urlsplit(route.request.url).path == "/tenant-w.html" else route.abort())
+    pg = context.new_page()
+    pg.goto(HOME + "tenant-w.html")
+    pg.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    data = {"work": [{"title": "Analyst", "company": "Acme", "location": "", "current": False, "start": "2021-11",
+                      "end": "2022-11", "description": ""}],
+            "education": [{"school": "Springfield State University", "degree": [], "field": [], "end": ""}],
+            "skills": ["React.js", "Jest", "Docker"], "languages": [], "links": []}
+    pg.evaluate("(data) => { window.__jf.R.on = true; window.__jf.run(data); }", data)
+    status = workday.drive(pg, limit_s=120)
+    return context, pg, status, workday.type_dates(pg)
+
+
+@pytest.fixture(scope="module")
+def tenant_w_run(chrome):
+    context, pg, status, dates = tenant_w(chrome)
+    yield pg, status, dates
+    context.close()
+
+
+def test_dates_kept_only_when_typed_get_real_keys(tenant_w_run):
+    pg, _, dates = tenant_w_run
+    assert dates == []
+    shown = pg.evaluate("[...document.querySelectorAll('.date')].map(d => [...d.querySelectorAll('input')].map(i => i.value).join('/'))")
+    assert shown == ["11/2021", "11/2022"]
+
+
+def test_school_search_list_picked_never_typed(tenant_w_run):
+    pg, status, _ = tenant_w_run
+    assert pg.evaluate("document.querySelector('#schoolPills [data-automation-id=promptOption]').textContent.trim()") == "Springfield State University"
+    assert not any("School" in p for p in status["problems"]), status["problems"]
+
+
+def test_skills_at_the_page_end_picked_clear_of_the_footer(tenant_w_run):
+    pg, status, _ = tenant_w_run
+    pills = pg.evaluate("[...document.querySelectorAll('#skillPills [data-automation-id=promptOption]')].map(p => p.textContent.trim())")
+    assert pills == ["React.js", "Jest (JavaScript Testing Framework)", "Docker (Software)"]
+    assert pg.evaluate("window.footerClicks") == 0
+    assert not any("did not register" in p for p in status["problems"]), status["problems"]
+
+
+START_PAGE = ('<h2>Start Your Application</h2><a href="#" role="button">Apply Manually</a>'
+              '<a href="#" role="button">Use My Last Application</a>')
+
+
+def test_start_page_without_autofill_read_and_started_manually(page, monkeypatch, capsys):
+    """The tab already on the start choices (.../apply), Autofill with Resume not offered: Apply Manually,
+    named to the user - never a 30 s wait for a step or an Apply that isn't there."""
+    monkeypatch.setattr(workday, "START_WAIT_MS", 500)
+    page.set_content(START_PAGE)
+    qs = workday.read(page)
+    assert [q["id"] for q in qs] == [workday.START] and qs[0]["options"] == ["Apply Manually", "Use My Last Application"]
+    page.evaluate("document.querySelectorAll('a').forEach(a => a.addEventListener('click', () => window.started = a.textContent))")
+    assert workday.fill(page, {**qs[0], "answer": "Autofill with Resume"}, None) == "ok"
+    assert page.evaluate("window.started") == "Apply Manually"
+    assert "started with 'Apply Manually' - name it to the user" in capsys.readouterr().out
+
+
+def test_apply_link_that_ignores_the_click_opened(chrome, monkeypatch):
+    """A tenant's Apply did nothing when clicked (2026-10-23): its link is opened instead."""
+    monkeypatch.setattr(workday, "START_WAIT_MS", 1000)
+    context = chrome.new_context()
+    posting = '<h2>Analyst</h2><a data-automation-id="adventureButton" href="/job/apply" onclick="return false">Apply</a>'
+    context.route("**/*", lambda route: route.fulfill(content_type="text/html",
+                                                      body=START_PAGE if route.request.url.endswith("/apply") else posting))
+    pg = context.new_page()
+    pg.goto(HOME + "job")
+    assert workday.fill(pg, {"id": workday.START, "native": "start", "kind": "choice", "answer": "Apply Manually"}, None) == "ok"
+    assert "/job/apply" in pg.url
+    context.close()

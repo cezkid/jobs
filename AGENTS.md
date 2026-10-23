@@ -81,6 +81,7 @@ quirk was debugged + fixed mid-task while the user waited.
 - Framework defect mid-task: smallest workaround that unblocks the user (by hand, once), finish
   their task, THEN fix + test + send upstream. Never make them wait on a fix they don't need yet.
 - Saved answers fill silently and get named once at handover - no question for what's on file.
+  Everyday form questions too: the likely true answer, listed for review at handover (`job-apply`).
 - Fewer, bigger steps: batch file edits, skip re-reads, poll no faster than the page changes.
 - Never open their resume PDF or Word file yourself: `resume-import` reads it + writes the text
   into its task file, and its checks need that text. A Word file opened raw = its XML: 19-45x

@@ -55,6 +55,19 @@ option reads, typed dates, the run on My Experience. Modelled on the steps tenan
 | Resume autofill made one work entry per job with the page's mirrored titles ("Lead Developer (Software Engineer)") | the fill writes the real titles over them (kept) |
 | Skill and field-of-study names typed into Workday's search boxes | the search runs on Workday's site as each is entered - before Save (unmeasured: not seen in the requests) |
 
+### Tenant W (2026-10-23, through Job Finder's Chrome)
+
+| Seen | Filler rule |
+|---|---|
+| Apply (`adventureButton`, a link to `.../apply`) did nothing when clicked | `start`: no start choices within half the wait -> the link opened |
+| Start choices Apply Manually + Use My Last Application only - no Autofill with Resume; the tab already on `.../apply` waited 30 s for a step | `ready` / `start_options` read the choices page; the choice not offered -> Apply Manually, else Autofill with Resume, printed `NOTE ... name it to the user` |
+| How Did You Hear: Campus / Careers Page / Employee Referral / Event / Job Board, each a list (Careers Page > Company Website - <brand>, Job Board > Indeed, LinkedIn ...); a saved "Job Boards" matched nothing | the employer's site by default (`questions.own_site`); a leaf already picked -> ok, never re-opened (the pill drew over the category and the click timed out) |
+| School or University a search list ("0 items selected", Search); typed as text it showed "" and Save said required. Enter picks the only match itself (School, Field of Study) | `searchBox` -> `pick` exact; a pill named as typed after Enter = picked |
+| Skills box at the page's end: results opened below it, under the fixed footer, which took the real click - "click did not register" on 14 skills | the box goes mid-screen before each search, room added below the page for the run (`jf-room`, removed at the end); `clear()` scrolls a covered target into the open before a real click |
+| Date boxes kept no value set by script ("Invalid Date: /2021" on Save) | after the run every From / To typed with real keys (`type_dates`: MMYYYY into the month box), each read back - FAIL names one that didn't show |
+
+Modelled in `fixtures/workday/tenant-w.html` (`test_apply_workday.py`).
+
 ## Widgets (all tenants)
 
 | Widget | Behaviour | Filler rule |

@@ -107,6 +107,10 @@ one per topic or question, newest wins. The next form:
 | Recalled how | Questions | Why |
 |---|---|---|
 | Filled, named before Submit | 18 or older, notice period, how you heard, the same question word for word | true on any form; a wrong one is cheap |
+
+How you heard, before any saved answer: the employer's own website / careers page option, for everybody
+(owner 2026-10-23; `questions.own_site`) - the application is reached through the employer's posting.
+A list of job boards only (no such option): the saved answer, else asked. Named before Submit.
 | Offered first, never filled | pay expected (beside the posting's pay), moving for the job, start date, written answers | each depends on this job |
 | Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, agreeing / consenting / signing, two topics in one question; a student's status (enrolled, current student, graduation, GPA, OPT / CPT / F-1 / EAD, eligibility, immigration), a clearance or polygraph held - by question, and any answer naming a permit or a GPA | setup answers the US permit questions; a kept "I agree" would tick the next form's box; a student's status changes (a saved "Yes, enrolled" would fill the next form after graduation); the rest are the user's every time |
 

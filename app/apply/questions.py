@@ -108,6 +108,13 @@ YOURS = "yours to answer"
 USER_SAID = "you said"
 # answers the program wrote itself; the user's own (via the AI) survive a second prepare
 SAVED = "saved answer"
+# an everyday question the program answers with the most likely true answer, named for the user to check
+# before Submit instead of stopping to ask (owner 2026-10-23)
+LIKELY = "likely answer"
+# the employer's own site among a how-did-you-hear list's options: an application reached through the
+# employer's posting is truthfully "their website" (owner 2026-10-23: the default for everybody)
+OWN_SITE = re.compile(r"\bcompany(?:'s)? (?:web ?site|careers?)|\bcareers? (?:page|site|web ?site|portal)\b|"
+                      r"\bcorporate (?:web ?site|careers?)|\bemployer(?:'s)? (?:web ?site|careers?)|\bour (?:web ?site|careers?)")
 AUTO = ("resume", "search settings", SAVED)
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
@@ -640,6 +647,9 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         if permit is not None:
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
             continue
+        if (site := own_site(q)) is not None:
+            out.append({**q, "answer": site, "source": f"{LIKELY} - name it to the user"})
+            continue
         answer = from_resume(q, contact)
         if not answer and hit:
             mode, entry = hit
@@ -651,6 +661,21 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
 
+
+
+def own_site(q: dict) -> str | list[str] | None:
+    """How did you hear: the employer's own website or careers page - the option naming it (a two-level
+    list's "<category> > <option>" read by its option), "Company website" in a text box. No such option
+    (a list of job boards only): None, and a saved answer or the user decides."""
+    if "how you heard" not in topics(q["title"]):
+        return None
+    if not q["options"]:
+        return "Company website" if q["kind"] == "text" else None
+    hits = [o for o in q["options"] if OWN_SITE.search(o.rsplit(" > ", 1)[-1].casefold())]
+    if not hits:
+        return None
+    pick = max(hits, key=lambda o: " > " in o)  # the list's own leaf over a bare category of the same words
+    return [pick] if q["kind"] == "multichoice" else pick
 
 SAME_GENDER = {"male": ("man",), "man": ("male",), "female": ("woman",), "woman": ("female",)}
 SAME_ORIENTATION = {"heterosexual": ("straight",), "straight": ("heterosexual",)}
@@ -702,7 +727,18 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
     key = voluntary_kind(q)
     said, want = saved.get(key) if key else None, None
     if key == "protected_veteran" and isinstance(said, bool):
-        want = (lambda o: "not a protected veteran" in o) if said is False else (lambda o: o.startswith("i identify as"))
+        # a list can hold both "I AM NOT A VETERAN" and "I IDENTIFY AS A VETERAN, JUST NOT A PROTECTED
+        # VETERAN" (a Workday tenant, 2026-10-23): never served -> the first, served -> the second; unknown -> asked
+        opts = [o.casefold().strip() for o in q["options"]]
+        never = lambda o: re.search(r"\bnot a veteran\b|\bnever served\b", o) is not None
+        veteran_not_protected = lambda o: "not a protected veteran" in o and re.search(r"\bas a veteran\b|\bi am a veteran\b", o)
+        served = saved.get("armed_forces")
+        if said:
+            want = lambda o: o.startswith("i identify as") and "not a protected veteran" not in o
+        elif any(map(never, opts)) and any(map(veteran_not_protected, opts)):
+            want = never if served is False else veteran_not_protected if served is True else None
+        else:
+            want = (lambda o: "not a protected veteran" in o and (served is not False or not veteran_not_protected(o)))
     elif key == "armed_forces" and isinstance(said, bool):
         # "Yes, I am a veteran or active member" / "I am a veteran or active member"; "No, I am not a
         # veteran or active member", "I have never served in the military", "No military service"

@@ -33,6 +33,7 @@ window.__jf = (() => {
   async function click(el) {
     el.scrollIntoView({ block: 'center' });
     if (R.on) {
+      clear(el);
       const r = el.getBoundingClientRect(), n = R.done + 1;
       R.want = { n, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
       for (const t = Date.now() + 10000; R.done < n && Date.now() < t;) await sleep(50);
@@ -40,6 +41,26 @@ window.__jf = (() => {
       return;
     }
     ['mousedown', 'mouseup'].forEach((t) => el.dispatchEvent(new MouseEvent(t, { bubbles: true }))); el.click();
+  }
+  // a real click lands on whatever is on top: the fixed footer (Save and Continue) over a skill option near
+  // the page's end took it - "click did not register" on 14 skills (a Workday tenant, 2026-10-23). The page
+  // is scrolled until the target is the one on top (at most 3 tries)
+  function clear(el) {
+    for (let i = 0; i < 3; i++) {
+      const r = el.getBoundingClientRect(), x = r.x + r.width / 2, y = r.y + r.height / 2;
+      const top = document.elementFromPoint(x, y);
+      if (!top || el === top || el.contains(top)) return;
+      const cover = top.getBoundingClientRect();
+      window.scrollBy(0, cover.top > r.top ? r.bottom - cover.top + 16 : -(cover.bottom - r.top + 16));
+    }
+  }
+  // a box at the page's very end can't come mid-screen: room added below the page for the run (taken off
+  // when it ends) so its results open clear of the footer
+  function room() {
+    if (document.getElementById('jf-room')) return;
+    const pad = document.createElement('div');
+    pad.id = 'jf-room'; pad.style.height = `${innerHeight}px`;
+    document.body.appendChild(pad);
   }
   const takeClick = () => (R.want ? JSON.stringify(R.want) : '');
   const clicked = (n) => { R.done = n; };
@@ -178,8 +199,14 @@ window.__jf = (() => {
       // tenant H) - closed first
       if (results(input).length) { key(input, 'Escape', 27); await until(() => !results(input).length, 1500); }
       const at = where();
+      // results open below the box where it stands: a box at the page's end opened them under the fixed
+      // footer (a Workday tenant, 2026-10-23) - the box goes mid-screen first
+      input.scrollIntoView({ block: 'center' });
+      if (input.getBoundingClientRect().bottom > innerHeight / 2 + 60) { room(); input.scrollIntoView({ block: 'center' }); }
       put(input, w); key(input, 'Enter', 13); await sleep(600);
       if (where() !== at || !document.contains(input)) throw new Error('Enter moved the form to another step - stopped filling; tell the user to check the page');
+      // Enter picked the only match itself (a Workday tenant's School and Field of Study, 2026-10-23)
+      if (has(w)) { put(input, ''); key(input, 'Escape', 27); out(input); keep(area, name, () => has(w)); return note(area, name, w === wanted[0] ? 'OK' : 'ASK', `picked "${w}"`); }
       // results can trail the typed words by a search (tenant G): wait for a match, not the first results
       let opts = [];
       const hit = await until(() => { opts = results(input); return opts.length && close(opts, w, mode); }, 3000);
@@ -204,6 +231,8 @@ window.__jf = (() => {
   async function unpick(input, re) {
     for (const p of pills(input).filter((p) => re.test(txt(p)))) { const x = p.querySelector('[data-automation-id="DELETE_charm"]'); if (x) { await click(x); await sleep(300); } }
   }
+  // a search list, not a text box: "Search" in it, or "0 items selected" beside it
+  const searchBox = (el) => !!el && el.tagName === 'INPUT' && (/^search$/i.test(el.placeholder || '') || /\bitems? selected\b/i.test(txt(box(el))));
   // a search-pick box's popup results: never a picked pill (any field's), never the box's own
   const results = (input) => [...document.querySelectorAll('[data-automation-id="promptOption"]')]
     .filter((o) => shown(o) && !picked(o) && !box(input).contains(o) && !/no items/i.test(txt(o)));
@@ -235,7 +264,9 @@ window.__jf = (() => {
       const e = entries(anchor)[i], a = `Education ${i + 1}`;
       if (!e) break;
       const f = (re) => within(anchor, i, field, re);
-      await text(a, 'School', f(anchor), d.school);
+      // School a search list, not a text box (a Workday tenant, 2026-10-23: typed, it showed "")
+      if (searchBox(f(anchor)())) await pick(a, 'School', f(anchor), [d.school], 'exact');
+      else await text(a, 'School', f(anchor), d.school);
       await menu(a, 'Degree', f(/^degree/i), d.degree);
       if (d.field.length) await pick(a, 'Field of Study', f(/^field of study/i), d.field);
       if (d.end) await date(a, 'To', within(anchor, i, fieldBox, /^to\b/i), d.end);
@@ -362,6 +393,7 @@ window.__jf = (() => {
       }
       S.step = 'verify'; await verify();
     } catch (err) { note(S.step, 'error', 'FAIL', String(err)); }
+    document.getElementById('jf-room')?.remove();
     S.step = 'done'; S.done = true;
   }
   // tool call times out at 45s => run() in background, poll status()
@@ -506,5 +538,11 @@ window.__jf = (() => {
     }));
   }
   const aim = (i) => { S.dates[i]?.get()?.scrollIntoView({ block: 'center' }); return i; };
-  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, fields, resumeInput, takeClick, clicked, R, S };
+  // where the driver clicks to type date i (clear of the footer), and what the date shows after: MMYYYY
+  const spot = (i) => { const el = S.dates[i]?.get(); if (!el) return ''; el.scrollIntoView({ block: 'center' }); clear(el); const r = el.getBoundingClientRect(); return JSON.stringify({ x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) }); };
+  function dateShown(i) {
+    const m = S.dates[i]?.get(), y = m && box(m)?.querySelector('input[data-automation-id*="Year" i]');
+    return m && y ? m.value.padStart(2, '0') + y.value : '';
+  }
+  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, spot, dateShown, fields, resumeInput, takeClick, clicked, R, S };
 })();

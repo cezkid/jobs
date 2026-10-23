@@ -46,8 +46,16 @@ form over, fix the program after.
   later -> false / true, confirm in one line. Cover letter + any other file: a yes each time. Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
   SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
   Ashby also takes each answer as its box is filled, and the town or school letter by letter in its location and school boxes - say so before `fill`.
+- Likely answers, not stops (owner 2026-10-23): an everyday question (worked here before, commuting
+  distance from their home address, a yes/no their resume or settings settle, a list option naming
+  what their file says) gets the most likely TRUE answer, source "likely answer", filled - then named
+  under "Picked for you - check before Submit" at handover, never asked one by one. How did you hear:
+  the employer's own website / careers page option by default for everybody (`questions.own_site`,
+  over a saved answer). Asked only: pay, work permit worded other than setup's, sensitive kinds,
+  voluntary disclosures with nothing saved, consent / signing / AI use (theirs on the page), written
+  answers in their words, and a fact no file holds (start date, notice, relocation) - one question each.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
-  race, veteran, disability), how-did-you-hear - except their own saved answers
+  race, veteran, disability) - except their own saved answers
   (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the
   same question filled + named before Submit; pay, relocation, start date only offered as the
   first choice. `prepare` says "ask once: keep the user's own answers" -> one clickable question,
@@ -211,7 +219,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    answer off unseen, so `fill` refuses it. They'd rather type one on the page themselves -> leave
    it blank, source "yours to do on
    the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
-   `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
+   `AGENTS.md` bind free-text answers too), everything else the likely answer (hard limits), named at handover. `file`
    question: `answer: true` only after they said yes to the named file, or `prepare` set it from
    `upload_on_apply` (hard limits). Location: the
    city they live in. Home address: `home_address` in search settings fills it; not set -> ask, offer to

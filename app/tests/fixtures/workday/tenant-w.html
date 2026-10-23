@@ -1,0 +1,92 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title>
+<style>
+  body { margin: 0; padding-bottom: 90px; font: 14px sans-serif; }
+  section { padding: 12px; }
+  #spacer { height: 900px; }
+  [data-automation-id=pageFooter] { position: fixed; left: 0; right: 0; bottom: 0; height: 90px; background: #eee; z-index: 10; }
+  #prompt { position: fixed; z-index: 5; background: #fff; width: 300px; max-height: 160px; overflow: auto; }
+  #prompt [data-automation-id=promptOption] { height: 24px; }
+</style></head>
+<body>
+<!-- Workday "My Experience" as a tenant showed it (2026-10-23), for workday.js through Job Finder's Chrome:
+     date boxes that keep only typed keys (a value set by script is gone once focus leaves - Save then said
+     "Invalid Date: /2021"), School or University a search list ("0 items selected", Enter picks the only
+     match), a Skills box at the page's end whose results open fixed below it, where the fixed footer (Save
+     and Continue) takes a real click unless the box was scrolled up before the search, and results that
+     take only a real click. -->
+<div data-automation-id="progressBarActiveStep">current step 2 of 5 My Experience</div>
+<section>
+  <h3>Work Experience</h3>
+  <div>
+    <div data-automation-id="formField-jobTitle"><label for="w-title">Job Title*</label><input id="w-title"></div>
+    <div data-automation-id="formField-companyName"><label for="w-company">Company*</label><input id="w-company"></div>
+    <div data-automation-id="formField-currentlyWorkHere"><label for="w-current">I currently work here</label><input type="checkbox" id="w-current"></div>
+    <div data-automation-id="formField-startDate" class="date"><label>From*</label>
+      <input data-automation-id="dateSectionMonth-input" id="w-from-m"><input data-automation-id="dateSectionYear-input" id="w-from-y"></div>
+    <div data-automation-id="formField-endDate" class="date"><label>To*</label>
+      <input data-automation-id="dateSectionMonth-input" id="w-to-m"><input data-automation-id="dateSectionYear-input" id="w-to-y"></div>
+  </div>
+  <button>Add Another</button>
+</section>
+<section>
+  <h3>Education</h3>
+  <div>
+    <div data-automation-id="formField-school"><label for="e-school">School or University*</label>
+      <span>0 items selected</span><div data-automation-id="selectedItemList" id="schoolPills"></div><input id="e-school" placeholder="Search"></div>
+  </div>
+  <button>Add Another</button>
+</section>
+<div id="spacer"></div>
+<section>
+  <h3>Skills</h3>
+  <div data-automation-id="formField-skills"><label for="skills">Type to Add Skills</label>
+    <div data-automation-id="selectedItemList" id="skillPills"></div><input id="skills" placeholder="Search"></div>
+</section>
+<div data-automation-id="pageFooter"><button data-automation-id="pageFooterNextButton">Save and Continue</button></div>
+<div id="prompt" hidden></div>
+<script>
+  const schools = ['Springfield State University', 'Springfield Community College'];
+  const catalog = ['React.js', 'TypeScript', 'JavaScript', 'Node.js', 'PostgreSQL', 'Jest (JavaScript Testing Framework)', 'Docker (Software)'];
+  const picked = { skills: new Set(), school: new Set() };
+  const pillsOf = { skills: 'skillPills', school: 'schoolPills' };
+  const draw = (k) => {
+    document.getElementById(pillsOf[k]).innerHTML = [...picked[k]].map((s) => `<div data-automation-id="selectedItem" role="option"><div data-automation-id="promptOption">${s}</div><span data-automation-id="DELETE_charm"></span></div>`).join('');
+  };
+  const prompt = document.getElementById('prompt');
+  let openFor = null;
+  window.footerClicks = 0;
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-automation-id=pageFooter]')) { window.footerClicks++; return; }
+    const opt = e.target.closest('#prompt [data-automation-id=promptOption]');
+    if (opt && e.isTrusted) { picked[openFor].add(opt.dataset.name); draw(openFor); prompt.hidden = true; }
+  });
+  document.addEventListener('keydown', (e) => {
+    const k = e.target.id === 'skills' ? 'skills' : e.target.id === 'e-school' ? 'school' : null;
+    if (!k) return;
+    if (e.key === 'Escape') { prompt.hidden = true; return; }
+    if (e.key !== 'Enter') return;
+    const typed = e.target.value.toLowerCase();
+    const hits = (k === 'school' ? schools : catalog).filter((c) => c.toLowerCase().includes(typed));
+    if (k === 'school' && hits.length === 1) { picked.school.add(hits[0]); draw('school'); e.target.value = ''; return; }
+    setTimeout(() => {
+      const r = e.target.getBoundingClientRect();  // fixed below the box where it stood at the search
+      prompt.style.left = `${r.left}px`; prompt.style.top = `${r.bottom + 4}px`;
+      prompt.innerHTML = hits.map((c) => `<div data-automation-id="promptOption" data-name="${c}">${c}</div>`).join('');
+      openFor = k; prompt.hidden = false;
+    }, 150);
+  });
+  // date boxes: typed digits only - MM into the month, the rest into the year; a scripted value is gone on focus out
+  for (const d of document.querySelectorAll('.date')) {
+    const m = d.querySelector('[data-automation-id=dateSectionMonth-input]'), y = d.querySelector('[data-automation-id=dateSectionYear-input]');
+    let buf = '', typed = false;
+    m.addEventListener('mousedown', (e) => { if (e.isTrusted) { buf = ''; } });
+    m.addEventListener('keydown', (e) => {
+      if (!e.isTrusted || !/^\d$/.test(e.key)) return;
+      e.preventDefault(); buf += e.key; typed = true;
+      if (buf.length <= 2) m.value = String(+buf); else y.value = buf.slice(2);
+    });
+    m.addEventListener('focusout', () => { if (!typed) { m.value = ''; } });
+  }
+</script>
+</body></html>
