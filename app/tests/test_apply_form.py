@@ -71,7 +71,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # optional members the shared code calls by name -> how many arguments it passes; a helper of the
 # same name taking other arguments crashed every fill (JazzHR's gone(response), 2026-10-07)
-OPTIONAL = {"closed": 1, "gone": 2, "holds": 2, "read": 1, "on_tab": 2}
+OPTIONAL = {"closed": 1, "gone": 2, "holds": 2, "read": 1, "on_tab": 2, "step": 1, "page_errors": 1}
 
 
 @pytest.mark.parametrize("system", systems.SYSTEMS, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1984,3 +1984,196 @@ def test_profile_box_fills_from_a_forms_only_link_never_the_website_box():
     contact = {"links": ["linkedin.com/in/your-name", "example.com"], "form_links": ["github.com/your-name"]}
     assert questions.from_resume({"key": "github", "kind": "url"}, contact) == "https://www.github.com/your-name"
     assert questions.from_resume({"key": "website", "kind": "url"}, contact) == "https://www.example.com"
+
+
+# --- continue_on_apply: fill presses Next / Continue itself, stops where the user is needed ---
+
+class Paged:
+    """A form over pages, each its own step: a Next button whose label the page sets, questions read per
+    page (read), answers that take only on their own page."""
+    NAME, READY, PER_PAGE, NEXT = "Paged", "form", True, "footer"
+    pages: list = []
+    at = 0
+    errors: list = []
+
+    @classmethod
+    def here(cls):
+        return cls.pages[cls.at]
+
+    @classmethod
+    def step(cls, page):
+        return cls.here()["step"]
+
+    @classmethod
+    def read(cls, page):
+        return [dict(x, page=cls.here()["step"]) for x in cls.here()["asks"]]
+
+    @classmethod
+    def ids_on_page(cls, page):
+        return [x["id"] for x in cls.here()["asks"]]
+
+    @classmethod
+    def fill(cls, page, q, resume_file):
+        return "ok" if q["id"] in cls.ids_on_page(page) else f"{questions.LATER} on another step"
+
+    @classmethod
+    def page_errors(cls, page):
+        return cls.errors
+
+
+class PagedButton:
+    first = property(lambda self: self)
+
+    def filter(self, visible):
+        return self
+
+    def count(self):
+        return 1 if Paged.here().get("button") else 0
+
+    def inner_text(self, timeout=None):
+        return Paged.here()["button"]
+
+    def click(self):
+        if not Paged.errors:
+            Paged.at += 1
+
+    def wait_for(self, timeout=None):
+        pass
+
+
+class PagedPage:
+    url = "https://jobs.example/apply"
+    first = property(lambda self: self)
+    pressed = []
+
+    def locator(self, selector):
+        return PagedButton() if selector == Paged.NEXT else self
+
+    def wait_for(self, timeout=None):
+        pass
+
+    def wait_for_timeout(self, ms):
+        pass
+
+    def inner_text(self, timeout=None):
+        return ""
+
+
+def paged_form(tmp_path, monkeypatch, pages, setting=True):
+    import contextlib
+
+    from resume import tailor
+    folder = tmp_path / "7 - Acme - Analyst"
+    Paged.pages, Paged.at, Paged.errors = pages, 0, []
+    first = questions.draft([dict(x, page=pages[0]["step"]) for x in pages[0]["asks"]], CONTACT)
+    questions.save(folder / tailor.JOB_DATA / questions.FILE,
+                   {"system": "Paged", "url": "https://jobs.example/1", "questions": first})
+    monkeypatch.setattr(form.cfg, "load", lambda: {"continue_on_apply": setting})
+    monkeypatch.setattr(form.cfg, "resume_path", lambda config, kind: "Resume details.yml")
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": CONTACT})
+    monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
+    monkeypatch.setattr(form, "resume_for", lambda config, folder: None)
+    monkeypatch.setattr(form, "system_for", lambda url: Paged)
+    monkeypatch.setattr(form.status, "filled", lambda folder, config: None)
+    monkeypatch.setattr(form.browser, "page_at", lambda url, match=None: contextlib.nullcontext(PagedPage()))
+    return folder
+
+
+def contact_page(step="My Information", button="Save and Continue"):
+    return {"step": step, "button": button, "asks": [{**q("Email", "email", "email", id=f"{step}-email")}]}
+
+
+def test_continue_goes_page_by_page_and_never_presses_submit(tmp_path, monkeypatch, capsys):
+    pages = [contact_page("Autofill", "Continue"), contact_page(), contact_page("Review", "Submit")]
+    paged_form(tmp_path, monkeypatch, pages)
+    form.fill("7")
+    out = capsys.readouterr().out
+    assert Paged.at == 2  # Continue + Save and Continue pressed, Submit never
+    assert out.count("pressed Next / Continue") == 2
+    assert "stopped on this page: no Next / Continue here (Submit stays the user's)" in out
+    assert "The 2 page(s) passed went to the employer's site" in out and "Nothing more is sent until" in out
+
+
+def test_continue_off_or_unasked_presses_nothing(tmp_path, monkeypatch, capsys):
+    for setting in (None, False):
+        paged_form(tmp_path, monkeypatch, [contact_page(), contact_page("Next step")], setting=setting)
+        form.fill("7")
+        assert Paged.at == 0
+        assert "pressed" not in capsys.readouterr().out
+
+
+def test_continue_stops_on_a_page_holding_a_question_only_the_user_answers(tmp_path, monkeypatch, capsys):
+    gender = {**q("Gender", "choice", required=False, options=["Female", "Male"], id="g")}
+    pages = [contact_page(), {"step": "Voluntary Disclosures", "button": "Save and Continue", "asks": [gender]}]
+    folder = paged_form(tmp_path, monkeypatch, pages)
+    form.fill("7")
+    out = capsys.readouterr().out
+    assert Paged.at == 1  # passed My Information, stopped on the disclosure page without pressing on
+    assert "  [optional] choice: Gender" in out and "stopped on this page: the user's to answer" in out
+    from resume import tailor
+    saved = questions.load(folder / tailor.JOB_DATA / questions.FILE)
+    assert [x["id"] for x in saved["questions"]] == ["My Information-email", "g"]  # next page read + kept
+
+
+def test_continue_stops_on_an_answer_that_didnt_take_or_the_pages_own_error(tmp_path, monkeypatch, capsys):
+    paged_form(tmp_path, monkeypatch, [contact_page(), contact_page("Next step")])
+    monkeypatch.setattr(Paged, "fill", classmethod(lambda cls, page, q, f: "FAIL box not found"))
+    form.fill("7")
+    assert Paged.at == 0 and "stopped on this page: 1 answer(s) didn't take" in capsys.readouterr().out
+    monkeypatch.undo()
+    paged_form(tmp_path, monkeypatch, [contact_page(), contact_page("Next step")])
+    Paged.errors = ["The field Field of Study is required and must have a value."]
+    monkeypatch.setattr(form, "MOVE_MS", 1000)
+    form.fill("7")
+    out = capsys.readouterr().out
+    assert Paged.at == 0 and "stopped on this page: the page says: The field Field of Study is required" in out
+
+
+def test_continue_presses_only_a_next_or_continue_label():
+    page = PagedPage()
+    for label, pressed in (("Next", True), ("Continue", True), ("Save and Continue", True), ("Save & Continue", True),
+                           ("Submit", False), ("Review", False), ("Apply", False), ("Save and Submit", False),
+                           ("Continue to Submit", False)):
+        Paged.pages, Paged.at = [{"step": "A", "button": label, "asks": []}], 0
+        assert (form.next_button(page, Paged) is not None) is pressed, label
+
+
+def test_continue_ask_once_for_a_system_that_names_its_next_button():
+    assert form.continue_ask({"continue_on_apply": None}, Paged).startswith("ask once: when a page is filled")
+    assert form.continue_ask({"continue_on_apply": True}, Paged) == form.continue_ask({"continue_on_apply": False}, Paged) == ""
+
+    class OnePage:
+        PER_PAGE = False
+    assert form.continue_ask({"continue_on_apply": None}, OnePage) == ""
+    assert workday.NEXT and form.continue_ask({"continue_on_apply": None}, workday)
+
+
+def test_workday_start_and_experience_wait_for_their_own_step(monkeypatch):
+    """The start choice re-clicked Apply on every later step: a 30 s FAIL that would stop every continue."""
+    monkeypatch.setattr(workday, "inject", lambda page: None)
+    monkeypatch.setattr(workday, "ids_on_page", lambda page: ["q-email"])
+    monkeypatch.setattr(workday, "start", lambda page, choice: pytest.fail("Apply clicked on a later step"))
+    monkeypatch.setattr(workday, "experience", lambda page, f: pytest.fail("work history typed on another step"))
+    start = {"id": workday.START, "answer": "Apply Manually", "native": "start", "kind": "choice"}
+    exp = {"id": workday.EXPERIENCE, "answer": "Yes", "native": "experience", "kind": "yesno"}
+    assert workday.fill(None, start, None).startswith(questions.LATER)
+    assert workday.fill(None, exp, None).startswith(questions.LATER)
+
+
+def test_workday_list_shut_when_escape_leaves_it_open():
+    """Inside a category Escape left How Did You Hear open over the next box: the heading's click shuts it."""
+    clicked = []
+
+    class Shown:
+        first = property(lambda self: self)
+        count = lambda self: 1
+        click = lambda self: clicked.append("heading")
+
+    class Keys:
+        press = lambda self, key: clicked.append(key)
+
+    class Page:
+        keyboard = Keys()
+        locator = lambda self, selector: Shown()
+    workday.close_list(Page())
+    assert clicked == ["Escape", "heading"]

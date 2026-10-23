@@ -170,11 +170,19 @@ Optional members (`systems/__init__.py`):
 | `page=` on `question()` | section / step the box is on: from the form definition, or what identifies the page read (its heading) |
 | `read(page)` | questions off the page the user is on; `prepare` attaches to their tab + merges (`questions.merge`): other pages kept as they are, this page's replaced, a new page appended. No `page` on what's read (UKG, one page) -> whole list replaced |
 | `on_tab(url, tab_url)` | this application's tab, when the default (host + posting id) doesn't fit |
+| `NEXT` | CSS selector of the page's way on (Workday: its footer button). With the user's `continue_on_apply: true`, `fill` presses it when its label is Next / Continue / Save and Continue (`form.CONTINUE`) - never Submit, Review, Apply - then reads the next page (`read`) and fills on |
+| `step(page)` | the page's step name: `go_on` waits for it to change (and not be blank mid-redraw) after Next |
+| `page_errors(page)` | the page's own error words after Next ("The field ... is required") - stop and say them |
 
 `fill` on a `PER_PAGE` system: required blank on this page blocks it; blank on another page is
 listed, not blocking. Prints `this page: X of Y required answered` + `N question(s) on other
 pages`. The user checks the page and clicks Next / Continue themselves - never us - then
-`prepare` again (systems with `read`), then `fill` again. No "filled" flag kept: it lies after
+`prepare` again (systems with `read`), then `fill` again. Exception, the user's own yes
+(`continue_on_apply: true`, asked once by `prepare`) on a system with `NEXT`: `fill` presses it on a page
+holding nothing for the user (`form.held`: no FAIL, no ASK on a required box, no blank required or
+user-only question, no box missing from the file), waits for the next step, reads + drafts it, fills on;
+stops on `for_the_user` questions, the page's errors, Submit, or `MAX_PAGES`. Each passed page went to
+the employer - the handover names it. No "filled" flag kept: it lies after
 Back or a re-render, so each run fills what the page shows. `recheck` reads back only boxes
 that were `ok` in this run.
 

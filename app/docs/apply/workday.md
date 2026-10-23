@@ -22,6 +22,16 @@ job-apply skill Steps) stays the fallback. One step per page, the user's own tab
 | My Experience | one yes/no: work history, education, skills, profile links from the tailored resume; the Resume/CV box | `workday.js` `run()` with real clicks: it asks (`takeClick()`), Python clicks with the mouse, then `clicked(n)` |
 | Review | nothing: the user's Submit | - |
 
+Each step's footer button (`pageFooterNextButton`: Continue on Autofill with Resume, Save and Continue,
+Submit on Review - tenant H, 2026-10-22) is the user's click - or `fill`'s with `continue_on_apply: true`
+(`form.go_on`: a Continue label only, never Submit; the step name changing = moved on; `workday.js`
+`errors()` after it = stop, say them). An earlier step's start choice or My Experience run is `LATER`
+on every other step: re-sent, the start re-clicked Apply on Application Questions (a 30 s FAIL that
+would stop every continue). How Did You Hear with no matching option (a saved "Job Boards" on a tenant
+listing only Recruiting Boards > Apna ... Zip Recruiter, Recruiting Event, Social, tenant I): Escape
+inside a category left the list open over the radio below, every later click timed out under it -
+`close_list` clicks the step's heading when Escape doesn't shut it.
+
 Unmeasured through this route (no account of ours - the steps after sign-in were measured through the
 extension on the user's own application, never driven from Python live): reading the steps, the menus'
 option reads, typed dates, the run on My Experience. Modelled on the steps tenant H showed

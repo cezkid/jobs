@@ -20,6 +20,11 @@ Optional, for forms spread over pages (start box, then the form; "Step 1 of 5"):
     read(page) -> list           questions off the page the user is on; prepare merges them into
                                  the answers file page by page (questions.merge)
     on_tab(url, tab_url) -> bool this application's tab; default below
+    NEXT                         CSS selector of the page's way on (Workday's footer button): with the
+                                 user's continue_on_apply, form.go_on presses it when its label is Next /
+                                 Continue / Save and Continue - never Submit - and fill goes on page by page
+    step(page) -> str            the page's step name; go_on waits for it to change after Next
+    page_errors(page) -> list    the page's own error words after Next ("The field ... is required")
 
 Optional, what leaves when:
 
