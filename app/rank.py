@@ -937,6 +937,8 @@ def main() -> None:
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
     ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
+    ap.add_argument("--where", choices=["remote", "nearby"], help="with --best: one of Today's two lists"
+                    " (remote jobs, or jobs near them), in its own order")
     ap.add_argument("--gaps", action="store_true", help="what open jobs ask that the resume doesn't show, counted"
                     " once per job by kind, plus jobs marked not sending (--limit = rows per kind)")
     ap.add_argument("--other-titles", action="store_true", help="titles in the list your resume backs but never"
@@ -1004,7 +1006,7 @@ def main() -> None:
         return
     if args.best:
         import best  # imports this module
-        for j in store.numbered(conn, best.ordered(conn, config, now)[: args.limit]):
+        for j in store.numbered(conn, best.ordered(conn, config, now, args.where)[: args.limit]):
             print(row(j, config, now, best.reasons(j, config, now)))
         return
     for j in store.numbered(conn, rank(jobs, config, now)[: args.limit]):

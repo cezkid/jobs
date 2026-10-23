@@ -1074,3 +1074,22 @@ test("Apply's tooltip says it makes the resume + fills the form; other buttons k
   assert.equal(today.sayTitle(apply, "copy"), "Makes your resume for this job and fills the employer's form with it - you check the page and click Submit.");
   assert.equal(today.sayTitle({ id: "find", words: "find new jobs" }, "copy"), "");
 });
+
+// remote + nearby lists (app/today.py BEST_LISTS, owner 2026-10-23): each drawn as best-next rows w/ its own
+// "more" line, Next up taken from the first list, the rest counted in that list only
+test("two best-next lists: rows, own more line each, Next up from the first", () => {
+  const list = (id, from, words) => ({ ...sec(id, Array.from({ length: 10 }, (_, i) => job(from + i, [`apply to job ${from + i}`])),
+    { text: "2 more - ask the chat.", say: words }), title: id, total: 12 });
+  const raw = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [],
+    sections: [list("best_nearby", 200, "show me more jobs near me to apply to"), list("best_remote", 300, "show me more remote jobs to apply to")] };
+  const m = today.model(raw, say);
+  assert.equal(m.next.section, "best_nearby");
+  assert.equal(m.next.card.num, 200);
+  const page = html(m, "new");
+  const near = page.split('aria-labelledby="s-best_nearby"')[1].split("</section>")[0];
+  const remote = page.split('aria-labelledby="s-best_remote"')[1].split("</section>")[0];
+  assert.match(near, /<ul class="rows">/);
+  assert.match(near, /2 more jobs to apply to\.<\/span><button[^>]*>Show more jobs near me</);
+  assert.match(remote, /2 more jobs to apply to\.<\/span><button[^>]*>Show more remote jobs</);
+  assert.equal(today.isBest("best_remote") && today.isBest("best") && !today.isBest("waiting"), true);
+});

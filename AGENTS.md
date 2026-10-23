@@ -325,8 +325,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   "help", "what do I do"), start `job-setup`. Their first page (START HERE) is a welcome page w/ a
   form + Start setup button that puts their answers in the chat ("Set me up with my answers: ...");
   Claude's new chats get the same line (`today --brief`).
-- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next (`app/docs/jobs/best-next.md`;
-  same order in brief + email), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
+- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next - two lists, remote + near them, each its own order (`app/docs/jobs/best-next.md`;
+  same lists in the brief; email one order), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
   w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;

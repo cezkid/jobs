@@ -69,6 +69,8 @@ missing -> `job-setup` skill instead.
    "Show me more jobs to apply to" (Today's "Show more jobs") / "what should I apply to next?" ->
    `uv run app/jobs.py rank --best --limit 15`: Today's "Best to apply next" order (resume match,
    how much it asks, pay, where, how new - `app/docs/jobs/best-next.md`), its `[why]` says which.
+   Today shows two lists when they have remote + nearby jobs: "show me more remote jobs to apply to"
+   -> add `--where remote`; "show me more jobs near me to apply to" -> `--where nearby` (that list's order).
 5. "Why is job 12 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
    Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
    "What do jobs ask that my resume doesn't show?" -> `uv run app/jobs.py rank --gaps`: per kind (licence,

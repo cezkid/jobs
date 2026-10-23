@@ -16,12 +16,13 @@ def test_demo_fills_every_today_section(tmp_path, monkeypatch):
     conn = store.connect(tmp_path / demo.DB)
     page = today.build(conn, config, tmp_path / "My Jobs", datetime.now(timezone.utc), ["x"])
     conn.close()
-    for heading in ("## Waiting on you", "## Follow up", "## Best to apply next", "## Not finished"):
+    for heading in ("## Waiting on you", "## Follow up", "## Best remote jobs to apply to", "## Best jobs near you to apply to",
+                    "## Not finished"):
         assert heading in page, heading
     assert "example.com" in page and "@" not in page
     assert "## New since last check" not in page
     # each best row's why: match + pay + where + age (resume read => no "add your resume" line)
-    best = page.split("## Best to apply next")[1].split("## ")[0]
+    best = page.split("## Best remote jobs to apply to")[1].split("## Not finished")[0]
     assert "Matches " in best and "posted " in best and ("remote" in best or "Springfield" in best)
     assert "Add your resume for a better order" not in best
     demo.fill(tmp_path)  # rerun = same demo, nothing refused

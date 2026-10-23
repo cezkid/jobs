@@ -158,7 +158,8 @@ def test_no_resume_match_neutral_and_said(conn, tmp_path, monkeypatch):
     monkeypatch.setattr(cfg, "ROOT", tmp_path)
     assert best.resume_facts(CONFIG, NOW.date()) is None
     store.upsert(conn, [job("x", STRONG)], "2026-10-04T11:00:00Z")
-    rows, has_resume = today.best_rows(conn, CONFIG, NOW)
+    lists, has_resume = today.best_rows(conn, CONFIG, NOW)
+    rows = lists["remote"]
     assert not has_resume and today.best_section(conn, CONFIG, rows, has_resume)["note"] == today.NO_RESUME_NOTE
     assert "Matches" not in rows[0]["why"]
 
@@ -440,3 +441,74 @@ def test_best_backing_returns_the_resume_line_only_when_backed():
     assert best.backing("Month-end close", f) == "Ran the month-end close in NetSuite"
     assert best.backing("Experience with SAP", f) is None
     assert best.backing("Month-end close", facts()) is None
+
+
+# one list mixed remote + on-site jobs: a strong local job hid under remote ones (owner 2026-10-23: two
+# lists). Each scored on its own, in their where-first order; a kind w/ no jobs left out
+def test_two_lists_remote_and_nearby_in_their_order():
+    remote, local = job("remote"), job("local", tier="local", work_mode="onsite", cities=["Springfield"],
+                                      location="Springfield, IL")
+    lists = best.lists([local, remote], CONFIG, NOW, None)
+    assert list(lists) == ["remote", "nearby"] and [j["public_slug"] for j in lists["nearby"]] == ["local"]
+    flipped = cfg.merge(CONFIG, {"passes": list(reversed(CONFIG["passes"]))})
+    assert list(best.lists([local, remote], flipped, NOW, None)) == ["nearby", "remote"]
+    assert list(best.lists([remote], CONFIG, NOW, None)) == ["remote"]
+
+
+# "Remote - Texas" / "Remote Canada" sat at the top of a New Jersey user's remote list (2026-10-23, 548 live
+# front-end rows: 76 the AI called not open to them)
+def test_remote_open_to_where_they_live():
+    home = {"NJ", "NY"}
+    at = lambda loc, **o: best.open_to(job("x", location=loc, **o), home)
+    assert at("Remote, US") == at("United States") == at("") == at("Santa Clara, CA or Remote") == 1.0
+    assert at("New York, NY (Remote)") == at("Remote - New Jersey") == 1.0
+    assert at("Remote - Texas") == at("US Remote - Arizona") == at("Remote Canada") == at("Lisbon") == 0.0
+    assert at("Remote, Canada; Remote, United States", countries=["ca", "us"]) == 1.0
+    assert at("Tampa, FL, United States") == at("San Jose") == 0.5
+    # where they live unknown: a state named can't be told
+    assert best.open_to(job("x", location="Remote - Texas"), set()) == 1.0
+
+
+# "Toronto, ON" filed under New York City sat in a Jersey City user's nearby list (the job search's
+# cities list is loose, freehire.md): its location names a place elsewhere
+def test_nearby_office_in_their_area():
+    config = cfg.merge(CONFIG, {"passes": [{"tier": "local", "states": ["NJ", "NY"],
+                                            "params": {"cities": ["New York City", "Jersey City"]}}]})
+    at = lambda loc, cities: best.near(job("x", tier="local", work_mode="hybrid", location=loc, cities=cities), config, set())
+    assert at("Jersey City, Hudson County", ["Jersey City"]) == at("New York, NY", ["New York City"]) == 1.0
+    assert at("Toronto, ON", ["New York City", "Toronto"]) == at("London, United Kingdom", ["New York City"]) == 0.0
+    assert at("Manhattan, United States", ["New York City"]) == 1.0
+    assert at("United States", ["New York City", "San Francisco"]) == 0.5
+
+
+def test_home_from_their_resume_else_their_city_tiers():
+    assert best.home_states(CONFIG, {"location": "Hoboken, NJ"}) == {"NJ", "IL"}
+    assert best.home_states(cfg.merge(CONFIG, {"passes": CONFIG["passes"][:1]}), {"location": "Hoboken, NJ"}) == {"NJ"}
+
+
+# a senior front-end engineer w/ plain past titles: their top 10 was all "Software Engineer" posts an AI
+# rated 1 of 3 - the title met theirs word for word, the asks were back-end (2026-10-23, 826 live rows)
+def test_plain_software_title_whose_asks_never_name_their_kind_sinks():
+    kinds = ["frontend", "fullstack"]
+    backend = job("be", ["5+ years of Java and Spring", "Kafka"], title="Senior Software Engineer")
+    react = job("fe", ["5+ years of React", "Kafka"], title="Senior Software Engineer")
+    named = job("named", ["Kafka"], title="Senior Frontend Engineer")
+    assert best.plain_unnamed(backend, kinds) and not best.plain_unnamed(react, kinds)
+    assert not best.plain_unnamed(named, kinds) and not best.plain_unnamed(backend, None)
+    assert not best.plain_unnamed(job("x", ["Kafka"], title="Data Analyst"), kinds)
+    config = cfg.merge(CONFIG, {"rank": {"software_kinds": kinds}})
+    f = {"stems": best.stems("Senior Software Engineer Java Spring Kafka React"), "titles": best.stems("Senior Software Engineer"),
+         "years": 8, "degree": None}
+    scored = {j["public_slug"]: j["best_parts"]["title"] for j in best.score([backend, react], config, NOW, f)}
+    assert scored == {"be": 0.6, "fe": 1.0}
+
+
+# each list placed pay among its own jobs only: a remote job paying less than every nearby one read as
+# top pay (2026-10-23, held-out resume: remote top-10 nDCG 0.347 => 0.415 w/ pay placed among all jobs)
+def test_two_lists_place_pay_among_every_job():
+    paid = lambda slug, low, **o: job(slug, salary_min=low, salary_max=low, salary_currency="USD", salary_period="year", **o)
+    near = dict(tier="local", work_mode="onsite", cities=["Springfield"], location="Springfield, IL")
+    jobs = [paid("r", 120000), paid("n1", 180000, **near), paid("n2", 200000, **near)]
+    lists = best.lists(jobs, CONFIG, NOW, None)
+    assert lists["remote"][0]["best_parts"]["pay"] == 0.0
+    assert [j["best_parts"]["pay"] for j in lists["nearby"]] == [1.0, 0.5]

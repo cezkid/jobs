@@ -201,6 +201,12 @@ rank:
     # 0.695 at 0.7, 0.679 at 0.9 => low end of the plateau. Again w/ Opus ratings + 5 held-out fields:
     # 0.5 best held out under both AIs (Opus 0.635 at 0.35, 0.687 at 0.5, 0.666 at 0.7)
     title: 0.5
+    # a plain software title ("Software Engineer") whose required asks never name their kinds of software
+    # work (rank.software_kinds: front-end, React ...) keeps this share of its title fit: a senior front-end
+    # engineer w/ plain titles of their own had a top 10 of back-end-leaning "Software Engineer" posts.
+    # 2026-10-23, 826 live front-end rows, AI-rated: senior top-10 nDCG remote 0.205 => 0.329, nearby
+    # 0.314 => 0.342; junior unchanged; 0.3-0.7 the same. Only when software_kinds is set
+    plain_title: 0.6
     # fewer asks scores higher: required asks + lead/manage duties (each twice; once for a leader), full marks at
     # asks_light or fewer, none at asks_heavy (2026-10-04, 944 live US rows, 7 occupations: 449
     # list required asks, median 7, top tenth 12+, 14 at 16+); a level 2+ rungs above career_level halves it
@@ -211,6 +217,11 @@ rank:
     pay: 0.2
     # their own where-first order (passes): first tier 1, last 0
     where: 0.15
+    # Today's two lists (remote, nearby) read `where` as place in place of it: a remote job open to where
+    # they live, a nearby one's office in their area. 2026-10-23, 826 live front-end rows (remote US + North
+    # Jersey / NYC), 2 resumes, every job rated by an AI for fit + "can they work it from home": top-10
+    # nDCG junior 0.606 / 0.571 => 0.662 / 0.649 (remote / nearby) at 0.3; 0.15 / 0.5 / 0.8 lower; senior unmoved
+    place: 0.3
     # newer posting first: 1 posted today, 0 at fresh_days
     fresh: 0.15
     fresh_days: 21

@@ -516,3 +516,18 @@ def test_today_email_and_brief_share_one_pay_filter(conn, tmp_path, monkeypatch)
         text = build()
         assert "meets" in text and "below" not in text.replace("below your pay", ""), name
         assert calls, name
+
+
+# remote + nearby jobs: two lists, each its own heading, "more" words + brief line (owner 2026-10-23)
+def test_remote_and_nearby_jobs_two_lists(conn, tmp_path, monkeypatch):
+    monkeypatch.setattr(today, "BEST_MAX", 1)
+    near = dict(tier="local", work_mode="onsite", cities=["Springfield"], location="Springfield, IL")
+    store.upsert(conn, [job("r1"), job("r2"), job("n1", **near), job("n2", **near)], CHECK)
+    m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
+    best = [s for s in m["sections"] if s["id"].startswith("best")]
+    assert [(s["id"], s["title"], s["total"]) for s in best] == [
+        ("best_remote", "Best remote jobs to apply to", 2), ("best_nearby", "Best jobs near you to apply to", 2)]
+    assert [s["more"]["say"] for s in best] == [today.words("more_remote"), today.words("more_nearby")]
+    assert {"label": "New since last check", "value": 4, "section": "best_remote"} in m["tiles"]
+    brief = today.brief(conn, CONFIG, tmp_path, NOW, [])
+    assert "- Best remote jobs to apply to: Job " in brief and "- Best jobs near you to apply to: Job " in brief
