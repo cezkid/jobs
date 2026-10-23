@@ -200,7 +200,8 @@ def resume_facts(config: dict, today: date) -> dict | None:
     own = " ".join([master.get("headline") or ""] + [r.get("title") or "" for r in master.get("roles") or []])
     return {"stems": stems(" ".join(parts)), "titles": stems(own), "lines": [p for p in parts if p.strip()], "years": knockout.dated_years(master, today),
             "credentials": knockout.credential_text(master), "portfolio": bool(knockout.portfolio_link(master)),
-            "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
+            "degree": held if None not in levels else "unknown", "languages": languages(spoken),
+            "location": (master.get("contact") or {}).get("location") or ""}
 
 
 CITIZEN = re.compile(r"(?i)\bcitizen(?:ship)?\b|\bU\.?S\.? persons?\b|\blawful permanent resident\b|\bITAR\b|\bexport[- ]control")
@@ -442,6 +443,73 @@ def where(job: dict, tiers: list[str]) -> float:
     return 1.0 if len(tiers) < 2 else 1 - tiers.index(job["tier"]) / (len(tiers) - 1)
 
 
+# Today's two lists (owner 2026-10-23): remote jobs + jobs near them, each in its own order. Inside one
+# list the tier order says nothing, so `where` reads as `place` there: a remote job open to where they
+# live, a nearby job whose office is in their area. 2026-10-23, 826 live front-end rows (remote US +
+# 19 North Jersey / NYC cities), two resumes, every job rated by an AI for fit + "can they work it
+# from home": app/docs/jobs/best-next.md #Two lists
+LISTS = ("remote", "nearby")
+# a place outside the US named in a location: "Remote Canada", "Toronto, ON", "Lisbon" (2026-10-23, 548
+# live remote front-end rows: 36 the AI called not open to a New Jersey resident read open, 21 abroad)
+ABROAD = re.compile(r"(?i)\b(?:canada|mexico|ciudad de|brazil|brasil|argentina|colombia|chile|peru|latam|latin america|"
+                    r"india|china|japan|korea|singapore|philippines|indonesia|vietnam|pakistan|bangladesh|australia|"
+                    r"new zealand|united kingdom|uk|england|ireland|scotland|germany|france|spain|portugal|italy|"
+                    r"netherlands|poland|romania|ukraine|europe|emea|apac|israel|egypt|nigeria|kenya|south africa|turkey|"
+                    r"toronto|vancouver|montreal|ontario|quebec|alberta|british columbia|london|berlin|dublin|bengaluru|"
+                    r"bangalore|hyderabad|pune|lahore|manila|warsaw|lisbon|madrid|paris|amsterdam|bucharest)\b")
+IN_US = re.compile(r"(?i)\b(?:united states|usa|u\.s\.|us)\b")
+# remote anywhere in the US, whatever office it also names: "Santa Clara, CA or Remote", "Remote, US"
+ANY_US = re.compile(r"(?i)\bor remote\b|remote (?:within|in|across|anywhere in) (?:the )?(?:us|u\.s|united states)\b|"
+                    r"remote,? (?:us|u\.s|united states)\b|\b(?:us|united states) remote\b(?! -)|\banywhere\b|nationwide")
+HOME_WORK = re.compile(r"(?i)remote|work from home|wfh")
+
+
+def home_states(config: dict, facts: dict | None) -> set[str]:
+    """Where they live, as state codes: their resume's own location, else every city tier's `states`."""
+    own = rank.states_named((facts or {}).get("location"))
+    return own | {s.upper() for p in config["passes"] for s in p.get("states") or []}
+
+
+def list_of(job: dict) -> str:
+    """Which of Today's two lists: a remote job, else one near them (hybrid, on-site, not tagged)."""
+    return "remote" if job.get("work_mode") == "remote" else "nearby"
+
+
+def open_to(job: dict, home: set[str]) -> float:
+    """A remote job open to where they live: 1 = US-wide or names their state, 0 = only abroad or
+    remote in another state ("Remote - Texas", "US Remote - Arizona"), 0.5 = an office in another
+    state, or a city alone - can't tell. Home unknown => a state named can't be told either."""
+    loc = job.get("location") or ""
+    countries = job.get("countries") or []
+    if countries and "us" not in countries or ABROAD.search(loc) and not IN_US.search(loc) \
+            or re.search(r"(?i)west coast", loc) and not ANY_US.search(loc):
+        return 0.0
+    if named := rank.states_named(loc):
+        if not home or named & home or ANY_US.search(loc):
+            return 1.0
+        return 0.0 if HOME_WORK.search(loc) else 0.5
+    return 1.0 if not loc.strip() or IN_US.search(loc) or HOME_WORK.search(loc) else 0.5
+
+
+def near(job: dict, config: dict, home: set[str]) -> float:
+    """A nearby job's office in their area: 1 = its location names one of their tier's cities or
+    states, 0 = it names only a place elsewhere ("Toronto, ON" filed under New York City - the job
+    search's city list is loose, freehire.md), else the share of its cities that are theirs."""
+    loc = (job.get("location") or "").lower()
+    theirs = {c for p in config["passes"] if p["tier"] == job.get("tier") for c in (p["params"].get("cities") or [])}
+    states = {s.upper() for p in config["passes"] if p["tier"] == job.get("tier") for s in p.get("states") or []} or home
+    if rank.states_named(job.get("location")) & states or any(c.lower() in loc for c in theirs):
+        return 1.0
+    cities = job.get("cities") or []
+    if any(c.lower() in loc for c in cities if c not in theirs) or ABROAD.search(loc):
+        return 0.0
+    return 0.5 if not cities or not theirs else sum(c in theirs for c in cities) / len(cities)
+
+
+def place(job: dict, config: dict, home: set[str]) -> float:
+    return open_to(job, home) if list_of(job) == "remote" else near(job, config, home)
+
+
 def posted_days(job: dict, now: datetime) -> int | None:
     """Days since the posting went up (freehire's first sighting, rank.age), else since it
     reached their list."""
@@ -522,19 +590,24 @@ def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = Non
     return placed
 
 
-def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> list[dict]:
+def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_place: bool = False) -> list[dict]:
     """Each job + `best` (0-1 weighted mean less demerits) + `best_parts`, freshest window first
     (`windows`), best first inside it, employers spread (`spread`). Ties: slug order, so the same
-    list always reads the same."""
+    list always reads the same. by_place = one of Today's two lists (`lists`): `where` read as
+    `place`, weighed by `place`."""
     bn = config["rank"]["best_next"]
     weights = {k: bn.get(k, 0) for k in ("match", "title", "asks", "pay", "where", "fresh")}
+    if by_place:
+        weights["where"] = bn.get("place", 0)
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
+    home = home_states(config, facts)
     ladder = sorted(a for j in jobs if (a := rank.annual_usd(j)) is not None)
     out = []
     for j in jobs:
         m, counted = match(j, facts, bn.get("match_prior", 0))
         a, n_asks, lead = asks(j, config, bn, facts)
-        parts = {"match": m, "title": title_fit(j, facts), "asks": a, "pay": pay(j, ladder, floor), "where": where(j, tiers),
+        parts = {"match": m, "title": title_fit(j, facts), "asks": a, "pay": pay(j, ladder, floor),
+                 "where": place(j, config, home) if by_place else where(j, tiers),
                  "fresh": fresh(j, now, bn["fresh_days"])}
         total = sum(weights[k] * parts[k] for k in weights) / (sum(weights.values()) or 1)
         total -= bn["demerit"] * rank.demerits(j, config)
@@ -567,8 +640,21 @@ def candidates(conn, config: dict, now: datetime, ranked: list[dict] | None = No
             if not j["stale"] and not ({j["public_slug"], *j["duplicates"], store.link_key(j["url"])} & acting)]
 
 
-def ordered(conn, config: dict, now: datetime) -> list[dict]:
-    return score(candidates(conn, config, now), config, now, resume_facts(config, now.date()))
+def lists(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> dict[str, list[dict]]:
+    """Today's two lists, each scored on its own (pay ladder, freshness windows, employer spread inside
+    it), in their where-first order: remote first when their first tier searches remote. Empty ones left out."""
+    first = next(iter(config["passes"]), {})
+    keys = LISTS if (first.get("params") or {}).get("work_mode") in ("remote", ["remote"]) else LISTS[::-1]
+    out = {k: score([j for j in jobs if list_of(j) == k], config, now, facts, by_place=True) for k in keys}
+    return {k: v for k, v in out.items() if v}
+
+
+def ordered(conn, config: dict, now: datetime, which: str | None = None) -> list[dict]:
+    """rank --best: one order of every job, or one of Today's two lists (which = remote | nearby)."""
+    facts = resume_facts(config, now.date())
+    if which:
+        return lists(candidates(conn, config, now), config, now, facts).get(which, [])
+    return score(candidates(conn, config, now), config, now, facts)
 
 
 def ago(days: int | None) -> str:

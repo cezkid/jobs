@@ -138,3 +138,15 @@ test("empty panel before setup: one Set me up row, never 'made at the next start
   assert.match(jobs.emptyRow(null).label, /isn't ready yet/);
   assert.notStrictEqual(jobs.emptyRow(null, false), jobs.SETUP_ROW);
 });
+
+// remote + nearby lists on Today => the panel shows both, in the page's order, top 10 each
+test("two best-next lists: both groups, the page's order, top 10 each", () => {
+  const raw = JSON.parse(JSON.stringify(RAW));
+  const cards = (from) => Array.from({ length: 12 }, (_, i) => card(from + i, `Role ${from + i}`, "Sample Corp", [`apply to job ${from + i}`]));
+  raw.sections = [{ id: "best_nearby", title: "Best jobs near you to apply to", cards: cards(40) },
+    { id: "best_remote", title: "Best remote jobs to apply to", cards: cards(60) }];
+  const { groups } = build(raw, []);
+  assert.deepStrictEqual(groups.map((g) => g.label), ["Next up", "Best jobs near you to apply to", "Best remote jobs to apply to"]);
+  assert.strictEqual(groups[1].items.length, 10);
+  assert.strictEqual(groups[2].items.length, 10);
+});

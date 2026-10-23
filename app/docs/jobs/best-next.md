@@ -1,7 +1,7 @@
 # Best to apply next
 
 Today page section, chat brief (`today --brief`), morning email + pop-up and `rank --best` share one
-order: `app/best.py`. Replaced "New since last check" (owner 2026-10-04): a job from last week that
+order: `app/best.py`. Today + brief split it in two lists (below, "Two lists"); email stays one order. Replaced "New since last check" (owner 2026-10-04): a job from last week that
 fits beats today's that doesn't. "N new since last check" stays as a header figure.
 
 ## Which jobs
@@ -200,10 +200,59 @@ Tried, not kept (held out no better, both judges):
 - Title: generic words ("Group", "Corporate", "Expert") left out - the unmet title words on well-rated
   jobs are field words ("partner" for HR, "producer" for video), not generic ones.
 
+## Two lists (2026-10-23)
+
+Owner: "not just one best to apply list, but two - one for remote and one for nearby". Today + the chat
+brief show "Best remote jobs to apply to" and "Best jobs near you to apply to" (`best.lists`): remote =
+`work_mode` remote, nearby = the rest (hybrid, on-site, untagged). Each list scored on its own - pay
+ladder, freshness windows, employer spread inside it - in their where-first order (remote first when
+their first tier searches remote). One kind only => one "Best to apply next" list, as before.
+`rank --best --where remote|nearby` = one list (its "Show more" words).
+
+Inside one list the tier order says nothing, so `where` reads as **place** (weight `place`, 0.3):
+- remote: open to where they live (`best.open_to`; home = their resume's state, plus every city tier's
+  `states`): 1 US-wide, "or Remote", or names their state; 0 abroad ("Remote Canada", "Lisbon"),
+  `countries` w/o us, "West Coast", or remote in another state ("Remote - Texas", "US Remote - Arizona");
+  0.5 an office in another state or a city alone ("Tampa, FL, United States", "San Jose") - can't tell.
+- nearby: office in their area (`best.near`): 1 location names a tier city or state; 0 names only a
+  place elsewhere ("Toronto, ON" filed under New York City - city tags are loose, `freehire.md`); else
+  the share of its city tags that are theirs ("Manhattan, United States" + [New York City] = 1,
+  "United States" + [New York City, San Francisco] = 0.5).
+
+Measured: 826 live front-end rows (the front-end profile's passes, remote US + a 19-city North Jersey / NYC
+tier w/ states NJ, NY), two resumes - senior Vue engineer in Jersey City (`resume/master.example.yml`,
+career level senior) and a junior React developer in Hoboken (career level entry). Every job rated by
+`claude -p` (Sonnet) for fit 0-3 (as above) AND place: can they work it from home (remote open to a
+New Jersey resident, or an office they can commute to). Gain = fit when place yes, fit - 1 unclear, 0 no.
+Top-10 nDCG (remote / nearby):
+
+| | senior | junior |
+|---|---|---|
+| one list, then split by kind | 0.108 / 0.287 | 0.530 / 0.602 |
+| each list scored on its own | 0.203 / 0.314 | 0.606 / 0.571 |
+| + place 0.3 (now) | 0.205 / 0.314 | 0.662 / 0.649 |
+
+Place 0.15 / 0.5 / 0.8 / 1.2: junior 0.620 / 0.662 / 0.658 / 0.656 remote, 0.571 / 0.639 / 0.622 / 0.622
+nearby; senior unmoved at any weight (its top 10 are all open to them - its loss is fit, below). The
+AI's place vs `open_to` on the 549 remote rows: read 1 => 350 yes, 43 unclear, 7 no; read 0 => 36 no, 10
+unclear, 7 yes; read 0.5 => 47 unclear, 33 no, 16 yes. Nearby (277): read 1 => 233 yes, 18 unclear, 0 no;
+the AI calls nearly every nearby row workable (an office list naming New York City), so `near` moves little.
+
+Second judge: each list's top 10, old vs now, rated again by `claude -p --model opus` - average gain
+(Sonnet / Opus): senior remote 0.7 / 0.7 => 1.0 / 0.9, nearby 1.2 / 1.5 => 1.4 / 1.5; junior remote 1.8 / 1.6
+=> 2.3 / 1.7, nearby 1.9 / 1.9 => 2.0 / 1.9. Same direction, smaller under Opus.
+
+Tried, not kept: a title naming one of their `rank.software_kinds` ("Senior Frontend Engineer") read as
+a full title fit, a plain "Software Engineer" title at 0.4-0.8 of its fit - senior remote 0.205 => 0.311,
+junior remote 0.662 => 0.506, nearby 0.649 => 0.406 (the kind-named titles a junior sees are mostly
+senior posts). `fresh_first` 0 / 3 per list: senior remote gains (0.29 / 0.21), every other list loses
+- kept at 5. Senior lists stay low: generic "Software Engineer" titles match its own past titles word
+for word, the AI rates them 1 (back-end work, often); a check on direction, one resume each - not a study.
+
 ## Shown
 
-Today page + side panel: 10 (owner 2026-10-11, was 5); when Next up is a best job it is the
-first of the 10. Chat brief: 3. Morning email: up to `alert.DIGEST_CAP`. The rest: "show me more
+Today page + side panel: 10 per list (owner 2026-10-11, was 5); when Next up is a best job it is the
+first of the first list's 10. Chat brief: 3 per list. Morning email: up to `alert.DIGEST_CAP`. The rest: "show me more
 jobs to apply to".
 
 ## Rejected

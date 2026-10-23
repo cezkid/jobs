@@ -16,6 +16,8 @@ const GROUPS = [
   { id: "interviews", label: "Interviews" },
   { id: "follow_up", label: "Follow up" },
   { id: "best", label: "Best to apply next" },
+  { id: "best_remote", label: "Best remote jobs to apply to" },
+  { id: "best_nearby", label: "Best jobs near you to apply to" },
   { id: "applied", label: "Applied" },
 ];
 // best-next past this many: the rest in the chat (today.BEST_SHOWN, same on the page)
@@ -88,10 +90,12 @@ function tree(m, applied = []) {
     }
     if (m.next.card) shown.add(m.next.card.num);
   }
-  for (const id of ["waiting", "interviews", "follow_up", "best"]) {
+  // best-next lists in the data's own order (their where-first order: remote or nearby first)
+  const bestIds = m ? m.sections.filter((x) => today.isBest(x.id)).map((x) => x.id) : [];
+  for (const id of ["waiting", "interviews", "follow_up", ...bestIds]) {
     const s = m ? m.sections.find((x) => x.id === id) : null;
     if (!s) continue;
-    const cards = id === "best" ? s.cards.slice(0, BEST_SHOWN) : s.cards;
+    const cards = today.isBest(id) ? s.cards.slice(0, BEST_SHOWN) : s.cards;
     cards.forEach((c) => shown.add(c.num));
     add(id, cards.map((c) => jobItem(id, c)));
   }

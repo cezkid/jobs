@@ -30,6 +30,9 @@ const BLOCKERS = new Set(["import", "morning"]);
 // sections past this many jobs draw as one-line rows; new jobs always do, 10 shown, rest in the chat
 const ROWS_AFTER = 4;
 const BEST_SHOWN = 10;
+// best-next lists: one ("best"), or Today's two - remote + near them (app/today.py BEST_LISTS); each its own "more" words
+const BEST_MORE = { best: "more_best", best_remote: "more_remote", best_nearby: "more_nearby" };
+const isBest = (id) => Object.prototype.hasOwnProperty.call(BEST_MORE, id);
 // yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
@@ -255,9 +258,10 @@ function model(raw, sayJson) {
     else if (said.length) m.examples.push(said);
   }
   // best-next jobs past BEST_SHOWN: the rest in the chat, even when the data's own list fit
-  const best = m.sections.find((x) => x.id === "best");
-  const moreBest = tpls.find((t) => t.id === "more_best");
-  if (best && best.cards.length > BEST_SHOWN && !best.more && moreBest) best.more = { text: "", say: sayButton(moreBest.words) };
+  for (const best of m.sections.filter((x) => isBest(x.id))) {
+    const moreBest = tpls.find((t) => t.id === BEST_MORE[best.id]);
+    if (best.cards.length > BEST_SHOWN && !best.more && moreBest) best.more = { text: "", say: sayButton(moreBest.words) };
+  }
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
   m.next = nextUp(m);
   m.sections = m.sections.filter((s) => s.cards.length || s.more);
@@ -275,7 +279,8 @@ function model(raw, sayJson) {
 // takes the Next-up item out of its section or setup list (shown once, at the top)
 function nextUp(m) {
   for (const want of NEXT_ORDER) {
-    const s = want.section && m.sections.find((x) => x.id === want.section && x.cards.length);
+    // "best" = the first best-next list w/ a job: data order is their where-first order
+    const s = want.section && m.sections.find((x) => (x.id === want.section || (want.section === "best" && isBest(x.id))) && x.cards.length);
     if (s) return { section: s.id, card: s.cards.shift() };
     const i = want.todo ? m.todo.findIndex((t) => t.say && t.say.id === want.todo) : -1;
     if (i >= 0) return { todo: m.todo.splice(i, 1)[0] };
@@ -837,16 +842,17 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
   const jumps = [];
   const section = (s) => {
-    const rows = s.id === "best" || s.cards.length > ROWS_AFTER;
-    const shown = s.id === "best" ? s.cards.slice(0, BEST_SHOWN) : s.cards;
+    const best = isBest(s.id);
+    const rows = best || s.cards.length > ROWS_AFTER;
+    const shown = best ? s.cards.slice(0, BEST_SHOWN) : s.cards;
     let more = s.more;
-    if (more && s.id === "best") {
+    if (more && best) {
       const total = s.total || s.cards.length;
-      const left = total - shown.length - (m.next && m.next.section === "best" ? 1 : 0);
+      const left = total - shown.length - (m.next && m.next.section === s.id ? 1 : 0);
       more = left > 0 ? { ...more, text: `${left} more ${left === 1 ? "job" : "jobs"} to apply to.` } : null;
     }
     // "Show the rest" under two sections => named by its section; "Show more jobs" says it already
-    const moreName = more && more.say && s.id !== "best" ? `${sayText(more.say, mode)}: ${s.title}` : "";
+    const moreName = more && more.say && !best ? `${sayText(more.say, mode)}: ${s.title}` : "";
     jumps.push([`s-${s.id}`, s.title]);
     const lead = LEADS.has(s.id);
     const note = [s.note ? h(s.note) : "", s.guide ? guideBtn(s.guide, `Open the guide ${s.guide.title}`) : ""].filter(Boolean).join(" ");
@@ -1116,7 +1122,7 @@ ${BAR}</main>
 
 module.exports = {
   VIEW_TYPE, WELCOME_TYPE, AI_NAMES, START_LABELS, startLabel, setupReady, afterStart, SHOW_CHAT, ALLOW_HERE, CHOOSE_RESUME, WELCOME_GUIDES, guideAction, SIGN_IN, SIGN_IN_ANY, setupLine, welcome,
-  DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, isBest, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, readingPane, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,

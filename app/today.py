@@ -182,10 +182,11 @@ def progress(conn) -> str:
     return f"So far: {', '.join(parts)}." if parts else ""
 
 
-def tiles(counts: dict[str, int], new: int) -> list[dict]:
+def tiles(counts: dict[str, int], new: int, best_id: str = "best") -> list[dict]:
     """Dashboard's top row: progress + what's new only, never a count of what's left to do.
-    section = the section it tells about (dashboard orders tiles like its sections)."""
-    shown = (("New since last check", new, "best"), ("Sent so far", counts["sent"], None),
+    section = the section it tells about (dashboard orders tiles like its sections); new jobs tell
+    about the first best-next list."""
+    shown = (("New since last check", new, best_id), ("Sent so far", counts["sent"], None),
              ("Interview" if counts["interview"] == 1 else "Interviews", counts["interview"], "interviews"),
              ("Offer" if counts["offer"] == 1 else "Offers", counts["offer"], None))
     return [{"label": label, "value": n, "section": sec} for label, n, sec in shown if n]
@@ -275,27 +276,41 @@ def new_jobs(conn, config: dict, now: datetime, ranked: list[dict] | None = None
     return out
 
 
-def best_section(conn, config: dict, rows: list[dict], has_resume: bool) -> dict | None:
+# Today's two lists (best.lists): own heading + own "more" words each; one kind only => one plain list
+BEST_LISTS = {"remote": ("best_remote", "Best remote jobs to apply to", "more_remote"),
+              "nearby": ("best_nearby", "Best jobs near you to apply to", "more_nearby")}
+
+
+def best_section(conn, config: dict, rows: list[dict], has_resume: bool, which: str | None = None) -> dict | None:
     """Open jobs not acted on, best to apply next first (app/best.py): replaces "new since last
-    check" (owner 2026-10-04) - a job from last week that fits beats today's that doesn't."""
+    check" (owner 2026-10-04) - a job from last week that fits beats today's that doesn't. which =
+    one of Today's two lists (owner 2026-10-23); None = the one list, when they have one kind only."""
     if not rows:
         return None
+    sid, title, more_words = BEST_LISTS[which] if which else ("best", "Best to apply next", "more_best")
     # facts to decide on before "Apply": the why + the posting (critique 2026-10-04); Apply = resume +
     # form in one run (owner 2026-10-13, job-apply skill)
     cards = [card(conn, j, "", [words("apply", j["num"])], why=j["why"])
              for j in store.numbered(conn, rows[:BEST_MAX])]
-    more = ({"text": f"{len(rows) - BEST_MAX} more - ask the chat.", "say": words("more_best")}
+    more = ({"text": f"{len(rows) - BEST_MAX} more - ask the chat.", "say": words(more_words)}
             if len(rows) > BEST_MAX else None)
-    return {"id": "best", "title": "Best to apply next", "note": None if has_resume else NO_RESUME_NOTE,
+    return {"id": sid, "title": title, "note": None if has_resume else NO_RESUME_NOTE,
             "cards": cards, "more": more, "total": len(rows)}
 
 
-def best_rows(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> tuple[list[dict], bool]:
-    """Best-next order, the shown ones w/ their why; second = their resume was read (else match
-    is neutral)."""
+def best_rows(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> tuple[dict[str, list[dict]], bool]:
+    """Today's two lists (remote, nearby; best.lists), each in best-next order, the shown ones w/ their
+    why; second = their resume was read (else match is neutral)."""
     facts = best.resume_facts(config, now.date())
-    rows = best.score(best.candidates(conn, config, now, ranked), config, now, facts)
-    return [dict(j, why=best.reasons(j, config, now)) if i < BEST_MAX else j for i, j in enumerate(rows)], facts is not None
+    out = best.lists(best.candidates(conn, config, now, ranked), config, now, facts)
+    return ({k: [dict(j, why=best.reasons(j, config, now)) if i < BEST_MAX else j for i, j in enumerate(rows)]
+             for k, rows in out.items()}, facts is not None)
+
+
+def best_sections(conn, config: dict, lists: dict[str, list[dict]], has_resume: bool) -> list[dict]:
+    if len(lists) == 1:
+        return [best_section(conn, config, next(iter(lists.values())), has_resume)]
+    return [best_section(conn, config, rows, has_resume, k) for k, rows in lists.items()]
 
 
 def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | None = None,
@@ -339,15 +354,15 @@ def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], ro
     days = config["follow_up"]
     ranked = rank.rank(store.all_jobs(conn), config, now)
     new = new_jobs(conn, config, now, ranked)
-    rows, has_resume = best_rows(conn, config, now, ranked)
+    lists, has_resume = best_rows(conn, config, now, ranked)
     sections = [waiting_section(conn, now_iso, dirs, root), interviews_section(conn, now_iso, days, dirs, root),
-                follow_up_section(conn, now_iso, days, dirs, root), best_section(conn, config, rows, has_resume)]
+                follow_up_section(conn, now_iso, days, dirs, root), *best_sections(conn, config, lists, has_resume)]
     sections = [s for s in sections if s]
     return {
         "version": DASHBOARD_VERSION,
         "date": f"{now:%A, %B} {now.day}",
         "progress": progress(conn),
-        "tiles": tiles(progress_counts(conn), len(new)),
+        "tiles": tiles(progress_counts(conn), len(new), next((s["id"] for s in sections if s["id"].startswith("best")), "best")),
         "sections": sections,
         "todo": [todo_item(t) for t in todo],
         "empty": None if sections or todo else {"text": "Nothing new since the last check.", "say": words("find")},
@@ -400,8 +415,10 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
                           for r in status.numbered(conn, rows))
         out.append(f"- Follow up (no reply for a while): {quiet}")
     ranked = rank.rank(store.all_jobs(conn), config, now)
-    if rows := best_rows(conn, config, now, ranked)[0]:
-        out.append(f"- Best to apply next: {jobs(store.numbered(conn, rows[:BRIEF_MAX]))}")
+    lists = best_rows(conn, config, now, ranked)[0]
+    for k, rows in lists.items():
+        title = BEST_LISTS[k][1] if len(lists) > 1 else "Best to apply next"
+        out.append(f"- {title}: {jobs(store.numbered(conn, rows[:BRIEF_MAX]))}")
     if new := len(new_jobs(conn, config, now, ranked)):
         out.append(f"- New since last check: {new}")
     out += [f"- Not finished: {t.split(' Say: ')[0]}" for t in todo]

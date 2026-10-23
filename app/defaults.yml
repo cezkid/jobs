@@ -211,6 +211,11 @@ rank:
     pay: 0.2
     # their own where-first order (passes): first tier 1, last 0
     where: 0.15
+    # Today's two lists (remote, nearby) read `where` as place in place of it: a remote job open to where
+    # they live, a nearby one's office in their area. 2026-10-23, 826 live front-end rows (remote US + North
+    # Jersey / NYC), 2 resumes, every job rated by an AI for fit + "can they work it from home": top-10
+    # nDCG junior 0.606 / 0.571 => 0.662 / 0.649 (remote / nearby) at 0.3; 0.15 / 0.5 / 0.8 lower; senior unmoved
+    place: 0.3
     # newer posting first: 1 posted today, 0 at fresh_days
     fresh: 0.15
     fresh_days: 21
