@@ -1,6 +1,7 @@
 # job-apply
 
-Fill a job application for the user, stopping before every Save/Submit. Every supported system
+Fill a job application for the user, stopping before Submit (and before every Save / Next unless they said yes to
+`continue_on_apply` - below). Every supported system
 (every one listed in `app/docs/apply/apply-systems.md`, Workday too since 2026-10-22) through Job
 Finder's own Chrome window - #Other systems below. Workday through the Claude Chrome extension
 (Steps below) only as the fallback: a step the window route can't fill, or the user already applying
@@ -24,8 +25,17 @@ form over, fix the program after.
 ## Hard limits (safety rules - never relax)
 
 - User signs in / creates the account themselves. Never type a password.
-- Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
-  to check the page and click it. They say "click it for me" -> still ask once per click.
+- Never click **Submit**, or anything irreversible. **Save and Continue** / **Next** / **Continue**
+  only through `fill` with `continue_on_apply: true` in search settings (owner 2026-10-22): `prepare`
+  prints "ask once" on the first form over pages whose system names its button (Workday) -> ONE clickable
+  question: "When a page is filled and nothing on it is left for you, click Next / Continue for you and
+  go on? Each page's answers reach the employer's site as it's passed. Submit always stays yours." -
+  Yes, keep going for me (Recommended) -> true / No, I'll click each one -> false. `fill` then presses
+  only a Next / Continue / Save and Continue label, and stops on the first page holding a blank required
+  or user-only question (sensitive, voluntary, pay, consent), an answer that didn't take, or the page's own
+  error - printing `stopped on this page: <why>`: ask, write the answers, `fill` again (no `prepare`
+  between: it read the page). Off or a system without one: fill, tell them to check the page and click it;
+  "click it for me" -> still ask once per click.
 - Upload the resume PDF only after they say yes (name the file). `upload_on_apply: true` in search
   settings = their Apply click is that yes, resume box only (`prepare` answers it; Workday step 6
   the same): no question, name the file + when it reached the employer at handover. Not yet asked
@@ -194,7 +204,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Hear's options read "<category> > <option>": a job from their list came from a job board -
    "... > Job Board" (or the saved answer when it is listed). `NOTE Skills > limit` = the form takes
    N skills: the N closest to the posting went in - say which were left out. Save and Continue
-   between steps is the user's click.
+   between steps is the user's click - or `fill`'s, with `continue_on_apply: true` (hard limits).
 3. Fill each blank `answer` in that file: a question marked "yours to answer" or "sensitive" gets
    only what the user tells you, its `source` set to "you said" (`fill` + `paste` refuse anything
    else). A question printed "(at most N characters)": draft within N - the page cuts a longer
@@ -250,7 +260,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Any `--in-window` run printing `not let go:` -> the window's debugger may still be on the form: tell the user to
    close that tab without clicking Submit, then `fill` again without `--in-window` (Chrome).
    Form over several pages (`this page: X of Y required answered` + "question(s) on other
-   pages"): tell the user to check this page and click Next / Continue themselves - never us.
+   pages"): tell the user to check this page and click Next / Continue themselves - never us
+   (`continue_on_apply: true` on a system naming its button: `fill` goes on itself - hard limits).
    Once they say they're on the next page: `prepare` again if `fill` printed it (that system
    reads page by page; answers already given are kept), then `fill` again - it works on their
    own tab, where they are. Repeat to the last page.

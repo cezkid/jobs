@@ -1,5 +1,6 @@
 """Workday careers sites (<company>.wd<N>.myworkdayjobs.com/<site>/job/...): the application filled step by
-step in Job Finder's own Chrome, the user's tab, never a Save and Continue or Submit of ours.
+step in Job Finder's own Chrome, the user's tab, never a Submit of ours (Save and Continue only with the
+user's continue_on_apply: true, on a step with nothing left for them - form.go_on).
 
 No public form definition: the steps show after Apply, a start choice (Autofill with Resume / Apply
 Manually / Use My Last Application) and the user's own sign-in. Each step is read off the page with the
@@ -7,7 +8,8 @@ same filler the Claude Chrome extension runs (app/apply/workday.js, every field 
 then answered: My Information, Application Questions, Voluntary Disclosures field by field with real mouse
 and keys; My Experience (work history, education, skills, profile links) by workday.js's own run(), its
 clicks on list options made real here (synthetic ones were ignored on some options, tenant H). The user
-clicks Save and Continue on each step, then prepare + fill again. Facts and why each rule exists:
+clicks Save and Continue on each step, then prepare + fill again - or fill does, on to the next step,
+when the user said yes to continue_on_apply. Facts and why each rule exists:
 app/docs/apply/workday.md; the extension route stays the fallback (job-apply skill, Steps).
 """
 import json
@@ -37,6 +39,9 @@ FILE_ON_CHOICE = True
 STEP = '[data-automation-id="progressBarActiveStep"]'
 APPLY = '[data-automation-id="adventureButton"]'
 READY = f"{STEP}, {APPLY}"
+# the step's footer button: Continue (autofill step), Save and Continue, Submit on Review (tenant H, 2026-10-22);
+# form.go_on presses it only on a Continue label, with continue_on_apply
+NEXT = '[data-automation-id="pageFooterNextButton"]'
 # the start choices after Apply (tenant G 2026-10-14, tenant H 2026-10-22)
 STARTS = ["Autofill with Resume", "Apply Manually", "Use My Last Application"]
 START, EXPERIENCE, RESUME, AUTOFILL_RESUME = "workday-start", "workday-experience", "workday-resume", "workday-autofill-resume"
@@ -125,6 +130,13 @@ def step(page) -> str:
     """The step the tab shows ("My Information"), '' on the posting page."""
     raw = page.evaluate(f"() => document.querySelector('{STEP}')?.textContent || ''")
     return re.sub(r"^\s*(current )?step \d+ of \d+\s*", "", " ".join(raw.split()), flags=re.I)
+
+
+def page_errors(page) -> list[str]:
+    """What the step says is wrong after Save and Continue ("The field Field of Study is required and must have
+    a value.", tenant H 2026-10-22) - workday.js errors()."""
+    inject(page)
+    return page.evaluate("() => window.__jf.errors()") or []
 
 
 def signing_in(page) -> bool:
@@ -410,15 +422,24 @@ def put_list(page, b, value: str) -> str:
             page.locator(f"{OPTION}:visible", has_text=category[0]).first.click()
             page.wait_for_timeout(600)
         if not page.evaluate(SCROLL_TO, leaf):
-            page.keyboard.press("Escape")
+            close_list(page)
             return f"ASK no option '{value}'"
         page.locator(f"{OPTION}:visible").filter(has_text=re.compile(rf"^\s*{re.escape(leaf)}\s*$")).first.click()
     except Exception as e:
-        page.keyboard.press("Escape")
+        close_list(page)
         return f"FAIL {type(e).__name__}"
     page.wait_for_timeout(400)
     pills = b.locator('[data-automation-id="selectedItem"]').all_inner_texts()
     return "ok" if any(p.strip() == leaf for p in pills) else f"FAIL '{leaf}' not picked"
+
+
+def close_list(page) -> None:
+    """Shut an open search list. Inside a category Escape left it open over the boxes below (tenant H's
+    How Did You Hear, 2026-10-22: every later click on the step timed out under it); a click on the step's
+    heading shut it."""
+    page.keyboard.press("Escape")
+    if page.locator(f"{OPTION}:visible").count():
+        page.locator("h2:visible").first.click()
 
 
 def put_choice(b, value: str) -> str:
@@ -444,6 +465,10 @@ def put_date(page, b, value: str) -> str:
 def fill(page, q: dict, resume_file: str | None) -> str:
     inject(page)
     value, native = q["answer"], q["native"]
+    if native in ("start", "experience") and q["id"] not in ids_on_page(page):
+        # an earlier step's: the start choice re-clicked Apply on every later step (a 30 s FAIL, tenant H
+        # 2026-10-22), My Experience's run would type the work history again over another step
+        return f"{LATER} on another step"
     if native == "start":
         return start(page, str(value))
     if native == "experience":

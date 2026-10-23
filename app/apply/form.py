@@ -9,7 +9,10 @@ questions were read ahead (apply/readahead.py): `prepare` drafts from those, `pa
 the answers as a page to paste from.
 A form spread over pages: `fill` works on the user's own tab, fills what this page shows (the rest
 reported LATER), the user clicks Next / Continue, then `prepare` again (systems that read the page)
-and `fill` again. `--in-window` (trial): the window's tab instead of Chrome's; a multi-page form there
+and `fill` again. With `continue_on_apply: true` in search settings (asked once) `fill` presses the
+page's own Next / Continue / Save and Continue itself (a system with `NEXT`), reads the next page and
+fills on, until a page holds something for the user (a blank required or user-only question, an
+answer that didn't take, the page's own error) or the button left is Submit - never pressed. `--in-window` (trial): the window's tab instead of Chrome's; a multi-page form there
 runs in one holder process that stays on the user's tab between runs (apply/window.py hold);
 `let-go` ends it.
 `measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
@@ -57,6 +60,13 @@ CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|"
                     r"opportunity is (?:currently )?not available|"
                     # Paycom's job page of a job id it doesn't have: "We Couldn't Find This Job" (2026-10-07)
                     r"couldn['’]t find this job", re.I)
+# the only buttons fill presses itself (continue_on_apply: true) - a page's way on, never one that sends
+# the application: Submit, Apply, Review, Finish stay the user's (owner 2026-10-22)
+CONTINUE = re.compile(r"^\s*(?:next|continue|next step|save (?:and|&) continue)\s*$", re.I)
+# pages passed in one fill at most: Workday has 7 steps; more means the same page came back
+MAX_PAGES = 12
+# how long a pressed Next gets to show the next page (Workday's Save and Continue: ~2-6 s, tenant H)
+MOVE_MS = 20000
 
 
 def job_dir(config: dict, slug: str) -> Path:
@@ -116,6 +126,17 @@ def upload_ask(config: dict, answers: list[dict]) -> str:
         return ("ask once: when they click Apply, put their resume in the form without asking each time? (it reaches "
                 "the employer's site then - some sites before Submit) Yes (Recommended) -> upload_on_apply: true in "
                 "search settings, then prepare again; No -> false (a yes asked before each upload)")
+    return ""
+
+
+def continue_ask(config: dict, system) -> str:
+    """First form spread over pages that fill can move through: ask once whether it may press Next /
+    Continue itself on a page with nothing left for the user (owner 2026-10-22)."""
+    if config.get("continue_on_apply") is None and getattr(system, "PER_PAGE", False) and hasattr(system, "NEXT"):
+        return ("ask once: when a page is filled and nothing on it is left for them, click its Next / Continue / "
+                "Save and Continue for them and go on, stopping at the first question only they can answer? (each "
+                "page's answers reach the employer's site as it is passed - before Submit; Submit always stays theirs) "
+                "Yes (Recommended) -> continue_on_apply: true in search settings; No -> false (they click each one)")
     return ""
 
 
@@ -207,11 +228,7 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
         asked = readahead.as_questions(form)
     else:  # one set of Education boxes per school on the resume (Greenhouse's Add another)
         asked = system.questions(url, len(schools)) if getattr(system, "EDUCATION_ENTRIES", False) else system.questions(url)
-    keeping = config.get("saved_answers")
-    answers = questions.draft(asked, master["contact"], before, config,
-                              master.get("career_break"), saved_answers.load() if keeping else [], schools)
-    if reads:
-        answers = questions.merge(before, answers)
+    answers = drafted(config, master, asked, before, reads)
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
     where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
@@ -231,13 +248,24 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
               "No -> false (asked on each form as now)")
     if system and (ask := upload_ask(config, answers)):
         print(ask)
-    if keeping is None:
+    if system and (ask := continue_ask(config, system)):
+        print(ask)
+    if config.get("saved_answers") is None:
         print("ask once: keep the user's own answers for the next form (named before Submit, on this computer)? "
               "Yes -> saved_answers: true in search settings, No -> false")
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
           f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
           f"'{questions.USER_SAID}'; one marked '{questions.SIGN_ON_PAGE}': left blank, the user ticks or signs it "
           f"there; one the user chooses to type on the page: blank, source '{questions.SIGN_ON_PAGE}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}{flag if system else ''}")
+
+
+def drafted(config: dict, master: dict, asked: list[dict], before: list[dict], reads: bool) -> list[dict]:
+    """The form's questions answered from the resume, search settings and saved answers; a system read
+    page by page keeps the pages read before (questions.merge)."""
+    keeping = config.get("saved_answers")
+    answers = questions.draft(asked, master["contact"], before, config, master.get("career_break"),
+                              saved_answers.load() if keeping else [], master.get("education") or [])
+    return questions.merge(before, answers) if reads else answers
 
 
 def paste(slug: str) -> None:
@@ -346,20 +374,47 @@ def fill(slug: str, in_window: bool = False) -> None:
               "- the user uploads one by hand, or make the resume again")
     # a multi-page form: the user's own tab, where they are - a fresh tab is page 1 again
     match = systems.tab_match(system, data["url"]) if per_page else None
+    # pressing Next / Continue ourselves: the user's yes (continue_on_apply), a system that names its button
+    going = per_page and config.get("continue_on_apply") is True and hasattr(system, "NEXT")
+    master = schema.load(cfg.resume_path(config, "master")) if going and hasattr(system, "read") else None
+    waiting, moved = [], 0
     with opener(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
         if said := closed(page, system, data["url"]):
             sys.exit(f"{said} - nothing filled; ask the user, then status set <job> closed if it is")
         open_form(page, system, data["url"])
-        shown = set(system.ids_on_page(page)) if per_page else set()
-        if per_page:  # blank on this page blocks it; blank on another page waits for that page
-            gaps = [a for a in questions.missing(data["questions"]) if a["id"] in shown]
-            if gaps:
-                sys.exit("required questions on this page still blank: " + "; ".join(a["title"] for a in gaps))
-        report, extra = fill_page(page, system, data["questions"], resume, letter)
-    lines, other = page_report(data["questions"], report, shown, per_page)
-    print("\n".join(lines))
-    if other:
+        for _ in range(MAX_PAGES):
+            shown = set(system.ids_on_page(page)) if per_page else set()
+            if per_page:  # blank on this page blocks it; blank on another page waits for that page
+                gaps = [a for a in questions.missing(data["questions"]) if a["id"] in shown]
+                if gaps:
+                    sys.exit("required questions on this page still blank: " + "; ".join(a["title"] for a in gaps))
+            report, extra = fill_page(page, system, data["questions"], resume, letter)
+            lines, other = page_report(data["questions"], report, shown, per_page)
+            print("\n".join(lines))
+            if not going:
+                break
+            if why := held(data["questions"], report, shown, extra) or go_on(page, system):
+                print(f"stopped on this page: {why} - once it's sorted: uv run app/jobs.py apply-form fill {slug}{flag}")
+                break
+            moved += 1
+            questions.save(saved, data)
+            if master is not None:  # the next page's questions, answered from what's on file
+                data["questions"] = drafted(config, master, system.read(page), data["questions"], True)
+                questions.save(saved, data)
+            now = set(system.ids_on_page(page))
+            print(f"pressed Next / Continue - on to the next page ({len(now)} question(s) on it)")
+            if waiting := [q for q in data["questions"] if q["id"] in now and for_the_user(q)]:
+                break
+        else:
+            print(f"stopped after {MAX_PAGES} pages in one go - the user checks where the form is")
+    if waiting:  # moved on to a page with questions only the user answers: ask, then fill again
+        for q in waiting:
+            print(line(q))
+        print("stopped on this page: the user's to answer - ask them, write the answers into the file, then: "
+              f"uv run app/jobs.py apply-form fill {slug}{flag}")
+        extra = []
+    if other and not going:
         blank = [q["title"] for q in questions.missing(other)]
         print(f"{len(other)} question(s) on other pages - the user checks this page and clicks Next / Continue "
               "themselves (never us), then: " + (f"uv run app/jobs.py apply-form prepare {slug} \"{data['url']}\"{flag}, then " if hasattr(system, "read") else "")
@@ -368,12 +423,74 @@ def fill(slug: str, in_window: bool = False) -> None:
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
     remember(config, folder, data)
-    print(f"{'The Job Finder window shows' if in_window else 'Chrome is open on'} the filled form. "
-          "Nothing is sent until the user clicks Submit.")
+    passed = (f" The {moved} page(s) passed went to the employer's site as each was passed (continue_on_apply) - "
+              "name them at handover;" if moved else "")
+    print(f"{'The Job Finder window shows' if in_window else 'Chrome is open on'} the filled form.{passed} "
+          f"Nothing {'more ' if moved else ''}is sent until the user clicks Submit.")
     if in_window and (note := window.AT_SUBMIT.get(system.NAME)):
         print(f"note: {note}")
-    if not other:  # last page filled: the ask goes out now, not once they come back
+    if not other and not waiting:  # last page filled: the ask goes out now, not once they come back
         status.filled(folder, config)
+
+
+def for_the_user(q: dict) -> bool:
+    """A blank question that keeps fill from going on by itself: required, or one only the user answers
+    even when optional (sensitive, voluntary, pay, consent, AI use - ticked or typed by them)."""
+    if not questions.blank(q.get("answer")):
+        return False
+    source = q.get("source") or ""
+    return q["required"] or " - sensitive: " in source or f" - {questions.SIGN_ON_PAGE}: " in source \
+        or questions.never_draft(q["title"]) is not None
+
+
+def held(qs: list[dict], report: list[tuple], shown: set, extra: list) -> str | None:
+    """Why the filled page stays for the user, or None when nothing on it is left for them."""
+    required = {q["id"] for q in qs if q["required"]}
+    # FAIL anywhere; ASK on a required box (an optional one's ASK - a skill not on the form's list - is told,
+    # and the page's own check after Next stops on anything it can't go without)
+    if bad := [id for id, result in report
+               if result.startswith("FAIL") or (result.startswith("ASK") and id in required)]:
+        return f"{len(bad)} answer(s) didn't take - see the lines above"
+    if mine := [q["title"] or questions.UNTITLED for q in qs if q["id"] in shown and for_the_user(q)]:
+        return "left for the user: " + "; ".join(mine)
+    if extra:
+        return f"{len(extra)} question(s) on the page not in the answers file"
+    return None
+
+
+def next_button(page, system):
+    """The page's one way on (system NEXT) when its label is Next / Continue / Save and Continue, else
+    None: none or several shown, or Submit, Review, Apply - those are the user's."""
+    found = page.locator(system.NEXT).filter(visible=True)
+    if found.count() != 1 or not CONTINUE.match(found.first.inner_text()):
+        return None
+    return found.first
+
+
+def spot(page, system) -> str:
+    """Where the form is: the system's step name (Workday, Taleo), else the address."""
+    return f"{page.url} {system.step(page)}" if hasattr(system, "step") else page.url
+
+
+def go_on(page, system) -> str | None:
+    """Press the page's Next / Continue -> None once the next page shows, else why not: no such button
+    (the last page), the page's own error words (optional page_errors), or no change in MOVE_MS."""
+    button = next_button(page, system)
+    if button is None:
+        return "no Next / Continue here (Submit stays the user's)"
+    before = spot(page, system)
+    if hasattr(page, "bring_to_front"):  # a page behind other windows sent no Save for 40 s+ (workday.md #Widgets)
+        page.bring_to_front()
+    button.click()
+    for _ in range(MOVE_MS // 500):
+        page.wait_for_timeout(500)
+        if hasattr(system, "page_errors") and (said := system.page_errors(page)):
+            return "the page says: " + "; ".join(said)
+        # a step name blank mid-change (Workday redraws the page) is no new page yet
+        if spot(page, system) != before and (not hasattr(system, "step") or system.step(page)):
+            page.locator(system.READY).first.wait_for(timeout=30000)
+            return None
+    return f"the page didn't move on {MOVE_MS // 1000} s after Next / Continue"
 
 
 def closed(page, system=None, url: str | None = None) -> str | None:
