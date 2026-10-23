@@ -1404,6 +1404,27 @@ def test_saved_armed_forces_and_protected_veteran_kept_apart():
         "I am not a protected veteran"
 
 
+
+WORKDAY_VETERAN = ["I IDENTIFY AS ONE OR MORE OF THE CLASSIFICATIONS OF PROTECTED VETERANS LISTED ABOVE",
+                   "I IDENTIFY AS A VETERAN, JUST NOT A PROTECTED VETERAN", "I AM NOT A VETERAN",
+                   "I DO NOT WISH TO SELF-IDENTIFY"]
+
+
+def test_never_served_is_not_a_veteran_on_a_list_naming_both():
+    """A Workday tenant's list (2026-10-23) holds "not a veteran" and "a veteran, just not a protected
+    one": a user who never served got the second. Served or not decides; unknown is asked."""
+    q = questions.question("v", "Please select the veteran status which most accurately describes your status.",
+                           "choice", False, WORKDAY_VETERAN)
+    answer = lambda **s: questions.voluntary_answer(q, {"self_identification": {**s, "fill_on_forms": True}})
+    assert answer(protected_veteran=False, armed_forces=False) == "I AM NOT A VETERAN"
+    assert answer(protected_veteran=False, armed_forces=True) == "I IDENTIFY AS A VETERAN, JUST NOT A PROTECTED VETERAN"
+    assert answer(protected_veteran=False) is None
+    assert answer(protected_veteran=True) == WORKDAY_VETERAN[0]
+    # the two-option EEOC list: "not a protected veteran" is right whether or not they served
+    assert questions.voluntary_answer(questions.question("v", "Veteran Status", "choice", False, VETERAN),
+                                      {"self_identification": {"protected_veteran": False, "armed_forces": False,
+                                                               "fill_on_forms": True}}) == "I am not a protected veteran"
+
 def test_saved_voluntary_answers_match_other_survey_wordings():
     """Option lists seen on four more Greenhouse boards (2026-10-05)."""
     config = {"self_identification": {**SELF_ID, "fill_on_forms": True}}
@@ -2177,3 +2198,26 @@ def test_workday_list_shut_when_escape_leaves_it_open():
         locator = lambda self, selector: Shown()
     workday.close_list(Page())
     assert clicked == ["Escape", "heading"]
+
+
+def test_how_you_heard_defaults_to_the_employers_own_site():
+    """Owner 2026-10-23: the employer's website is the default for everybody, named for review - over a
+    saved "Job Boards" a list words differently (a Workday tenant's list: Careers Page > Company Website -
+    Acme, Job Board > Indeed ...)."""
+    title = "How Did You Hear About Us?"
+    workday = questions.question("h", title, "choice", True, [
+        "Campus", "Careers Page", "Careers Page > Company Website - Acme", "Job Board > Indeed", "Job Board > LinkedIn"])
+    saved = [{"key": "how you heard", "question": "How did you hear about this job?", "answer": "Job Boards"}]
+    got = questions.draft([workday], {}, saved=saved)[0]
+    assert got["answer"] == "Careers Page > Company Website - Acme"
+    assert got["source"].startswith(questions.LIKELY) and "name it to the user" in got["source"]
+    plain = questions.question("h", title, "choice", False, ["LinkedIn", "Company website", "Referral"])
+    assert questions.draft([plain], {})[0]["answer"] == "Company website"
+    assert questions.draft([questions.question("h", title, "text", False)], {})[0]["answer"] == "Company website"
+    # a list of job boards only: no guess - the user (or their saved answer) decides
+    boards = questions.question("h", title, "choice", False, ["Indeed", "LinkedIn", "Glassdoor"])
+    assert questions.draft([boards], {})[0]["answer"] is None
+    # the category of the career-site options is not itself the employer's site
+    tenant_h = questions.question("h", title, "choice", False, ["External Career Site Sources > Job Board",
+                                                                "External Career Site Sources > LinkedIn"])
+    assert questions.draft([tenant_h], {})[0]["answer"] is None

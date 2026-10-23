@@ -415,6 +415,11 @@ def put_list(page, b, value: str) -> str:
     """A search list, two levels when the answer names a category (list_options)."""
     field = b.locator("input").first
     *category, leaf = value.split(LEVEL, 1)
+    picked = lambda: any(p.strip() == leaf for p in b.locator('[data-automation-id="selectedItem"]').all_inner_texts())
+    # already picked: opening the list again showed the picked leaf over its category and the category
+    # click timed out under it (a Workday tenant's How Did You Hear, 2026-10-23)
+    if picked():
+        return "ok"
     field.click()
     try:
         page.locator(f"{OPTION}:visible").first.wait_for(timeout=4000)
@@ -429,8 +434,7 @@ def put_list(page, b, value: str) -> str:
         close_list(page)
         return f"FAIL {type(e).__name__}"
     page.wait_for_timeout(400)
-    pills = b.locator('[data-automation-id="selectedItem"]').all_inner_texts()
-    return "ok" if any(p.strip() == leaf for p in pills) else f"FAIL '{leaf}' not picked"
+    return "ok" if picked() else f"FAIL '{leaf}' not picked"
 
 
 def close_list(page) -> None:
