@@ -117,6 +117,12 @@ rank:
   # posted_within_days window are never re-fetched, so never marked closed. Shown, not hidden:
   # an open job hidden costs the user a chance, a closed one shown costs a click
   stale_days: 14
+  # job boards whose links die long before the job search marks the job closed: past this many
+  # days from first seen => "link likely dead", sorted + kept off Today like a may-be-closed job.
+  # whatjobs 2026-10-23, 161 open rows: every link first seen 7+ days ago (80 checked) opened
+  # WhatJobs' home page, 3 of 7 at 4 days; live ones hop on to another board (docs/jobs/freehire.md)
+  link_days:
+    whatjobs: 6
   # user's own cutoff: hide jobs freehire first saw more than this many days ago (see rank.age;
   # posted_at is restamped on recrawl, so a 7-day fetch window still returns older jobs). null = keep all
   max_age_days: null

@@ -500,7 +500,8 @@ def test_company_link_found_through_the_listed_job(conn, tmp_path):
 def test_today_email_and_brief_share_one_pay_filter(conn, tmp_path, monkeypatch):
     import alert
     import rank
-    config = cfg.merge(CONFIG, {"rank": {"salary_floor_usd": 100000,
+    # the email ranks at today's clock, not NOW: stale_days wide so CHECK's rows never age out
+    config = cfg.merge(CONFIG, {"rank": {"salary_floor_usd": 100000, "stale_days": 100000,
                                          "pay_filter": {"relax_under_new_per_week": 0}}})
     pay = dict(salary_currency="USD", salary_period="year")
     store.upsert(conn, [job("meets", salary_min=120000, salary_max=140000, **pay),

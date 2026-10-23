@@ -754,3 +754,27 @@ def test_rank_other_titles_skip_a_level_or_licence_reach():
     config = cfg.merge(CONFIG, {"rank": {"career_level": "entry"}})
     above = make_job("c", title="Reconciliation Specialist", enrichment=ask, seniority="director")
     assert [g["count"] for g in rank.other_titles([ok, licence, above], config, facts)] == [1]
+
+
+def test_job_board_link_past_its_life_sorts_with_stale_rows():
+    """WhatJobs links open its home page about a week after first seen while the job search still
+    lists the job (rank.link_days)."""
+    jobs = [
+        make_job("dead", source="whatjobs", first_fetched_at="2026-09-05T00:00:00Z",
+                 fetched_at="2026-09-14T00:00:00Z", **usd(200000)),
+        make_job("fresh", source="whatjobs", first_fetched_at="2026-09-12T00:00:00Z",
+                 fetched_at="2026-09-14T00:00:00Z", **usd(150000)),
+        make_job("other-board", first_fetched_at="2026-09-01T00:00:00Z", fetched_at="2026-09-14T00:00:00Z"),
+        make_job("dead-edition", source="whatjobs-ca", first_fetched_at="2026-09-05T00:00:00Z",
+                 fetched_at="2026-09-14T00:00:00Z"),
+    ]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["fresh", "other-board", "dead", "dead-edition"]
+    assert rank.reasons(ranked[2], CONFIG, NOW).endswith("link likely dead - seen 10d ago, this job board's links stop within a week")
+
+
+def test_hidden_board_hides_its_country_editions():
+    jobs = [make_job("us", source="whatjobs"), make_job("ca", source="whatjobs-ca"),
+            make_job("near-name", source="whatjobsplus"), make_job("other")]
+    hide = cfg.merge(CONFIG, {"blocklist": {"sources": ["WhatJobs"]}})
+    assert slugs(rank.rank(jobs, hide, NOW)) == ["near-name", "other"]
