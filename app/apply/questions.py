@@ -689,6 +689,10 @@ DISABILITY = re.compile(r"\bdisabilit|\bdisabled\b(?! veteran)")
 # the EEOC protected-veteran options, whatever the title says (its text can name "active duty ...
 # Armed Forces service medal veteran")
 EEOC_VETERAN = re.compile(r"not a protected veteran|classifications of (?:a )?protected veteran")
+# married to or partnered with a veteran - about someone else, never the user's own service: "Are you a
+# spouse or domestic partner to a veteran?" (a Greenhouse board, 2026-10-23). A "military spouse"
+# (married to someone serving now) is another question: armed-forces words -> asked
+VETERAN_SPOUSE = re.compile(r"\bspouse\b|\bdomestic partner\b|\bpartner (?:to|of)\b|\bmarried to\b")
 
 
 def says(option: str, yes: bool) -> bool:
@@ -705,9 +709,11 @@ def voluntary_kind(q: dict) -> str | None:
     """The `self_identification` key a question asks about - exactly one, else None (asked)."""
     t = q["title"].casefold()
     eeoc = any(EEOC_VETERAN.search(o.casefold()) for o in q.get("options") or [])
+    spouse = VETERAN_SPOUSE.search(t) and not eeoc
     found = [key for key, asks in (
-        ("armed_forces", ARMED_FORCES.search(t) and not eeoc),
-        ("protected_veteran", "veteran" in t and (eeoc or not ARMED_FORCES.search(t))),
+        ("veteran_spouse", spouse and "veteran" in t and not ARMED_FORCES.search(t)),
+        ("armed_forces", ARMED_FORCES.search(t) and not eeoc and not spouse),
+        ("protected_veteran", "veteran" in t and not spouse and (eeoc or not ARMED_FORCES.search(t))),
         ("transgender", "transgender" in t),
         ("gender", re.search(r"\bgender\b", t)),
         ("sexual_orientation", re.search(r"\borientation\b", t)),
@@ -744,7 +750,7 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
         # veteran or active member", "I have never served in the military", "No military service"
         want = (lambda o: says(o, True) or o.startswith("i am a veteran")) if said else \
             (lambda o: says(o, False) or re.search(r"\bnot a veteran\b|\bnever served\b", o) is not None)
-    elif key in ("transgender", "disability") and isinstance(said, bool):
+    elif key in ("transgender", "disability", "veteran_spouse") and isinstance(said, bool):
         # "Yes" / "No"; "No, I do not have a disability and have not had one in the past" (EEOC)
         want = lambda o: says(o, said)
     elif key == "gender" and said:
