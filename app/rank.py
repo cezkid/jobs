@@ -88,8 +88,16 @@ def norm_company(name: str | None) -> str:
     return " ".join(parts)
 
 
+def board_in(job: dict, boards: list[str] | None) -> bool:
+    """The row's job board is one named - its country editions too (whatjobs covers whatjobs-ca)."""
+    source = (job.get("source") or "").lower()
+    return any(source == b.lower() or source.startswith(b.lower() + "-") for b in boards or [])
+
+
 def blocked(job: dict, blocklist: dict) -> bool:
-    fields = {"companies": "company_slug", "sources": "source", "categories": "category"}
+    if board_in(job, blocklist.get("sources")):
+        return True
+    fields = {"companies": "company_slug", "categories": "category"}
     for key, field in fields.items():
         blocked_values = {v.lower() for v in blocklist.get(key) or []}
         if (job.get(field) or "").lower() in blocked_values:
@@ -681,6 +689,16 @@ def stale_for(job: dict, rc: dict, now: datetime) -> int | None:
     return days if days > rc["stale_days"] else None
 
 
+def link_dead(job: dict, rc: dict, now: datetime) -> int | None:
+    """Days since first seen, when past rank.link_days for its job board - that board's link stops
+    working while the job search still lists the job open (WhatJobs: within about a week)."""
+    limit = next((days for board, days in (rc.get("link_days") or {}).items() if board_in(job, [board])), None)
+    if limit is None or not job.get("first_fetched_at"):
+        return None
+    days = (now - datetime.strptime(job["first_fetched_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)).days
+    return days if days > limit else None
+
+
 def dedupe_key(job: dict) -> tuple[str, str, str]:
     where = "remote" if job.get("work_mode") == "remote" else norm(next(iter(job.get("cities") or []), job.get("location")))
     return norm_company(job.get("company") or job.get("company_slug")), norm(job.get("title")), where
@@ -706,7 +724,12 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     rc = config["rank"]
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
     now = now or datetime.now(timezone.utc)
-    kept = pay_filter(collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
+
+    def marked(j: dict) -> dict:
+        dead = link_dead(j, rc, now)
+        return dict(j, stale=stale_for(j, rc, now) or dead, link_dead=dead)
+
+    kept = pay_filter(collapse([marked(j) for j in jobs
                                 if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)
                                 and not far(j, config)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
@@ -844,7 +867,9 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
     parts += flags(job, config) + posting_says(job, rc)
-    if job.get("stale"):
+    if job.get("link_dead"):
+        parts.append(f"link likely dead - seen {job['link_dead']}d ago, this job board's links stop within a week")
+    elif job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)
 
@@ -868,7 +893,7 @@ def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
     if norm_company(job.get("company")) in {norm_company(c) for c in bl.get("companies") or []} \
             or (job.get("company_slug") or "").lower() in {v.lower() for v in bl.get("companies") or []}:
         return "company hidden"
-    if (job.get("source") or "").lower() in {v.lower() for v in bl.get("sources") or []}:
+    if board_in(job, bl.get("sources")):
         return "source hidden"
     if (job.get("category") or "").lower() in {v.lower() for v in bl.get("categories") or []}:
         return "category hidden"

@@ -156,6 +156,14 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
 - **Every link tagged** (2026-09-30). `url` carries `utm_source=freehire.me` (1431 of 1431 stored
   rows); a link copied from the employer's page doesn't. `store.link_key` drops `utm_*` before
   comparing; links stay as served.
+- **WhatJobs links die in days** (2026-10-23). `whatjobs` rows link `whatjobs.com/pub_api__cpl__...`, a
+  pay-per-click hop, not the posting. 161 open rows: every link first seen 7+ days ago (80 checked)
+  answered 301 to WhatJobs' home page while the job search still listed it open; 3 of 7 at 4 days. A live
+  one shows "redirected in 5 seconds", then hops on to another board's tracker (ZipRecruiter, Appcast,
+  Jobrapido, Placed), never straight to the employer. 1 of 40 had a same-company copy from another source,
+  so no link swap (`apply/listing_copy.py` style) helps. => `rank.link_days.whatjobs`: past it the row sorts
+  + stays off Today like a stale one, reason "link likely dead". WhatJobs answers 429 after ~60 quick
+  requests - probe one per 6 s.
 - **Geography facets OR together** (2026-09-19). `regions` `countries` `cities` in one pass widen,
   never narrow: `countries=us` + `cities=new york,...` returned all-US hybrid/onsite (461 rows vs
   93 real). `cfg.load` rejects two in one pass; city tier uses `cities` alone.
