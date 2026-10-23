@@ -16,7 +16,7 @@ import json
 import re
 import time
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from apply import browser, profile
 from apply.questions import LATER, asks_complete_history, form_roles, key_from_title, question
@@ -254,13 +254,14 @@ def as_question(page, f: dict, on: str, options: bool) -> dict:
 def read(page) -> list[dict]:
     """The step the user's tab is on. Before the steps (posting page: the start choice; the sign-in) and
     the Review step, nothing else is the program's to fill."""
-    page.locator(READY).first.wait_for(timeout=30000)
+    ready(page).wait_for(timeout=30000)
     inject(page)
     on = step(page)
     if not on:
-        if page.locator(f"{APPLY}:visible").count():
+        if page.locator(f"{APPLY}:visible").count() or (shown := start_options(page)):
             return [question(START, "How to start the application (Workday's own choice after Apply; the sign-in "
-                             "comes next and is the user's)", "choice", True, STARTS, native="start", page="Start")]
+                             "comes next and is the user's)", "choice", True, STARTS if page.locator(f"{APPLY}:visible").count()
+                             else shown, native="start", page="Start")]
         raise SystemExit("Workday shows neither the posting's Apply nor an application step - open the posting in "
                          "Job Finder's Chrome, then run prepare again")
     if signing_in(page):
@@ -300,7 +301,7 @@ def ids_on_page(page) -> list[str]:
     inject(page)
     on = step(page)
     if not on:
-        return [START] if page.locator(f"{APPLY}:visible").count() else []
+        return [START] if page.locator(f"{APPLY}:visible").count() or start_options(page) else []
     if signing_in(page) or REVIEW.match(on):
         return []
     resume = has_resume_box(page)
@@ -313,16 +314,48 @@ def ids_on_page(page) -> list[str]:
 
 # --- typing answers ---
 
+def start_options(page) -> list[str]:
+    """The start choices shown (the page after Apply, .../apply): a tenant offers only some - a Workday
+    tenant (2026-10-23) had Apply Manually + Use My Last Application, no Autofill with Resume."""
+    return [c for c in STARTS if page.get_by_text(c, exact=True).locator("visible=true").count()]
+
+
+def ready(page):
+    """A step, the posting's Apply, or the start choices: whichever shows first."""
+    return page.locator(READY).or_(page.get_by_text(re.compile(rf"^({'|'.join(STARTS)})$"))).first
+
+
 def start(page, choice: str) -> str:
-    page.locator(f"{APPLY}:visible").first.click()
-    option = page.get_by_role("button", name=choice, exact=True).or_(page.get_by_text(choice, exact=True)).first
-    try:
-        option.wait_for(timeout=START_WAIT_MS)
-    except Exception:
+    """Apply, then the start choice. Apply clicked but nothing came (a Workday tenant, 2026-10-23: its Apply
+    link didn't answer the click) -> its link opened. The choice not offered -> Apply Manually, else
+    Autofill with Resume: the steps after it are filled the same either way, named to the user."""
+    shown = start_options(page)
+    if not shown:
+        apply = page.locator(f"{APPLY}:visible").first
+        link = apply.get_attribute("href") or ""
+        apply.click()
+        shown = wait_start(page, START_WAIT_MS // 2)
+        if not shown and link and not link.startswith("#"):
+            page.goto(urljoin(page.url, link))
+            shown = wait_start(page, START_WAIT_MS // 2)
+    if not shown:
         page.keyboard.press("Escape")
         return f"ASK no '{choice}' after Apply - the user picks how to start on the page"
-    option.click()
+    pick = choice if choice in shown else next((c for c in ("Apply Manually", "Autofill with Resume") if c in shown), None)
+    if pick is None:
+        return f"ASK no '{choice}' after Apply (only {', '.join(shown)}) - the user picks how to start on the page"
+    if pick != choice:
+        print(f"  NOTE this site has no '{choice}': started with '{pick}' - name it to the user")
+    page.get_by_text(pick, exact=True).locator("visible=true").first.click()
     return "ok"
+
+
+def wait_start(page, ms: int) -> list[str]:
+    for _ in range(max(1, ms // 250)):
+        if shown := start_options(page):
+            return shown
+        page.wait_for_timeout(250)
+    return []
 
 
 def upload(page, path: str) -> str:
@@ -379,11 +412,34 @@ def experience(page, resume_file: str | None) -> str:
     page.evaluate("(data) => { window.__jf.data = data; window.__jf.R.on = true; window.__jf.run(data); }", data)
     try:
         status = drive(page)
+        dates = type_dates(page)
     finally:
         page.evaluate("() => { window.__jf.R.on = false; }")
-    problems = status["problems"] + ([note] if note else [])
+    problems = status["problems"] + dates + ([note] if note else [])
     done = f"{status['ok']} filled, {len(data['work'])} jobs, {len(data['education'])} schools"
     return f"ASK {done}; " + "; ".join(problems) if problems else f"ok - {done}"
+
+
+def type_dates(page) -> list[str]:
+    """Every From / To the run set, typed again with real keys (MMYYYY into the month box; the year box takes
+    the rest): tenant G kept only typed dates, a Workday tenant (2026-10-23) showed none of the set ones
+    and Save said "Invalid Date: /2021". A date that still doesn't show -> FAIL, filled by hand."""
+    out = []
+    for t in json.loads(page.evaluate("() => window.__jf.dateTargets()")):
+        if t.get("missing"):
+            continue
+        spot = json.loads(page.evaluate("(i) => window.__jf.spot(i)", t["i"]) or "null")
+        if not spot:
+            continue
+        page.mouse.click(spot["x"], spot["y"])
+        page.keyboard.type(t["keys"], delay=40)
+        page.wait_for_timeout(150)
+    page.keyboard.press("Tab")
+    for t in json.loads(page.evaluate("() => window.__jf.dateTargets()")):
+        shown = page.evaluate("(i) => window.__jf.dateShown(i)", t["i"])
+        if not t.get("missing") and shown != t["keys"]:
+            out.append(f"FAIL {t['area']} > {t['name']}: shows '{shown}' - type it by hand")
+    return out
 
 
 def put_text(page, b, value: str) -> str:
