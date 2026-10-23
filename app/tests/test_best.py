@@ -501,3 +501,14 @@ def test_plain_software_title_whose_asks_never_name_their_kind_sinks():
          "years": 8, "degree": None}
     scored = {j["public_slug"]: j["best_parts"]["title"] for j in best.score([backend, react], config, NOW, f)}
     assert scored == {"be": 0.6, "fe": 1.0}
+
+
+# each list placed pay among its own jobs only: a remote job paying less than every nearby one read as
+# top pay (2026-10-23, held-out resume: remote top-10 nDCG 0.347 => 0.415 w/ pay placed among all jobs)
+def test_two_lists_place_pay_among_every_job():
+    paid = lambda slug, low, **o: job(slug, salary_min=low, salary_max=low, salary_currency="USD", salary_period="year", **o)
+    near = dict(tier="local", work_mode="onsite", cities=["Springfield"], location="Springfield, IL")
+    jobs = [paid("r", 120000), paid("n1", 180000, **near), paid("n2", 200000, **near)]
+    lists = best.lists(jobs, CONFIG, NOW, None)
+    assert lists["remote"][0]["best_parts"]["pay"] == 0.0
+    assert [j["best_parts"]["pay"] for j in lists["nearby"]] == [1.0, 0.5]

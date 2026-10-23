@@ -204,8 +204,8 @@ Tried, not kept (held out no better, both judges):
 
 Owner: "not just one best to apply list, but two - one for remote and one for nearby". Today + the chat
 brief show "Best remote jobs to apply to" and "Best jobs near you to apply to" (`best.lists`): remote =
-`work_mode` remote, nearby = the rest (hybrid, on-site, untagged). Each list scored on its own - pay
-ladder, freshness windows, employer spread inside it - in their where-first order (remote first when
+`work_mode` remote, nearby = the rest (hybrid, on-site, untagged). Each list scored on its own - freshness
+windows, employer spread inside it; pay placed among every job (held out, below) - in their where-first order (remote first when
 their first tier searches remote). One kind only => one "Best to apply next" list, as before.
 `rank --best --where remote|nearby` = one list (its "Show more" words).
 
@@ -245,9 +245,13 @@ Second judge: each list's top 10, old vs now, rated again by `claude -p --model 
 `fresh_first` 0 / 3 per list: senior remote gains (0.29 / 0.21), every other list loses - kept at 5.
 
 Held out (never tuned on): a mid-level full-stack Angular engineer in Newark, plain past titles ("Software
-Engineer II"), career level mid. One list then split => now (+ `plain_title`, below): remote 0.364 => 0.347,
-nearby 0.246 => 0.262; `place` alone 0.269 => 0.347 remote, so the remote loss is scoring the list on its own
-(its own freshness window + pay ladder), not place. A check on direction, one resume each - not a study.
+Engineer II"), career level mid. One list then split => each list on its own (+ `plain_title`, below): remote
+0.364 => 0.347, nearby 0.246 => 0.262; `place` alone 0.269 => 0.347 remote. The loss: each list placed pay
+among its own jobs only - remote and nearby pay apart (NYC offices pay more), so a remote job's pay was read
+against remote jobs alone. Pay now placed among every job (`score(ladder_of=)`): remote 0.415, nearby 0.283
+(senior 0.329 / 0.342 => 0.328 / 0.350, junior unchanged). Also tried, worse: the whole pool scored as one
+list (one freshness window, one employer spread) then split - senior remote 0.261, junior 0.627 / 0.581;
+no employer spread - junior nearby 0.544. A check on direction, one resume each - not a study.
 
 ### Plain software titles (2026-10-23)
 

@@ -603,11 +603,12 @@ def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = Non
     return placed
 
 
-def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_place: bool = False) -> list[dict]:
+def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_place: bool = False,
+          ladder_of: list[dict] | None = None) -> list[dict]:
     """Each job + `best` (0-1 weighted mean less demerits) + `best_parts`, freshest window first
     (`windows`), best first inside it, employers spread (`spread`). Ties: slug order, so the same
     list always reads the same. by_place = one of Today's two lists (`lists`): `where` read as
-    `place`, weighed by `place`."""
+    `place`, weighed by `place`. ladder_of = jobs whose listed pay places each one's (default: these)."""
     bn = config["rank"]["best_next"]
     weights = {k: bn.get(k, 0) for k in ("match", "title", "asks", "pay", "where", "fresh")}
     if by_place:
@@ -615,7 +616,7 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
     home = home_states(config, facts)
     kinds = config["rank"].get("software_kinds")
-    ladder = sorted(a for j in jobs if (a := rank.annual_usd(j)) is not None)
+    ladder = sorted(a for j in (jobs if ladder_of is None else ladder_of) if (a := rank.annual_usd(j)) is not None)
     out = []
     for j in jobs:
         m, counted = match(j, facts, bn.get("match_prior", 0))
@@ -656,11 +657,14 @@ def candidates(conn, config: dict, now: datetime, ranked: list[dict] | None = No
 
 
 def lists(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> dict[str, list[dict]]:
-    """Today's two lists, each scored on its own (pay ladder, freshness windows, employer spread inside
-    it), in their where-first order: remote first when their first tier searches remote. Empty ones left out."""
+    """Today's two lists, each scored on its own (freshness windows, employer spread inside it; pay placed
+    among every job), in their where-first order: remote first when their first tier searches remote. Empty ones left out."""
     first = next(iter(config["passes"]), {})
     keys = LISTS if (first.get("params") or {}).get("work_mode") in ("remote", ["remote"]) else LISTS[::-1]
-    out = {k: score([j for j in jobs if list_of(j) == k], config, now, facts, by_place=True) for k in keys}
+    # pay placed among every job, not the list's own: remote and nearby pay apart (NYC offices pay more),
+    # and a list's own ladder ranked a remote job's pay against remote jobs only (2026-10-23, held-out
+    # mid-level resume: remote top-10 nDCG 0.347 => 0.415, below the one-list order's 0.364 before)
+    out = {k: score([j for j in jobs if list_of(j) == k], config, now, facts, by_place=True, ladder_of=jobs) for k in keys}
     return {k: v for k, v in out.items() if v}
 
 
