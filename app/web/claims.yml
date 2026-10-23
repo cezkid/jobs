@@ -243,7 +243,7 @@ terms-jobs-source:
 terms-updates:
   page: terms.html
   text: The app updates itself from GitHub each time it starts. An update replaces the program and its guides, never your resume, jobs, settings or job list.
-  why: start scripts run jobs.py update (GitHub main.zip) before launch; private folders never swapped
+  why: start scripts run jobs.py update (GitHub main.zip, or a signed release once keys ship) before launch; private folders never swapped
   rests_on:
   - file: app/install/start-mac.sh
     contains: uv run app/jobs.py update
@@ -251,6 +251,8 @@ terms-updates:
     contains: uv run app/jobs.py update
   - file: app/update.py
     contains: ZIP_URL = "https://github.com/cezkid/jobs/archive/refs/heads/main.zip"
+  - file: app/update.py
+    contains: RELEASE_URL = "https://api.github.com/repos/cezkid/jobs/releases/latest"
   - file: app/update.py
     contains: 'PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}'
   - file: app/cfg.py

@@ -39,6 +39,7 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   Word (.doc) off a Mac, Pages, Google Docs: `resume-import` says the one step (save a copy as
   .docx or PDF); on a Mac too when its page header (name, contact) can't be read.
 - Something's wrong, no new jobs, a button does nothing: `uv run app/jobs.py doctor` first, fix what it names, never show its raw output.
+- "The latest update broke something": `uv run app/jobs.py update --undo` (or `uv run app/update.py --undo`), they close + reopen CEZ Job Finder; then ask the Framework-defects consent question, word for word.
 - Something fails: one plain sentence on what went wrong + what you're doing about it. Never
   show tracebacks or raw command output.
 - Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or
@@ -256,7 +257,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Job list, logs, email password (email optional), What Job Finder knows about you page, welcome page form answers | `.data/` (hidden) | Private - only this computer |
 | Copy of each Claude chat (resume, notes read in it) | Claude Code's chat history, `~/.claude/projects/` (outside the folder) | Private - only this computer; deleted after 30 days |
 | Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; `uv run app/jobs.py clear-signins` empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
-| CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
+| CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone. Each start asks GitHub if a newer version exists; nothing about you is sent |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting's title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board's copy of it (to find the employer's own posting), or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
@@ -351,7 +352,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
-  (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
+  (program-only update: signed release, else main zip, or `git pull` in developer checkout; `ed25519.py`, `deploy/release.py`, `VERSION`, `update-keys.txt`), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `doctor.py` (read-only self-check), `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.

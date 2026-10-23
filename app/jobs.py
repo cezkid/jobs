@@ -44,7 +44,7 @@ COMMANDS = {
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
-    "update": ("update", "get latest Job Finder program; never touches My folders"),
+    "update": ("update", "get latest Job Finder program; never touches My folders; update --undo goes back one update"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too); link as a tab in the Job Finder window, browser when it's closed; --outside: browser always"),
     "clear-signins": (None, "empty sign-ins + site data of pages opened in the Job Finder window (VS Code keeps them outside this folder) - before removing the app"),
