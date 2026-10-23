@@ -484,3 +484,20 @@ def test_nearby_office_in_their_area():
 def test_home_from_their_resume_else_their_city_tiers():
     assert best.home_states(CONFIG, {"location": "Hoboken, NJ"}) == {"NJ", "IL"}
     assert best.home_states(cfg.merge(CONFIG, {"passes": CONFIG["passes"][:1]}), {"location": "Hoboken, NJ"}) == {"NJ"}
+
+
+# a senior front-end engineer w/ plain past titles: their top 10 was all "Software Engineer" posts an AI
+# rated 1 of 3 - the title met theirs word for word, the asks were back-end (2026-10-23, 826 live rows)
+def test_plain_software_title_whose_asks_never_name_their_kind_sinks():
+    kinds = ["frontend", "fullstack"]
+    backend = job("be", ["5+ years of Java and Spring", "Kafka"], title="Senior Software Engineer")
+    react = job("fe", ["5+ years of React", "Kafka"], title="Senior Software Engineer")
+    named = job("named", ["Kafka"], title="Senior Frontend Engineer")
+    assert best.plain_unnamed(backend, kinds) and not best.plain_unnamed(react, kinds)
+    assert not best.plain_unnamed(named, kinds) and not best.plain_unnamed(backend, None)
+    assert not best.plain_unnamed(job("x", ["Kafka"], title="Data Analyst"), kinds)
+    config = cfg.merge(CONFIG, {"rank": {"software_kinds": kinds}})
+    f = {"stems": best.stems("Senior Software Engineer Java Spring Kafka React"), "titles": best.stems("Senior Software Engineer"),
+         "years": 8, "degree": None}
+    scored = {j["public_slug"]: j["best_parts"]["title"] for j in best.score([backend, react], config, NOW, f)}
+    assert scored == {"be": 0.6, "fe": 1.0}

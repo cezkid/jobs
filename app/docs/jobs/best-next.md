@@ -17,7 +17,7 @@ demerit. Ties: listing id order => same list reads the same every time.
 | Factor | How | Why + basis |
 |---|---|---|
 | match (0.35) | share of the posting's **required** asks the resume backs: years asked vs dated years (`knockout.dated_years`), degree asked vs held, a language asked vs their Languages line at working level (every non-English one it names; Conversational / Basic back none; English alone not counted - the resume is in it; 88 of 1,966 live required lines name one, 2026-10-08), a licence or certification asked vs its short form anywhere in their resume details or a certification's initials ("Certified Internal Auditor" = CIA; one from an either/or list answers it; any other certificate never does; an exam part or candidacy - "FRM Part I", "CFA Level II Candidate" - holds nothing yet; before 2026-10-09 "Active CAMS certification" counted as backed by any certificate and Series 63 backed Series 24), a portfolio or reel asked vs a link to their work in their contact links (not LinkedIn; 204 of 551 video postings ask one - before 2026-10-09 it counted against everyone, link or not), named tool (Excel, SAP) on the resume - a maker or edition alone names none ("Adobe", "Pro": a resume w/ Photoshop + Final Cut Pro backed 60+ asks for Premiere Pro or After Effects before 2026-10-09; "the Adobe Creative Suite" / "Microsoft Office" by name is backed by any of that maker's tools), several-word names read as one (After Effects, Final Cut, Media Composer, Power BI, United States), else half the ask's content words found - each word also w/o its plural or -ed / -ing (edit / edits / edited / editing met no other form at 6 letters before 2026-10-09; old vs new on 13,000 required lines of 6 fields w/ a matching resume each: video + creative +290 backed (portfolio asks most), finance / software / healthcare +6 to +8, marketing +12; every change outside video read by hand, video by sample + the word each turned on). Traits ("detail-oriented") not counted. Age minimum, work permit, physical-ability asks not counted - answered on the form ("Must be at least 18 years of age", "Authorized to work in the US without sponsorship", "able to lift 50 pounds"; age 18+ on 12 of 143 forms read, a work permit on 70, `app/web/research/knockout-questions-2026-10.csv`; before 2026-10-10 each counted against everyone, as citizenship did); nor age-coded asks ("recent college graduate", "digital native", "young" - never "young children") (`best.NOT_ON_RESUME`; a real ask on the same line - years, a degree - is read first; a driver's licence or CDL is a credential, read as one). `experience_years_min` = one more ask when no line said years - never on an early-career title or an intern / junior row (`rank.early_career`): there the tag read 10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 7 on "18+ years old" (2026-10-07) | Minimum qualifications are a real knock-out (Hidden Workers 2021, HBS/Accenture - survey; Enhancv 2025, n=25 recruiters - vendor survey; `resume/bullets.md`). Weighs most. Word overlap = an estimate for order, never a verdict; `job-tailor` judges each ask w/ the user |
-| title (0.5) | share of the posting title's kind-of-work words found in their own past titles + headline (half) and anywhere in their resume details (half) - level, schedule and place words left out ("Senior", "Manager", "II", "Remote"), the bracketed part too; "front-end" / "frontend" / "front end" one word (also back end, full stack). No resume, or a title of level words only => 0.5. Why line says "title unlike your past work" only when no word meets | 2026-10-11: an HR director's top 10 held "Tableau Developer", a brokerage analyst's "Payroll Tax Analyst"; match reads asks only, and 4 in 10 postings list none. 1,050 live titles (finance, HR leader, front-end; a fixture resume each) judged same field / adjacent / other by `claude -p` (Sonnet), one run per batch: top-10 quality (nDCG, the judged labels) 0.55 / 0.97 / 0.82 at weight 0 => 0.79 / 0.97 / 1.00 at 0.25. Raised to 0.5 on 2026-10-12 (below, "Measured as a whole"). Own titles weigh half: "analyst" met "variance analysis" (6-letter stems), so "Financial Analyst" read as a senior accountant's own title. Word overlap, an estimate |
+| title (0.5) | share of the posting title's kind-of-work words found in their own past titles + headline (half) and anywhere in their resume details (half) - level, schedule and place words left out ("Senior", "Manager", "II", "Remote"), the bracketed part too; "front-end" / "frontend" / "front end" one word (also back end, full stack). No resume, or a title of level words only => 0.5. A plain software title whose asks never name their kind of work keeps `plain_title` (0.6) of it (#Plain software titles). Why line says "title unlike your past work" only when no word meets | 2026-10-11: an HR director's top 10 held "Tableau Developer", a brokerage analyst's "Payroll Tax Analyst"; match reads asks only, and 4 in 10 postings list none. 1,050 live titles (finance, HR leader, front-end; a fixture resume each) judged same field / adjacent / other by `claude -p` (Sonnet), one run per batch: top-10 quality (nDCG, the judged labels) 0.55 / 0.97 / 0.82 at weight 0 => 0.79 / 0.97 / 1.00 at 0.25. Raised to 0.5 on 2026-10-12 (below, "Measured as a whole"). Own titles weigh half: "analyst" met "variance analysis" (6-letter stems), so "Financial Analyst" read as a senior accountant's own title. Word overlap, an estimate |
 | asks (0.15) | required asks + lead/own/manage asks counted twice; full at `asks_light` (8) or fewer, 0 at `asks_heavy` (16). Level 2+ rungs above their `career_level` halves it | Owner: "some ask a lot". Cut-offs measured 2026-10-04: 944 live US rows, 7 occupations, 449 list required asks, median 7, top tenth 12+, 14 at 16+. Convention, not a study |
 | pay (0.2) | place among the listed pay of the jobs scored; under their pay floor halves it; not listed 0.25 | Their own floor (setup answer). Unknown pay sits below a listed middle, not favoured. Under the floor = hidden unless let back in a thin week (`pay-filter.md`) |
 | where (0.15) | their own where-first order (search settings passes): first 1, last 0 | Their stated preference, nothing inferred |
@@ -242,12 +242,39 @@ Second judge: each list's top 10, old vs now, rated again by `claude -p --model 
 (Sonnet / Opus): senior remote 0.7 / 0.7 => 1.0 / 0.9, nearby 1.2 / 1.5 => 1.4 / 1.5; junior remote 1.8 / 1.6
 => 2.3 / 1.7, nearby 1.9 / 1.9 => 2.0 / 1.9. Same direction, smaller under Opus.
 
-Tried, not kept: a title naming one of their `rank.software_kinds` ("Senior Frontend Engineer") read as
-a full title fit, a plain "Software Engineer" title at 0.4-0.8 of its fit - senior remote 0.205 => 0.311,
-junior remote 0.662 => 0.506, nearby 0.649 => 0.406 (the kind-named titles a junior sees are mostly
-senior posts). `fresh_first` 0 / 3 per list: senior remote gains (0.29 / 0.21), every other list loses
-- kept at 5. Senior lists stay low: generic "Software Engineer" titles match its own past titles word
-for word, the AI rates them 1 (back-end work, often); a check on direction, one resume each - not a study.
+`fresh_first` 0 / 3 per list: senior remote gains (0.29 / 0.21), every other list loses - kept at 5.
+
+Held out (never tuned on): a mid-level full-stack Angular engineer in Newark, plain past titles ("Software
+Engineer II"), career level mid. One list then split => now (+ `plain_title`, below): remote 0.364 => 0.347,
+nearby 0.246 => 0.262; `place` alone 0.269 => 0.347 remote, so the remote loss is scoring the list on its own
+(its own freshness window + pay ladder), not place. A check on direction, one resume each - not a study.
+
+### Plain software titles (2026-10-23)
+
+Senior lists stayed low: its own past titles are plain ("Senior Software Engineer"), so every plain
+"Software Engineer" posting met its title word for word - the top 10 held them, the AI rated them 1 of 3
+(back-end work, often). Now a plain software title whose required asks never name their kinds of work
+(`rank.software_kinds`, by role or stack: "front-end", "React", `software.ROLE` / `LANGUAGE`) keeps
+`plain_title` (0.6) of its title fit (`best.plain_unnamed`). Of 322 plain titles in the 826 rows, asks
+naming the kind rated 1.06 for the senior, the rest 0.74 (junior 0.46 / 0.28).
+
+| top-10 nDCG (remote / nearby) | senior | junior |
+|---|---|---|
+| before | 0.205 / 0.314 | 0.662 / 0.649 |
+| `plain_title` 0.6 (now) | 0.329 / 0.342 | 0.662 / 0.649 |
+
+0.3 / 0.5 / 0.7 the same; 0.8 senior 0.305 / 0.342. Junior unmoved: its own titles say front-end, so plain
+titles already scored low. Held-out mid-level resume (above): 0.287 / 0.238 => 0.347 / 0.262, same at 0.4-0.8.
+
+Tried, not kept:
+- Every plain title cut (no reading of its asks): senior 0.341 / 0.349 at 0.6, but 0.442 / 0.286 at 0.4 -
+  swings w/ the weight; junior remote 0.662 => 0.637.
+- Asks or description naming the kind: senior 0.224 / 0.301 - nearly every description names front-end
+  somewhere (221 of 322).
+- A title naming their kind read as a full title fit (`max(fit, 1)`): by `rank.software_kinds` junior remote
+  0.662 => 0.506, nearby 0.649 => 0.406 - it lifted "Full Stack Engineer" titles their resume never names;
+  by the kinds their own summary + titles name, junior nearby 0.703 but remote 0.518; gated on level, no
+  better (seniority tags mostly missing).
 
 ## Shown
 

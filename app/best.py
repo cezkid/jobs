@@ -15,6 +15,7 @@ from datetime import date, datetime, timezone
 
 import cfg
 import rank
+import software
 import store
 from resume import knockout, schema, tailor
 
@@ -404,6 +405,18 @@ def title_fit(job: dict, facts: dict | None) -> float:
     return whole if "titles" not in facts else TITLE_OWN * share(facts["titles"]) + (1 - TITLE_OWN) * whole
 
 
+def plain_unnamed(job: dict, kinds: list[str] | None) -> bool:
+    """A plain software title ("Senior Software Engineer") whose required asks never name their kinds of
+    software work (rank.software_kinds) - by role or stack ("front-end", "React"). Its title says nothing
+    of the work, and a resume w/ plain titles of its own met it word for word: a senior front-end
+    engineer's top 10 was all "Software Engineer" posts an AI rated 1 of 3 (back-end work, often).
+    2026-10-23, 322 plain titles of 826 live front-end rows: asks naming the kind rated 1.06, the rest 0.74."""
+    if not kinds or software.named(job.get("title") or "") or not software.SOFTWARE_TITLE.search(job.get("title") or ""):
+        return False
+    text = " ".join(required(job))
+    return not any(rx.search(text) for k in kinds for rx in (software.ROLE.get(k), software.LANGUAGE.get(k)) if rx)
+
+
 def above_level(job: dict, config: dict, facts: dict | None = None) -> bool:
     level = CAREER.get(config["rank"].get("career_level") or "")
     rung = SENIORITY.get(job.get("seniority") or "")
@@ -601,12 +614,14 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
         weights["where"] = bn.get("place", 0)
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
     home = home_states(config, facts)
+    kinds = config["rank"].get("software_kinds")
     ladder = sorted(a for j in jobs if (a := rank.annual_usd(j)) is not None)
     out = []
     for j in jobs:
         m, counted = match(j, facts, bn.get("match_prior", 0))
         a, n_asks, lead = asks(j, config, bn, facts)
-        parts = {"match": m, "title": title_fit(j, facts), "asks": a, "pay": pay(j, ladder, floor),
+        title = title_fit(j, facts) * (bn.get("plain_title", 1) if plain_unnamed(j, kinds) else 1)
+        parts = {"match": m, "title": title, "asks": a, "pay": pay(j, ladder, floor),
                  "where": place(j, config, home) if by_place else where(j, tiers),
                  "fresh": fresh(j, now, bn["fresh_days"])}
         total = sum(weights[k] * parts[k] for k in weights) / (sum(weights.values()) or 1)
