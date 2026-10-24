@@ -63,7 +63,8 @@ form over, fix the program after.
   always offer "I don't wish to answer". User asks to reuse a disclosure answer -> save it under
   `self_identification` in search settings: `gender`, `sexual_orientation` (their word), and
   true / false for `hispanic_latino`, `protected_veteran`, `armed_forces` (served or serving at
-  all - a separate question from protected veteran), `transgender`, `disability`
+  all - a separate question from protected veteran), `veteran_spouse` (spouse or partner of a
+  veteran), `transgender`, `disability`
   (`app/docs/apply/answers.md` #Saved voluntary answers). Filled on forms only after ONE clickable yes:
   `prepare` prints "ask once: fill the user's saved voluntary answers" -> Yes / No, saved as
   `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way -

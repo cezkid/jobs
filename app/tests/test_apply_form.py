@@ -1405,6 +1405,21 @@ def test_saved_armed_forces_and_protected_veteran_kept_apart():
 
 
 
+def test_saved_veteran_spouse_answer_kept_apart_from_own_service():
+    """"Are you a spouse or domestic partner to a veteran?" (Greenhouse, 2026-10-23) was read as the
+    protected-veteran kind: never filled from it, and no way to save it. Now its own key, Yes / No."""
+    q = questions.question("s", "Are you a spouse or domestic partner to a veteran?", "choice", False,
+                           ["Yes", "No", "I don't wish to answer"])
+    assert questions.voluntary_kind(q) == "veteran_spouse"
+    answer = lambda **s: questions.voluntary_answer(q, {"self_identification": {**s, "fill_on_forms": True}})
+    assert answer(veteran_spouse=False) == "No" and answer(veteran_spouse=True) == "Yes"
+    assert answer(protected_veteran=False, armed_forces=False) is None  # their own service says nothing of it
+    assert questions.voluntary_kind(questions.question("m", "Are you a military spouse?", "choice", False,
+                                                       ["Yes", "No"])) is None
+    got = questions.draft(SURVEY[3:], {}, config={"self_identification": {"veteran_spouse": False, "fill_on_forms": True}})
+    assert [a["answer"] for a in got] == [None, None]  # nor their own service off it
+
+
 WORKDAY_VETERAN = ["I IDENTIFY AS ONE OR MORE OF THE CLASSIFICATIONS OF PROTECTED VETERANS LISTED ABOVE",
                    "I IDENTIFY AS A VETERAN, JUST NOT A PROTECTED VETERAN", "I AM NOT A VETERAN",
                    "I DO NOT WISH TO SELF-IDENTIFY"]
