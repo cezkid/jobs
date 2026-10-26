@@ -252,6 +252,11 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    dates, the tailored lines) - ask. Current Job Title: the employer's own list - none fits ->
    leave it, never a title they don't hold. The cookie notice and the CAPTCHA are theirs on the
    page. `app/docs/apply/zoho.md`.
+   Dover: its button "Apply" is the Submit - theirs. Never use its "Autofill from resume" box (it
+   sends the resume's text to Dover to be read); `fill` puts the resume in the Resume box below,
+   which sends nothing until Apply. Its page records the visit for PostHog, Dover's analytics company:
+   every box as typed and the resume's file name go there during the fill, before Apply - say so before
+   `fill` (prepare prints it). The Cloudflare check above Apply is theirs. `app/docs/apply/dover.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the

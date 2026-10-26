@@ -34,6 +34,8 @@ Optional, what leaves when:
                                  (measured): prepare tells the AI those words go out before Submit
     SEARCHED_WITH = "Google"     whose list those boxes search when it isn't the system's own (Breezy's
                                  address box: Google's place suggestions)
+    RECORDED_BY = "PostHog ..."  the page records the visit for this analytics company, typed boxes not masked
+                                 (measured, Dover): prepare tells the AI everything typed leaves as it is typed
 
 Optional, a closed posting whose page says nothing closed:
 

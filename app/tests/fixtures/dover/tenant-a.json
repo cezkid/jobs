@@ -1,0 +1,101 @@
+{
+ "id": "00000000-0000-4000-8000-000000000001",
+ "client_id": "00000000-0000-4000-9000-000000000001",
+ "client_name": "Acme",
+ "client_logo": null,
+ "client_domain": "acme.example",
+ "title": "Test Role",
+ "location": null,
+ "require_linkedin_profile_url": false,
+ "user_provided_description": "<p>Test posting.</p>",
+ "application_questions": [
+  {
+   "id": "00000000-0000-4000-a000-000000000001",
+   "question": "LinkedIn Profile URL",
+   "input_type": "SHORT_ANSWER",
+   "required": true,
+   "question_type": "LINKEDIN_URL",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 0
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000002",
+   "question": "Phone Number",
+   "input_type": "SHORT_ANSWER",
+   "required": true,
+   "question_type": "PHONE_NUMBER",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 1
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000003",
+   "question": "Describe the most recent work you've done that best prepared you for this role.",
+   "input_type": "LONG_ANSWER",
+   "required": true,
+   "question_type": "CUSTOM",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 2
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000004",
+   "question": "What’s the most creative thing you’ve done to set a meeting/win a deal/hit a goal?",
+   "input_type": "LONG_ANSWER",
+   "required": true,
+   "question_type": "CUSTOM",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 3
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000005",
+   "question": "Why are you interested in an early-stage start-up sales role?",
+   "input_type": "SHORT_ANSWER",
+   "required": true,
+   "question_type": "CUSTOM",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 4
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000006",
+   "question": "How did you hear about this role?",
+   "input_type": "MULTIPLE_CHOICE",
+   "required": true,
+   "question_type": "CUSTOM",
+   "multiple_choice_options": [
+    "Recruiter",
+    "LinkedIn",
+    "Job board",
+    "Slack community",
+    "Other"
+   ],
+   "max_selections": null,
+   "hidden": false,
+   "order_index": 5
+  },
+  {
+   "id": "00000000-0000-4000-a000-000000000007",
+   "question": "Resume Upload",
+   "input_type": "FILE_UPLOAD",
+   "required": true,
+   "question_type": "RESUME",
+   "multiple_choice_options": null,
+   "max_selections": null,
+   "hidden": false,
+   "order_index": null
+  }
+ ],
+ "workplace_type": "REMOTE",
+ "active": true,
+ "is_private": false,
+ "allow_docx_resumes_in_applications": false,
+ "is_notifiable_source": false
+}

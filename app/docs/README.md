@@ -58,6 +58,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/breezy.md](apply/breezy.md) | Breezy forms (`breezy.hr`): definition in the apply page, widgets (no labels, honeypot), resume on choosing it, read back, closed check |
 | Applying | [apply/teamtailor.md](apply/teamtailor.md) | Teamtailor forms (`teamtailor.com` or own domain): form by plain GET, widgets, takeover cookie box, resume on choosing it, read back, closed check |
 | Applying | [apply/zoho.md](apply/zoho.md) | Zoho Recruit forms (`zohorecruit.com`): form definition by plain GET, Lyte widgets, cookie layer, tables from the resume, what leaves as typed, read back |
+| Applying | [apply/dover.md](apply/dover.md) | Dover forms (`app.dover.com/apply/<co>/<uuid>`): form definition over HTTP, MUI widgets, the autofill box left alone, read back, everything at Apply |
 | Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |

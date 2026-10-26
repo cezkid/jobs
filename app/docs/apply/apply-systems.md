@@ -25,6 +25,7 @@ small plug-in.
 | iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
 | Taleo | `<tenant>.taleo.net/careersection/<section>/jobdetail.ftl?job=<id>` or `jobapply.ftl?job=<id>`; an employer's careers-site posting whose Apply leads there (`careers_page.py`) | `apply-form`, Job Finder's own Chrome; user accepts the privacy agreement + signs in, then each step read off their tab and filled - resume attached + ticked, work history + education made to match the resume; they click Save and Continue | `taleo.md` |
 | Zoho Recruit | `<tenant>.zohorecruit.com/jobs/Careers/<id>` (a slug + `?source=` after it too) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP), form opened by the posting's own apply button; email checked as its box is left (forms with screening questions), zip / city / state / skills searched as typed, the rest - resume too - at Submit | `zoho.md` |
+| Dover | `app.dover.com/apply/<co>/<uuid>` (`?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); its "Autofill from resume" box never used; everything, resume too, sent at Apply (its Submit) | `dover.md` |
 
 Careers-site postings (freehire `source` radancy): the job list's link is the employer's own page;
 `prepare` reads it once and goes on with the system its Apply leads to (`apply/careers_page.py`,
