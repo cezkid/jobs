@@ -260,6 +260,11 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    dates, the tailored lines) - ask. Current Job Title: the employer's own list - none fits ->
    leave it, never a title they don't hold. The cookie notice and the CAPTCHA are theirs on the
    page. `app/docs/apply/zoho.md`.
+   Loxo: a recruiting firm's own site - the posting may name the hiring company; say the
+   application goes to the firm. Everything, resume too, goes at Submit. Its "can contact me"
+   box (texts, Terms of Service) is theirs to tick. Resume by hand: in the Upload File box only -
+   a file set on the hidden input outside it shows nothing (and goes twice if added in the box
+   too). `app/docs/apply/loxo.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the

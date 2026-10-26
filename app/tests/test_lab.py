@@ -224,3 +224,8 @@ def test_canary_still_blocks_every_kind_with_named_reads(page):
     # Zoho Recruit: the platform's own host label is no tenant - it hit every line about the system (2026-10-21)
     assert lab.tenants("https://acmetest.zohorecruit.com/jobs/Careers/600000000000123456", ["Zoho Recruit"],
                        {"controls": []}) == ["acmetest"]
+    # Loxo: one host for every recruiting firm (or the firm's label before it), site name = "Loxo" (2026-10-26)
+    assert lab.tenants("https://app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/form", ["Loxo", "Acme Recruiting"],
+                       {"controls": []}) == ["Acme Recruiting"]
+    assert lab.tenants("https://acmetest.app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/form", ["Loxo"],
+                       {"controls": []}) == ["acmetest"]

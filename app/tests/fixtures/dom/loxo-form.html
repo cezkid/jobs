@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Software Engineer | Acme Recruiting</title>
+<script>
+// Stand-in for Loxo's better_file_input.js (read 2026-10-26): a form-associated element with an OPEN
+// shadow root holding its own hidden file input, a chip per file (name + remove button) and the
+// "Upload File" drop box. A file chosen in the shadow input joins its list (the input is then cleared);
+// the list is added to the form's data on the formdata event. Its light-DOM children are not slotted:
+// a file set on the hidden light input is sent too, but the box never shows it.
+class BetterFileInput extends HTMLElement {
+  static formAssociated = true;
+  constructor() { super(); this.internals_ = this.attachInternals(); this.files = []; }
+  connectedCallback() {
+    const root = this.attachShadow({mode: 'open'});
+    root.innerHTML = '<span><div class="fileList_x1"></div><button class="dropZone_x1" type="button">' +
+      '<div><i class="fa fa-lg fa-file-text-o"></i>Upload File' +
+      (this.hasAttribute('required') ? '<span class="requiredAsterisk_x1">*</span>' : '') +
+      '</div></button><input type="file" multiple style="display: none"></span>';
+    const input = root.querySelector('input'), list = root.querySelector('.fileList_x1');
+    const draw = () => {
+      list.innerHTML = '';
+      this.files.forEach((f, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'fileItem_x1';
+        chip.innerHTML = '<i class="fa fa-file-text-o"></i>';
+        chip.append(f.name);
+        const x = document.createElement('button');
+        x.className = 'fa fa-times-circle closeButton_x1';
+        x.onclick = () => { this.files.splice(i, 1); draw(); };
+        chip.append(x);
+        list.append(chip);
+      });
+    };
+    root.querySelector('button').onclick = () => input.click();
+    input.addEventListener('change', e => { this.files.push(...e.target.files); e.target.value = ''; draw(); });
+    this.internals_.form.addEventListener('formdata', e => this.files.forEach(f => e.formData.append(this.getAttribute('name'), f)));
+  }
+}
+customElements.define('better-file-input', BetterFileInput);
+</script>
+</head>
+<body>
+<form action="/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/finish?source_type=app" autocomplete='off' enctype='multipart/form-data' method='POST'>
+  <div style='display: flex; flex-direction: column; gap: 0.5rem;'>
+    <input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />
+    <input type='hidden' name='authenticity_token' value=TESTTOKEN/>
+    <input type='hidden' name='source_type_id' value=100001/>
+    <input class='form-control input-lg' type='text' name='name' placeholder='Your Full Name' title='Your Full Name' value=""/>
+    <input class='form-control input-lg' type='text' name='email' placeholder='Your Email Address' title='Your Email Address' value=""/>
+    <input class='form-control input-lg' type='text' name='phone' placeholder='Your Phone Number' title='Your Phone Number' value=""/>
+    <better-file-input name='resume_uploaded_file[]' required>
+      <input class='btn btn-file-upload btn-success' type='button' value='Upload Resume/CV'/>
+      <input class='hidden' name='resume_uploaded_file[]' type='file' multiple=true/>
+      <input class='hidden' name='resume_source_type_id' type='hidden' value=100001 />
+    </better-file-input>
+  </div>
+  <div class=custom-questions>
+    <input type=hidden name=form_template_id value=100>
+    <div>
+      <label> LinkedIn Profile: </label> <span style="color:#F05854">*</span> <br>
+      <input required type=text name=custom_question_868593 value="">
+    </div>
+    <br>
+    <div>
+      <label> Are you legally authorized to work in the United States? </label> <span style="color:#F05854">*</span>
+      <div class='options'>
+        <input required type=radio name=custom_question_868594 id=custom_question_868594_option_488744 value=488744> Yes <br>
+        <input required type=radio name=custom_question_868594 id=custom_question_868594_option_488745 value=488745> No <br>
+      </div>
+    </div>
+    <br>
+    <div>
+      <label> How did you hear about this role? </label> <br>
+      <div class='options'>
+        <input type=checkbox name=custom_question_868596[] id=custom_question_868596_option_488748 value=488748> LinkedIn <br>
+        <input type=checkbox name=custom_question_868596[] id=custom_question_868596_option_488749 value=488749> Indeed <br>
+        <input type=checkbox name=custom_question_868596[] id=custom_question_868596_option_488755 value=488755> Other <br>
+      </div>
+    </div>
+    <br>
+    <div>
+      <label> How many years have you worked with React and Typescript? <span style="color:#F05854">*</span> <br>
+        <input required type=number name=custom_question_1935 value= >
+      </label>
+    </div>
+    <br>
+    <div>
+      <label for=custom_question_1936> Link to a product you shipped, and describe your role. </label> <span style="color:#F05854">*</span>
+      <textarea required name=custom_question_1936 id=custom_question_1936 rows=4></textarea>
+    </div>
+    <br>
+    <div>
+      <label> Do we, as Acme Recruiting, have your consent to communicate with you via SMS text message moving forward? </label> <span style="color:#F05854">*</span> <br>
+      <div class=options>
+        <input type=checkbox name=custom_question_664721[] id=hierarchy_6099674 class=hierarchy-box value=6099674> No <br>
+        <input type=checkbox name=custom_question_664721[] id=hierarchy_6099673 class=hierarchy-box value=6099673> Yes <br>
+      </div>
+    </div>
+    <br>
+  </div>
+  <div style='position: relative;'>
+    <div style='display: flex; flex-direction: column; padding: 0.75rem; position: relative;'>
+      <div style='display: flex; align-items: center; gap: 0.5rem;'>
+        <input type='checkbox' name='contact_consent' id='contact-consent-box' />
+        <label for='contact-consent-box' id='contact-consent-label'><span>Yes, Acme Recruiting can contact me about job opportunities.</span></label>
+      </div>
+      <div style='font-size: 0.75rem; opacity: 50%;'>
+        I may receive phone/text communications about career opportunities from Acme Recruiting (+1 (555) 010-0100)
+        (Message and data rates may apply, message frequency varies). I can opt-out at any time by unsubscribing or texting STOP.
+        My data will be handled in accordance with <a href='#privacy'>the privacy policy</a> and <a href='#terms'>Terms of Service</a>.
+      </div>
+    </div>
+  </div>
+  <input type='submit' value='Apply' class='job-apply-button' />
+</form>
+</body>
+</html>

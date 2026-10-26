@@ -20,7 +20,7 @@ from apply import lab
 # one host for every employer: kept in the saved JSON, never a tenant line
 SHARED_HOST = re.compile(r"(?:apply\.workable\.com|jobs\.smartrecruiters\.com|workforcenow\.adp\.com|recruiting\.paylocity\.com"
                          r"|recruiting\d*\.ultipro\.com|(?:www\.)?paycomonline\.net|jobs\.ashbyhq\.com|jobs(?:\.eu)?\.lever\.co"
-                         r"|(?:job-)?boards(?:\.eu)?\.greenhouse\.io|careers-page\.com|ats\.rippling\.com)", re.I)
+                         r"|(?:job-)?boards(?:\.eu)?\.greenhouse\.io|careers-page\.com|ats\.rippling\.com|app\.loxo\.co)", re.I)
 # path parts + query keys every tenant of a system shares: never scrubbed
 PATH_WORDS = {"apply", "application", "jobs", "job", "j", "careers", "embed", "job_app", "jobboard", "opportunitydetail",
               "opportunityapply", "hcmui", "candidateexperience", "sites", "email", "login", "recruiting", "details",
