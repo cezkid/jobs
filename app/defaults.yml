@@ -98,6 +98,15 @@ upload_on_apply: null
 # Asked once at the first such form (null); false = the user clicks each one (owner 2026-10-22).
 continue_on_apply: null
 
+# An optional "get text messages" box (SMS opt-in) on an application: false = left unticked on every
+# form, never stopping the page for it; true = the user decides each one on the page. Asked once at the
+# first form showing one (null). A required one stays theirs either way (owner 2026-10-26).
+text_messages: null
+
+# The email typed into an employer's sign-in or new-account page (Workday, Taleo, UKG); null = the one on
+# the resume. The password is never typed - the user types it and clicks Sign In / Create Account.
+account_email: null
+
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
 home_address:

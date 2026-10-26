@@ -2236,3 +2236,63 @@ def test_how_you_heard_defaults_to_the_employers_own_site():
     tenant_h = questions.question("h", title, "choice", False, ["External Career Site Sources > Job Board",
                                                                 "External Career Site Sources > LinkedIn"])
     assert questions.draft([tenant_h], {})[0]["answer"] is None
+
+
+# --- text-message opt-ins, optional boxes left blank on their word, pronouns, the employer's AI screening ---
+# (owner 2026-10-26, a Workday tenant's My Information "SMS Opt-in", Pronoun menu and AI opt-out question)
+
+def test_text_message_opt_in_left_unticked_once_they_said_never_and_the_page_goes_on():
+    sms, terms = q("SMS Opt-in", "yesno", required=False), q("I agree to the terms and conditions", "yesno", required=False)
+    asked = q("SMS Opt-in", "yesno", required=True)
+    for setting in (None, True):  # not asked yet, or they decide each time: theirs on the page, as before
+        (a,) = questions.draft([sms], CONTACT, config={"text_messages": setting})
+        assert questions.SIGN_ON_PAGE in a["source"] and form.for_the_user(a)
+    drafted = questions.draft([sms, terms, asked], CONTACT, config={"text_messages": False})
+    assert [a["answer"] for a in drafted] == [None, None, None]
+    assert drafted[0]["source"] == questions.TEXTS_OFF and not form.for_the_user(drafted[0])
+    assert questions.SIGN_ON_PAGE in drafted[1]["source"] and form.for_the_user(drafted[1])  # terms: theirs
+    assert questions.SIGN_ON_PAGE in drafted[2]["source"] and form.for_the_user(drafted[2])  # required texts: theirs
+    assert not questions.on_page(drafted) and not questions.missing(drafted[:2])
+    assert "text_messages: false" in form.texts_ask({}, [sms]) and form.texts_ask({"text_messages": False}, [sms]) == ""
+    assert form.texts_ask({}, [terms]) == ""
+
+
+def test_optional_box_left_blank_on_their_word_never_stops_the_page():
+    left = {**q("Phone Extension", required=False), "answer": None, "source": questions.USER_SAID}
+    assert not form.for_the_user(left)
+    assert form.for_the_user({**left, "required": True})
+
+
+PRONOUNS = ["He/Him", "She/Her", "They/Them", "He/they", "They/he", "All pronouns are used", "I prefer not to say"]
+
+
+def test_saved_pronouns_filled_after_the_users_yes():
+    menu = questions.question("p", "Pronoun", "choice", False, PRONOUNS)
+    saved = {"pronouns": "He/Him", "fill_on_forms": True}
+    (a,) = questions.draft([menu], {}, config={"self_identification": saved})
+    assert a["answer"] == "He/Him" and questions.VOLUNTARY_SAVED in a["source"]
+    longer = questions.question("p", "Pronouns", "choice", False, ["he / him / his", "she / her / hers"])
+    assert questions.draft([longer], {}, config={"self_identification": saved})[0]["answer"] == "he / him / his"
+    typed = questions.question("p", "Your pronouns", "text", False)
+    assert questions.draft([typed], {}, config={"self_identification": {"pronouns": "they/them", "fill_on_forms": True}}
+                           )[0]["answer"] == "they/them"
+    (a,) = questions.draft([menu], {}, config={"self_identification": {**saved, "fill_on_forms": None}})
+    assert a["answer"] is None and questions.YOURS in a["source"]  # not said yes yet: asked on the form
+    assert questions.draft([menu], {}, config={"self_identification": {"fill_on_forms": True}})[0]["answer"] is None
+
+
+# measured 2026-10-26, a Workday tenant's Application Questions, required
+AI_SCREENING = ("At Acme, we use an AI feature that helps compare the experience and skills in your application to the "
+                "minimum requirements in the job description, but it doesn't make any hiring decisions. A recruiter "
+                "will always review your application.Would you like to opt out of this feature?Your answer won't "
+                "affect your chances of being considered.")
+
+
+def test_employer_ai_screening_opt_out_asked_in_the_chat_not_ai_help():
+    asked = q(AI_SCREENING, "choice", options=["Yes, I want to opt out", "No, I do not want to opt out"])
+    (a,) = questions.draft([asked], CONTACT)
+    assert questions.never_draft(AI_SCREENING) == "opting out of the employer's AI screening"
+    assert not questions.signs(AI_SCREENING) and form.ai_note([a]) == ""
+    assert a["answer"] is None and questions.YOURS in a["source"]
+    said = {**a, "answer": "No, I do not want to opt out", "source": questions.USER_SAID}
+    form.refuse([said])  # their answer, typed by the filler

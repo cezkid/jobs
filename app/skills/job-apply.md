@@ -24,7 +24,15 @@ form over, fix the program after.
 
 ## Hard limits (safety rules - never relax)
 
-- User signs in / creates the account themselves. Never type a password.
+- User signs in / creates the account themselves. Never type a password. Their email goes in for them
+  (Workday, Taleo, UKG: `prepare` types `account_email` from search settings, else the resume's, into the
+  page's email box and says so; owner 2026-10-26) - tell them to type the password and click Sign In /
+  Create Account, then `prepare` again.
+- Text-message opt-ins ("SMS Opt-in", "receive text updates"): `prepare` prints "ask once" at the first
+  one -> ONE clickable question: "Text messages from employers: leave those boxes unticked on every form?"
+  - Yes, never opt in (Recommended) -> `text_messages: false` (optional ones left unticked, the page goes
+  on) / No, I'll decide on each -> true (theirs on the page). A required one is theirs either way.
+- An optional box they said to leave blank: source "you said", answer blank - `fill` goes on past it.
 - Never click **Submit**, or anything irreversible. **Save and Continue** / **Next** / **Continue**
   only through `fill` with `continue_on_apply: true` in search settings (owner 2026-10-22): `prepare`
   prints "ask once" on the first form over pages whose system names its button (Workday) -> ONE clickable
@@ -64,7 +72,7 @@ form over, fix the program after.
   `self_identification` in search settings: `gender`, `sexual_orientation` (their word), and
   true / false for `hispanic_latino`, `protected_veteran`, `armed_forces` (served or serving at
   all - a separate question from protected veteran), `veteran_spouse` (spouse or partner of a
-  veteran), `transgender`, `disability`
+  veteran), `transgender`, `disability`, `pronouns` (their words, "He/Him")
   (`app/docs/apply/answers.md` #Saved voluntary answers). Filled on forms only after ONE clickable yes:
   `prepare` prints "ask once: fill the user's saved voluntary answers" -> Yes / No, saved as
   `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way -

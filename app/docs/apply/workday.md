@@ -68,6 +68,19 @@ option reads, typed dates, the run on My Experience. Modelled on the steps tenan
 
 Modelled in `fixtures/workday/tenant-w.html` (`test_apply_workday.py`).
 
+### Tenant M (2026-10-26, through Job Finder's Chrome)
+
+| Seen | Filler rule |
+|---|---|
+| Sign In page: Email Address (`data-automation-id=email`, type text) + Password | `prepare` types the user's email (`account_email`, else the resume's) - never the password - and stops for them (owner 2026-10-26) |
+| My Information: optional "SMS Opt-in" tick | consent: theirs; `text_messages: false` -> left unticked, `fill` goes on |
+| Application Questions: "Desired Annual Pay:" box keeps digits only ("$95,000" shows 95000) | `put_text` compares digits for money too; a number box gets digits typed |
+| Application Questions: optional Pronoun menu (He/Him, She/Her, They/Them, He/they ...) | `self_identification.pronouns` after `fill_on_forms` |
+| Application Questions: required "we use an AI feature ... Would you like to opt out?" | its own topic, asked in the chat (never "whether AI helped") |
+| Self Identify (disability form, CC-305): Date box's spin buttons drawn outside the viewport - a click on the box timed out | focused, then a real click on the digits shown over it, typed MMDDYYYY, read back from `aria-valuetext` |
+| After Save and Continue the passed step's tagged box lingered while the next drew: fill hit it detached (FAIL "not attached to the DOM") | a question whose `page` isn't the step shown is `LATER` |
+| My Experience: both Degree menus "did not open" in workday.js's run (FAIL); picked by hand with real clicks, options B.A. as "Bachelor of Arts" | unfixed - not measured past the run; next time on this tenant: read the run's Degree click |
+
 ## Widgets (all tenants)
 
 | Widget | Behaviour | Filler rule |
