@@ -28,6 +28,9 @@
       "Read(~/Documents/**)"
     ]
   },
+  "sandbox": {
+    "excludedCommands": ["uv run app/jobs.py open *"]
+  },
   "hooks": {
     "SessionStart": [
       {

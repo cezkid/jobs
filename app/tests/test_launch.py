@@ -338,6 +338,13 @@ def test_workspace_never_sets_a_permission_mode_of_its_own():
     assert "defaultMode" not in settings.get("permissions", {})
 
 
+def test_open_runs_outside_claudes_sandbox():
+    # macOS: Claude's command sandbox lets `open` / osascript exit 0 while no browser starts
+    # (measured 2026-10-26: Chrome not running, 3 opens, none showed) => "opened in your browser" lied
+    settings = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    assert "uv run app/jobs.py open *" in settings["sandbox"]["excludedCommands"]
+
+
 def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatch):
     import jobs
     pdf, page = tmp_path / "Resume.pdf", tmp_path / "Job posting.md"
