@@ -58,6 +58,21 @@ def test_title_match_needs_the_company_in_the_address():
                                       title="Apply - Frontend Engineer")])[0] == "can't tell"
 
 
+LOXO = {"url": "https://app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==?utm_source=freehire.me",
+        "company": "Acme Recruiting", "title": "Software Engineer"}
+
+
+def test_loxo_finish_page_settles_it_matched_by_its_base64_id():
+    # the address carries no company: the posting's own id (padding written = or %3D) is the match
+    form = visit("https://app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA%3D%3D/form?source_type=app")
+    done = visit("https://app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/finish?source_type=app", 4)
+    assert sent.verdict(LOXO, [form, done]) == ("sent", "Loxo sent page 2026-09-24 (Chrome)")
+    word, why = sent.verdict(LOXO, [form])
+    assert word == "likely not sent" and "Loxo" in why
+    other = visit("https://app.loxo.co/job/OTk5OTktenp6enp6enp6enp6enp6eg==/finish", 4)
+    assert sent.verdict(LOXO, [other])[0] == "no visits"
+
+
 def test_chromium_history_read_from_a_copy(tmp_path):
     path = tmp_path / "History"
     conn = sqlite3.connect(path)

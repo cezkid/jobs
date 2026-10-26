@@ -52,11 +52,15 @@ SYSTEMS = [
     System("Ashby", "ashbyhq.com", None, None),
     System("UKG", "ultipro.com", None, "My Presence, Applications on that employer's UKG site, signed in"),
     System("Rippling", "rippling.com", None, None),
+    # Loxo: Submit posts to /job/<id>/finish, which shows "Application submitted" (1 sent job, 2026-10-26)
+    System("Loxo", "app.loxo.co", re.compile(r"/job/[A-Za-z0-9]+(?:=|%3D)*/finish\b", re.I), None),
 ]
 # Workday's sent page names no job: it counts for the job whose form was open just before it
 WORKDAY_PAIR = timedelta(hours=2)
 UUID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
 NUMBER_ID = re.compile(r"(?:/jobs/|gh_jid=|opportunityId=|_)(\d{6,})")
+# Loxo's posting id: base64 in the path (/job/<id>, /job/<id>/form, /job/<id>/finish), padding as = or %3D
+LOXO_ID = re.compile(r"app\.loxo\.co/job/([A-Za-z0-9]{8,})", re.I)
 GENERIC = {"the", "and", "inc", "llc", "group", "technologies", "technology", "labs", "company"}
 
 
@@ -78,13 +82,13 @@ def norm(text: str | None) -> str:
 
 
 def ids(url: str | None) -> set[str]:
-    """Ids a job's own link carries (posting uuid, Greenhouse job id, UKG opportunity id); a
+    """Ids a job's own link carries (posting uuid, Greenhouse job id, UKG opportunity id, Loxo's base64 id); a
     visit carrying one is that job, whichever page or browser it was."""
     url = url or ""
     # UKG links carry the job board's uuid too, shared by every job of that employer
     one = re.search(r"opportunityId=(" + UUID.pattern + ")", url, re.I)
     uuids = [one.group(1)] if one else UUID.findall(url)
-    return {u.casefold() for u in uuids} | set(NUMBER_ID.findall(url))
+    return {u.casefold() for u in uuids} | set(NUMBER_ID.findall(url)) | {i.casefold() for i in LOXO_ID.findall(url)}
 
 
 def company_word(company: str | None) -> str:

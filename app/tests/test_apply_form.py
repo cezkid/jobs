@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, workday, zoho
+from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, loxo, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, workday, zoho
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -84,7 +84,7 @@ def test_optional_members_take_what_the_shared_code_passes(system):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor, zoho]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor, zoho, loxo]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1678,6 +1678,13 @@ READ_BACK_FORMS = {
         answered("resumator-questionnaire-q1586173", "choice", "3-5") | {"native": "jazzhr:select"},
         answered("resumator-start-value", "date", "11/02/2026") | {"native": "jazzhr:date"},
         answered("resumator-questionnaire-q1474076", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}]),
+    "loxo": ("loxo-form.html", [
+        answered("name", "text", "Ada Lovelace") | {"native": "loxo:text"}, answered("email", "email", "ada@example.com"),
+        answered("phone", "phone", "555-0100"), answered("custom_question_868593", "text", "https://linkedin.com/in/ada"),
+        answered("custom_question_868594", "yesno", "Yes", ["Yes", "No"]) | {"native": "loxo:radio"},
+        answered("custom_question_868596", "multichoice", ["Indeed", "Other"]) | {"native": "loxo:checkbox"},
+        answered("custom_question_1935", "number", "5") | {"native": "loxo:number"},
+        answered("custom_question_1936", "longtext", "Their own words.") | {"native": "loxo:textarea"}]),
     "workable": ("workable-form.html", [
         answered("firstname", "text", "Ada"), answered("email", "email", "ada@example.com"),
         answered("phone", "phone", "555-0100"), answered("address", "location", "Boston, MA"),

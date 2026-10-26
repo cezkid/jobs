@@ -1,0 +1,57 @@
+<form
+    action="/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/finish?source_type=app"
+    autocomplete='off'
+    enctype='multipart/form-data'
+    method='POST'
+    onsubmit="document.querySelector('.job-apply-button').disabled = true;"
+  >
+    <div style='display: flex; flex-direction: column; gap: 0.5rem;'>
+      
+      <input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />
+      <input type='hidden' name='authenticity_token' value=TESTTOKEN/>
+      <input type='hidden' name='source_type_id' value=100001/>
+      <input class='form-control input-lg' type='text' name='name' placeholder='Your Full Name' title='Your Full Name' value=""/>
+      <input class='form-control input-lg' type='text' name='email' placeholder='Your Email Address' title='Your Email Address' value=""/>
+      <input class='form-control input-lg' type='text' name='phone' placeholder='Your Phone Number' title='Your Phone Number' value=""/>
+
+      <better-file-input name='resume_uploaded_file[]' required>
+        <input class='btn btn-file-upload btn-success' type='button' value='Upload Resume/CV'/>
+        <input class='hidden' name='resume_uploaded_file[]' type='file' multiple=true/>
+        <input class='hidden' name='resume_source_type_id' type='hidden' value=100001 />
+      </better-file-input>
+    </div>
+
+
+
+    <div style='position: relative;'>
+  <div style='background-color: #333333; position: absolute; width: 100%; height: 100%; opacity: 0.1; border-radius: 0.5rem;'></div>
+  <div style='display: flex; flex-direction: column; padding: 0.75rem; position: relative;'>
+    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+      <input  type='checkbox' name='contact_consent' id='contact-consent-box' />
+      <label for='contact-consent-box' id='contact-consent-label'>
+        <span style='display: flex; align-items: center;'>
+            Yes, Acme Recruiting can contact me about job opportunities.
+        </span>
+      </label>
+    </div>
+    <div style='font-size: 0.75rem; opacity: 50%;'>
+      I may receive phone/text communications about career opportunities, interviews, job offers, and other related information from Acme Recruiting (+1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100, +1 (555) 010-0100 or +1 (555) 010-0100) (Message and data rates may apply, message frequency varies).  I may receive emails from acme.example.  I can opt-out at any time by unsubscribing or texting STOP.
+      My data will be handled in accordance with
+      <a href=https://loxo.co/privacy-policy target='_blank' style='color: #333333'>the privacy policy</a>
+      and
+      <a href='https://loxo.co/terms-of-service' target='_blank' style='color: #333333'>Terms of Service</a>.
+      To exercise your privacy rights, visit
+      <a href='https://app.loxo.co/privacy-rights' target='_blank' style='color: #333333'>Privacy Rights &amp; Opt-Out</a>.
+      For help, email
+      <a href='mailto:support@loxo.co' style='color: #333333'>support@loxo.co</a>.
+    </div>
+  </div>
+</div>
+
+    <input
+      type='submit'
+      value='Apply'
+      style='color: #333333; background-color: #333333; border-radius: 0.5rem;'
+      class='job-apply-button'
+    />
+  </form>

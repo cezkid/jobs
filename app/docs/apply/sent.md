@@ -23,6 +23,7 @@ made" and the job keeps asking. Code: `app/sent.py`, run as `uv run app/jobs.py 
 | Ashby | none: same address before + after Submit | none - no candidate account; confirmation email only |
 | UKG Pro Recruiting | none seen | My Presence (`.../Candidate/ViewPresence`) -> Applications: rows Job / Status / Date applied; "You have not yet applied to any opportunities" when empty. Signed in only. Detail page keeps "Apply now" either way |
 | Rippling | none seen | none |
+| Loxo | `/job/<id>/finish`, "Application submitted" - seen on 1 sent job (2026-10-26); matched to the job by its base64 id (the address names no company) | none - no candidate account |
 
 Greenhouse + Workday: form opened, no sent page -> `likely not sent`. Systems w/o one ->
 `can't tell`: say where to look (account list, confirmation email), never guess. Not settled by
