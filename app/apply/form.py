@@ -140,6 +140,16 @@ def continue_ask(config: dict, system) -> str:
     return ""
 
 
+def texts_ask(config: dict, answers: list[dict]) -> str:
+    """First form with a text-message opt-in: ask once whether every such box stays unticked (owner 2026-10-26)."""
+    if config.get("text_messages") is None and any(questions.signs(a["title"]) and questions.TEXTS.search(a["title"])
+                                                   for a in answers):
+        return ("ask once: text messages from employers - leave every optional \"get texts\" box unticked on every "
+                "form, never stopping for it? Yes, never opt in (Recommended) -> text_messages: false in search "
+                "settings, then prepare again; No, I'll decide on each -> true (they tick it on the page)")
+    return ""
+
+
 def typed_note(system, answers: list[dict]) -> str:
     """A system whose boxes search its own list as they're typed: those words leave before Submit.
     By key or kind: an Ashby Location box of the employer's own has no key."""
@@ -242,13 +252,15 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
         print(note)
     selfid = config.get("self_identification") or {}
     if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:
-        print("ask once: fill the user's saved voluntary answers (gender, race, veteran, orientation, transgender, "
-              "disability, armed forces) on forms, named before "
+        print("ask once: fill the user's saved voluntary answers (gender, pronouns, race, veteran, orientation, "
+              "transgender, disability, armed forces) on forms, named before "
               "Submit? Yes -> self_identification.fill_on_forms: true in search settings, then prepare again; "
               "No -> false (asked on each form as now)")
     if system and (ask := upload_ask(config, answers)):
         print(ask)
     if system and (ask := continue_ask(config, system)):
+        print(ask)
+    if ask := texts_ask(config, answers):
         print(ask)
     if config.get("saved_answers") is None:
         print("ask once: keep the user's own answers for the next form (named before Submit, on this computer)? "
@@ -439,6 +451,8 @@ def for_the_user(q: dict) -> bool:
     if not questions.blank(q.get("answer")):
         return False
     source = q.get("source") or ""
+    if not q["required"] and (source.startswith(questions.USER_SAID) or source == questions.TEXTS_OFF):
+        return False  # optional, left blank because they said so (owner 2026-10-26)
     return q["required"] or " - sensitive: " in source or f" - {questions.SIGN_ON_PAGE}: " in source \
         or questions.never_draft(q["title"]) is not None
 

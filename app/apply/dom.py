@@ -423,3 +423,43 @@ def holds(page, q: dict, snap: dict | None = None, worded: bool = False) -> bool
         return bool(on) == yes(value)
     want = [str(v).strip() for v in value] if isinstance(value, list) else [pick]
     return sorted(on) == sorted(want)
+
+
+# --- sign-in and new-account pages (Workday, Taleo, UKG): the email typed for them, never the password ---
+
+# an email or user-name box beside a password box; the password box is never touched (job-apply #Hard limits)
+SIGN_IN_BOX = ", ".join(f"input{s}:visible" for s in (
+    "[type=email]", "[autocomplete=email]", "[autocomplete=username]", "[data-automation-id=email]",
+    "[name*=email i]", "[id*=email i]", "[name*=user i]", "[id*=user i]", "[name*=login i]", "[id*=login i]"))
+
+
+def account_email() -> str | None:
+    """The email they sign in or make an employer account with: `account_email` in search settings, else the
+    one on their resume. None before setup."""
+    import cfg
+    from resume import schema
+    try:
+        config = cfg.load()
+        return config.get("account_email") or schema.load(cfg.resume_path(config, "master"))["contact"].get("email")
+    except (SystemExit, OSError, KeyError, ValueError, TypeError):
+        return None
+
+
+def sign_in_email(page) -> str:
+    """A sign-in or new-account page: their email typed into each empty email box, the password left for
+    them (owner 2026-10-26: "input their desired email, password leave blank"). Nothing leaves until
+    they click Sign In / Create Account. Returns the line for prepare, '' when nothing was typed."""
+    email = account_email()
+    if not email or not page.locator("input[type=password]:visible").count():
+        return ""
+    typed = 0
+    for b in page.locator(SIGN_IN_BOX).all():
+        try:
+            if (b.get_attribute("type") or "text").casefold() not in ("text", "email") or b.input_value():
+                continue
+            b.fill(email)
+            b.blur()
+            typed += 1
+        except Exception:  # a box redrawn mid-typing: the user types it, as before
+            continue
+    return f"their email ({email}) typed in, the password box left for them - " if typed else ""

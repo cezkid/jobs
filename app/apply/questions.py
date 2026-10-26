@@ -136,6 +136,10 @@ SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy
                    r"\b(?:may|can) we (?:text|sms) you\b|\bpermission to (?:text|sms|message) you\b|(?<!digital )\bsignature\b|\be-?sign|"
                    r"\bsign (?:here|below|electronically)\b|\btype (?:your )?(?:full |legal )?name to sign\b")
 SIGN_ON_PAGE = "yours to do on the page"
+# a text-message opt-in among those: left unticked on every form once the user said so
+# (`text_messages: false` in search settings, owner 2026-10-26) - it no longer stops the page
+TEXTS = re.compile(r"\bsms\b|\btext(?:ing| messag\w*| alerts?| updates?|s)\b|\bwhatsapp\b", re.I)
+TEXTS_OFF = "search settings - text messages: never - left unticked"
 # resume box: their Apply click was the yes (search settings upload_on_apply: true)
 UPLOAD_ON_APPLY = "search settings - upload on Apply: their click was the yes - name the file at handover"
 # "I confirm that my application materials ... were not generated, edited, or supplemented by AI
@@ -150,8 +154,16 @@ AI_USE_PATTERN = (r"(?=[\s\S]*\b(?:AI|artificial intelligence|ChatGPT|GPT|LLMs?|
                   r"responses|answers|materials|submission)s?\b)")
 
 
+# the employer's own AI screening, which the applicant may opt out of ("At Acme, we use an AI feature that
+# helps compare ... Would you like to opt out of this feature?", a Workday tenant 2026-10-26): their choice,
+# asked in the chat - never "whether AI helped", though its words match that pattern too
+AI_SCREENING_PATTERN = (r"\bopt(?:ing)?[- ]out\b[\s\S]*\b(?:AI|artificial intelligence)\b|"
+                        r"\b(?:AI|artificial intelligence)\b[\s\S]*\bopt(?:ing)?[- ]out\b")
+
+
 # what a question is about, in the user's words - the never-drafted ones first
 TOPICS = (
+    ("opting out of the employer's AI screening", AI_SCREENING_PATTERN),
     ("saying whether AI helped", AI_USE_PATTERN),
     ("agreeing, consenting or signing", SIGNING_PATTERN),
     ("the pay you expect", r"salary|compensation|pay (?:expectation|range|requirement)|desired (?:pay|rate)"),
@@ -169,7 +181,7 @@ TOPICS = (
 )
 # asked only of the user, never drafted - not even from a setting that seems to fit
 VOLUNTARY = "voluntary questions about you"
-NEVER_DRAFT = ("saying whether AI helped", "agreeing, consenting or signing", "the pay you expect", "where you live",
+NEVER_DRAFT = ("opting out of the employer's AI screening", "saying whether AI helped", "agreeing, consenting or signing", "the pay you expect", "where you live",
                VOLUNTARY)
 SIGNING = "agreeing, consenting or signing"
 AI_USE = "saying whether AI helped"
@@ -586,6 +598,13 @@ def left_on_page(q: dict) -> str:
     return f"ASK {SIGN_ON_PAGE} - {why_on_page(q['title'])}"
 
 
+def texts_off(q: dict, config: dict) -> bool:
+    """An optional text-message opt-in the user keeps unticked everywhere (`text_messages: false`). A
+    required one stays theirs on the page: unticked, the form would not go on."""
+    return config.get("text_messages") is False and not q["required"] and signs(q["title"]) \
+        and TEXTS.search(q["title"]) is not None
+
+
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
           breaks: list[dict] | None = None, saved: list[dict] | None = None,
           schools: list[dict] | None = None) -> list[dict]:
@@ -599,6 +618,9 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
     kept = {(a["id"], answers.fold(a.get("title") or "")): a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
+        if texts_off(q, config or {}):
+            out.append({**q, "answer": None, "source": TEXTS_OFF})
+            continue
         if signs(q["title"]):
             out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {why_on_page(q['title'])}"})
             continue
@@ -715,6 +737,7 @@ def voluntary_kind(q: dict) -> str | None:
         ("armed_forces", ARMED_FORCES.search(t) and not eeoc and not spouse),
         ("protected_veteran", "veteran" in t and not spouse and (eeoc or not ARMED_FORCES.search(t))),
         ("transgender", "transgender" in t),
+        ("pronouns", re.search(r"\bpronoun", t)),
         ("gender", re.search(r"\bgender\b", t)),
         ("sexual_orientation", re.search(r"\borientation\b", t)),
         ("hispanic_latino", re.search(r"\brace\b|ethnic|hispanic", t)),
@@ -728,9 +751,13 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
     Exactly one option must match, else None and the user is asked as before. Option wordings:
     `app/docs/apply/answers.md` #Saved voluntary answers."""
     saved = config.get("self_identification") or {}
-    if saved.get("fill_on_forms") is not True or not q["options"]:
+    if saved.get("fill_on_forms") is not True:
         return None
     key = voluntary_kind(q)
+    if key == "pronouns" and saved.get("pronouns") and q["kind"] == "text":
+        return str(saved["pronouns"])  # a box to type in: their own words
+    if not q["options"]:
+        return None
     said, want = saved.get(key) if key else None, None
     if key == "protected_veteran" and isinstance(said, bool):
         # a list can hold both "I AM NOT A VETERAN" and "I IDENTIFY AS A VETERAN, JUST NOT A PROTECTED
@@ -765,6 +792,10 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
             and any(says(o.casefold().strip(), True) for o in q["options"]):
         # Greenhouse "Are you Hispanic/Latino?" Yes / No / Decline To Self Identify (2026-10-11)
         want = lambda o: says(o, said)
+    elif key == "pronouns" and said:
+        # "He/Him" saved: "He/Him", "he / him", "He/Him/His" - never "He/They"
+        bare = lambda o: re.sub(r"\s+", "", o.casefold())
+        want = lambda o: bare(o) == bare(str(said)) or bare(o).startswith(bare(str(said)) + "/")
     elif key == "hispanic_latino" and said is True:
         # "Hispanic or Latino" (EEOC), "Hispanic, Latinx, or Spanish Origin" (2026-10)
         want = lambda o: o.startswith("hispanic")

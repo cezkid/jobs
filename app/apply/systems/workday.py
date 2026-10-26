@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
-from apply import browser, profile
+from apply import browser, dom, profile
 from apply.questions import LATER, asks_complete_history, form_roles, key_from_title, question
 from resume import schema
 
@@ -266,7 +266,8 @@ def read(page) -> list[dict]:
                          "Job Finder's Chrome, then run prepare again")
     if signing_in(page):
         raise SystemExit("Workday asks the user to sign in or create an account: Job Finder's Chrome is open on it - "
-                         "the user signs in or creates the account there (never typed for them), then run prepare again")
+                         f"{dom.sign_in_email(page)}the user types the password and signs in or creates the account "
+                         "there (a password is never typed for them), then run prepare again")
     if REVIEW.match(on):
         print("  the applicant's own step: check every step on this page, then click Submit yourself")
         return []
@@ -444,10 +445,13 @@ def type_dates(page) -> list[str]:
 
 def put_text(page, b, value: str) -> str:
     field = b.locator("input:not([type=hidden]), textarea").first
+    if field.get_attribute("type") == "number":  # takes digits only: "$95,000" typed as 95000
+        value = re.sub(r"[^\d.]", "", str(value))
     field.fill(str(value))
     field.blur()  # Workday keeps a typed value only once focus leaves the box (workday.md #Widgets)
     got = field.input_value()
-    same = re.sub(r"\D", "", got) == re.sub(r"\D", "", str(value)) if got and re.fullmatch(r"[\d\s()+.-]+", str(value)) else got == str(value)
+    # a phone, or pay typed as "$95,000" into a number box that keeps 95000 (a Workday tenant, 2026-10-26)
+    same = re.sub(r"\D", "", got) == re.sub(r"\D", "", str(value)) if got and re.fullmatch(r"[\d\s()+.,$-]+", str(value)) else got == str(value)
     return "ok" if same else f"FAIL shows '{got[:40]}'"
 
 
@@ -516,10 +520,18 @@ def put_date(page, b, value: str) -> str:
     if not m:
         return f"FAIL date '{value}' not MM/DD/YYYY"
     parts = [m[1].zfill(2), m[2].zfill(2), m[3]] if "/" in v else [m[2], *([m[3]] if m[3] else []), m[1]]
-    b.locator("input").first.click()
+    # the date's boxes are spin buttons drawn outside the viewport, under the shown digits: a click on the
+    # box timed out (a Workday tenant's Self Identify date, 2026-10-26) - focused, then a real click on
+    # the digits shown over it took the typed keys
+    field = b.locator("input").first
+    field.evaluate("e => { e.scrollIntoView({block: 'center'}); e.focus(); }")
+    r = field.evaluate("e => { const r = e.parentElement.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }")
+    page.mouse.click(*r)
     page.keyboard.type("".join(parts), delay=60)
     page.keyboard.press("Tab")
-    return "ok"
+    got = b.locator("input").evaluate_all("es => es.map(e => e.getAttribute('aria-valuetext') || e.value || '')")
+    shown = [int(g) for g in got if g.isdigit()]
+    return "ok" if shown == [int(x) for x in parts] else f"FAIL date shows '{'/'.join(got)}' - type it by hand"
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:
@@ -537,6 +549,10 @@ def fill(page, q: dict, resume_file: str | None) -> str:
         if q["id"] not in ids_on_page(page):
             return f"{LATER} on another step"
         return upload(page, resume_file) if value is True and resume_file else "skipped - upload not approved"
+    if q.get("page") and q["page"] != step(page):
+        # a box of the step just passed: after Save and Continue its tagged box lingered while Workday
+        # drew the next step, and the fill failed on it, detached (a Workday tenant, 2026-10-26)
+        return f"{LATER} on another step"
     page.evaluate("() => window.__jf.fields()")  # tags the step's boxes again (a re-render drops them)
     b = box(page, q["id"])
     if not b.count():

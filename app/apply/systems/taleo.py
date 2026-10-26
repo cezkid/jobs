@@ -225,8 +225,8 @@ def read(page) -> list[dict]:
                          "in or creates an account there (never typed for them), then run prepare again")
     snap = dom.snapshot(page)
     if any(c["password"] and c["visible"] for c in snap["controls"]):
-        raise SystemExit("Taleo shows its sign-in page: the user signs in or creates an account there (never typed "
-                         "for them), then run prepare again")
+        raise SystemExit(f"Taleo shows its sign-in page: {dom.sign_in_email(page)}the user types the password and signs "
+                         "in or creates an account there (a password is never typed for them), then run prepare again")
     if m := APPLYING.search(text):
         print(f"{NAME}: this tab is applying for '{m.group(1)}', Job Number {m.group(2)} - check it is this job")
     if on == SIGNATURE:

@@ -296,6 +296,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
 | Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
+| Email typed into a sign-in or new-account page (`account_email`, else your resume's; password always yours) | that employer's Workday, Taleo or UKG site | That employer, when you click Sign In / Create Account |
 | Resume you apply with | that employer's Taleo site | That employer, as soon as it's chosen and attached (only after you say yes) - before Submit; kept on your account there |
 | Contact details, work history, education, answers you apply with | that employer's Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |
 | Email you apply with | that employer's Zoho Recruit site | That employer, as you leave its box - before Submit (a form with screening questions checks it) |
