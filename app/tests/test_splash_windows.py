@@ -36,13 +36,27 @@ def test_windows_launcher_shows_the_splash_before_update_and_closes_it_when_laun
         r"copy /y app\install\splash-windows.ps1 .data\ >nul & ",
         r'start "" /b powershell -NoProfile -ExecutionPolicy Bypass -File .data\splash-windows.ps1 "%CD%" & ',
         "uv run app/jobs.py update & ",
-        # || binds tighter than &: ready signal only when launch fails, exit either way
-        r"uv run app/jobs.py launch || type nul > .data\window-ready & ",
+        # || binds tighter than &: ready signal + why only when launch fails, exit either way. Only
+        # stderr to the file: a window opened later never holds it (close_fds, no std handles passed)
+        r"uv run app/jobs.py launch 2> .data\launch-errors.log || (type nul > .data\window-ready & ",
+        r'start "CEZ Job Finder" cmd /c app\install\start-failed.bat) & ',
         "exit /b",
     ]
     assert line == "".join(steps)
     # start /b shares the console: hidden, the installer's own PowerShell window would vanish
     assert "windowstyle" not in line.lower() and "hidden" not in line.lower()
+
+
+def test_failed_start_window_names_windows_app_blocking_in_plain_words():
+    raw = (INSTALL / "start-failed.bat").read_bytes()
+    assert raw.endswith(b"\r\n") and b"\n" not in raw.replace(b"\r\n", b"")  # goto needs CRLF
+    body = raw.decode("ascii")
+    # uv: "(os error 4551)"; Python DLL load: "An Application Control policy has blocked this file"
+    assert r'/c:"4551" /c:"Application Control" .data\launch-errors.log' in body
+    assert "goto blocked" in body and "\r\n:blocked\r\n" in body
+    assert "App ^& browser control" in body  # bare & = second command
+    assert body.count("pause") == 2  # each branch waits: window = only place it shows
+    assert "may not let you turn it back on" in body
 
 
 def test_windows_splash_source_keeps_the_rules():

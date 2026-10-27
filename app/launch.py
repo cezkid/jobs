@@ -1172,17 +1172,8 @@ def window_extension_current() -> bool:
 
 
 def main() -> None:
-    try:
-        open_window()
-    except BaseException:
-        # failed launch (VS Code not found = SystemExit) => splash closes now, not at its cap.
-        # Only here + the paths below, never on every exit: a cold start returns as VS Code
-        # starts => the splash would close before the window is up
-        mark_ready()
-        raise
-
-
-def open_window() -> None:
+    # failed launch => start script writes ready signal + shows why; never on every exit here:
+    # cold start returns as VS Code starts => splash would close before window is up
     if sys.platform == "win32":
         register_protocol()
         ensure_windows_icon()

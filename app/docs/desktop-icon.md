@@ -57,6 +57,11 @@ What the user double-clicks to open Job Finder. Art = `app/install/icon.svg` (ma
 - Windows: installer's Desktop shortcut -> `start-windows.bat` (kept: Smart App Control work hooks
   it; uvw/pythonw fail silently when SAC blocks Python), `IconLocation` = `app\install\icon.ico`,
   `WindowStyle` 7 = console minimized to the taskbar during update + launch, never over the screen.
+- Launch fails => its stderr in `.data/launch-errors.log`, `start-failed.bat` opens a window saying
+  why (console closes w/ `exit /b` => no other place shows it). `4551` /
+  "Application Control" in log => Smart App Control (or workplace App Control) words: uv's Python +
+  every compiled library in `.venv` unsigned (measured 2026-10-27: 21 of 22 binaries), SAC blocks
+  unsigned DLLs too => signed Python alone fixes nothing; only SAC off runs it.
 - Launch (`ensure_windows_icon`): shortcuts made before 2026-10-03 (VS Code's icon, console in
   front) re-pointed by hidden powershell, only when shortcut's target = this install's
   `start-windows.bat`; missing shortcut never recreated. Old name `Job Finder.lnk` (before

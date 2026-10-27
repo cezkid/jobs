@@ -251,7 +251,7 @@ Owner checks still open (beyond the button checks above):
   4. Click the splash while it waits: it closes; VS Code still opens.
   5. Look: `uv run app/jobs.py look dark`, start -> dark splash; `look light` -> paper; `look auto`
      -> follows Windows' app mode (Settings > Personalization > Colors).
-  6. Cap: rename `uv.exe` away (launch fails) -> splash closes at once (the bat's ready signal);
+  6. Cap: rename `uv.exe` away (launch fails) -> splash closes at once (bat's ready signal), window says why;
      w/ VS Code never showing a page it closes itself after 45 s.
   7. Update day (a new `app/` comes down): start still works, no "file in use" - the splash runs
      from its copy `.data\splash-windows.ps1`.

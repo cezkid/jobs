@@ -109,22 +109,11 @@ def test_cold_launch_signals_ready_when_vscode_fails_to_open(tmp_path, monkeypat
     assert ready_after_launch(tmp_path, monkeypatch, code=lambda args, quiet=False: 1)
 
 
-@pytest.mark.parametrize("error", [RuntimeError("boom"), SystemExit("VS Code not found"), KeyboardInterrupt()])
-def test_failed_launch_signals_ready_and_still_fails(tmp_path, monkeypatch, error):
-    # VS Code not found is a SystemExit: caught as Exception only, the splash would stay 45 s
-    # over the error the user has to read
-    def code(args, quiet=False):
-        raise error
-    with pytest.raises(type(error)):
-        ready_after_launch(tmp_path, monkeypatch, code=code)
-    assert (tmp_path / ".data" / launch.READY_MARKER).exists()
-
-
 def test_ready_signal_never_written_on_every_exit():
     # a `finally` would cover the cold start too (see test_cold_launch_leaves_the_ready_signal_to_the_window)
     source = Path(launch.__file__).read_text(encoding="utf-8")
     assert not re.search(r"finally:\s*(#[^\n]*\s*)*mark_ready", source)
-    assert source.count("mark_ready()") == 3  # failed launch, no window / old extension, window already open
+    assert source.count("mark_ready()") == 2  # no window / old extension, window already open
 
 
 def test_window_extension_current_reads_the_profiles_copy(monkeypatch):
@@ -1066,7 +1055,7 @@ def test_code_calls_built_in_one_place():
                 if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
                     sites.setdefault(name, set()).add(f"which:{func.name}")
     assert sites == {"jobs.py": {"open_for_user"},
-                     "launch.py": {"which:code_command", "code", "ensure_extensions", "open_window", "window_update"}}
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "main", "window_update"}}
 
 
 def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
