@@ -1,4 +1,9 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "autoMemoryEnabled": false,
   "permissions": {
     "allow": [
@@ -29,7 +34,9 @@
     ]
   },
   "sandbox": {
-    "excludedCommands": ["uv run app/jobs.py open *"]
+    "excludedCommands": [
+      "uv run app/jobs.py open *"
+    ]
   },
   "hooks": {
     "SessionStart": [

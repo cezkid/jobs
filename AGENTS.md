@@ -482,7 +482,8 @@ On finding one:
    search details."
 3. Yes -> `report-defect` skill. No -> leave fix local, say so.
 
-Never push, fork or open PR/issue w/o that yes. PR mechanics: `.github/CONTRIBUTING.md`.
+Never push, fork or open PR/issue w/o that yes. No Claude credit in commits or PR text (no Co-Authored-By, Claude-Session,
+"Generated with Claude Code" lines): repo policy, `attribution` off in `.claude/settings.json`. PR mechanics: `.github/CONTRIBUTING.md`.
 Application filled through the Chrome extension because Job Finder has no filler for that system
 + a GitHub account attached -> after "Did you send it?", ask once to teach Job Finder that form
 (`job-apply` #Teach Job Finder this form); its yes is this consent.
