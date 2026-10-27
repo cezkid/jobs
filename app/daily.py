@@ -36,8 +36,10 @@ def senders(config: dict) -> list[Sender]:
 def check(config: dict, send: Sender) -> None:
     conn = store.connect(cfg.db_path(config))
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
+        started = store.utc_now()
         for tier, s in freehire.run(config, conn, client).items():
             print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}" + (" (cut at ceiling)" if s["truncated"] else ""))
+        freehire.recheck_quietly(conn, client, config["api"]["base"], started)
         companies.refresh_quietly(conn, client, config["api"]["base"])
     with alert.lock(cfg.db_path(config)):
         new = alert.run(conn, config, send[0])

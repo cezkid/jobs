@@ -790,3 +790,10 @@ def test_hidden_board_hides_its_country_editions():
             make_job("near-name", source="whatjobsplus"), make_job("other")]
     hide = cfg.merge(CONFIG, {"blocklist": {"sources": ["WhatJobs"]}})
     assert slugs(rank.rank(jobs, hide, NOW)) == ["near-name", "other"]
+
+
+def test_age_counts_on_from_the_fetch_that_stored_it():
+    """age_days is the job search's as of that fetch; 12 days later it read "first seen 1d ago"."""
+    job = make_job("j", reality={"age_days": 1}, fetched_at="2026-09-03T12:00:00Z")
+    assert rank.age(job, NOW) == 13
+    assert rank.age(make_job("unfetched", reality={"age_days": 1}), NOW) == 1

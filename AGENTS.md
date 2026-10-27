@@ -307,7 +307,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone, LinkedIn, town you apply with, if you click "Apply and save" | Gem (the hiring system behind that employer's site) | Gem, kept to fill its next forms for you |
 | Each page's answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer's site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |
 | Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
-| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm |
+| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm, and whether each job the newest search no longer returns is still open |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user's own GitHub account name |
 
