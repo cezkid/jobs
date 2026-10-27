@@ -72,9 +72,8 @@ def test_hook_strips_commits_only_when_setting_is_off(home, tmp_path):
                        env={**os.environ, "CLAUDE_CONFIG_DIR": str(home / "claude")})
         return subprocess.run(git + ["log", "-1", "--format=%B"], capture_output=True, text=True).stdout
 
-    assert "Co-Authored-By: Claude" in commit_body("a")  # never chosen: left as Claude Code wrote it
-    attribution.choose(on=False)
-    assert "Claude <noreply" not in commit_body("b") and "Generated with" not in commit_body("c")
+    attribution.choose(on=True)  # repo's own .claude/settings.json turns credit off; it wins over the user's
+    assert "Claude <noreply" not in commit_body("a") and "Generated with" not in commit_body("b")
 
 
 def test_hook_never_overwrites_someone_elses(tmp_path):
