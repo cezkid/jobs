@@ -244,6 +244,19 @@ def test_work_permit_only_for_the_same_us_question():
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
 
 
+# a Greenhouse form, 2026-10-27: filled "No" from needs_sponsorship: false - its Yes is the opposite
+def test_authorized_without_sponsorship_is_yes_when_none_needed():
+    title = ("Are you legally authorized to work in the United States for Acme on a full-time basis, without "
+             "current or future employer sponsorship (including H-1B, OPT, CPT, or STEM OPT)?")
+    ask = [q(title, "yesno"), q("Can you work in the US without visa sponsorship?", "yesno")]
+    free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
+    assert [a["answer"] for a in questions.draft(ask, CONTACT, config=free)] == ["Yes", "Yes"]
+    needs = {"work_authorization": {"authorized_us": True, "needs_sponsorship": True}}
+    assert [a["answer"] for a in questions.draft(ask, CONTACT, config=needs)] == ["No", "No"]
+    student = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False, "student_visa": True}}
+    assert questions.draft(ask[:1], CONTACT, config=student)[0]["answer"] is None
+
+
 def test_citizen_or_green_card_answered_only_for_the_us():
     config = {"work_authorization": {"citizen_or_permanent_resident": True}}
     us = [q("Are you a US citizen or lawful permanent resident?", "yesno"),
