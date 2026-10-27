@@ -7,8 +7,8 @@ you pick. You chat in plain English in VS Code's AI panel; it does the rest.
 
 ## Need
 
-- Windows 10/11 or Mac
-- Paid Claude (Pro/Max), ChatGPT (Plus/Pro) or GitHub Copilot Pro ($10/month; pick a strong model such as Claude Sonnet - the free tier can't make tailored resumes)
+- Windows 10/11 or Mac (an installed app - not a website, no phone version)
+- Paid Claude (Pro/Max), ChatGPT (Plus/Pro) - from $20/month - or GitHub Copilot Pro ($10/month; pick a strong model such as Claude Sonnet - the free tier can't make tailored resumes)
 
 ## Install (once, ~5 min)
 

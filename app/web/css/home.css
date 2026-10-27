@@ -17,8 +17,7 @@ h1 {
   font-size: var(--h1); line-height: 1.06; font-weight: var(--bold); letter-spacing: -0.012em;
   margin: 0 0 0.32em; max-width: 13em;
 }
-.lede { margin: 0 0 1.4rem; font-size: var(--step-1); line-height: 1.45; max-width: 30em; }
-.lede span { display: block; color: var(--text-2); font-size: var(--step-0); margin-top: 0.15rem; }
+.lede { margin: 0 0 0.7rem; font-size: var(--step-1); line-height: 1.45; max-width: 30em; }
 
 .phone { display: none; }
 html.is-phone .phone { display: block; }
@@ -84,7 +83,10 @@ ol.steps > li > :first-child { grid-row: 1; }
 }
 /* the terms notice by the install line: shown wherever the line is (Berman v. Freedom Financial: a notice next to the act) */
 .terms-note { margin: var(--space-xs) 0 0 calc(32px + var(--space-xs)); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; color: var(--text-2); }
-.need { display: none; margin: var(--space-2xs) 0 0 calc(32px + var(--space-xs)); padding-top: var(--space-xs); border-top: 1px solid var(--line); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; color: var(--text-2); }
+/* what you need, before the steps on every screen (owner 2026-10-27: the paid AI plan + "not a website" were easy to
+   miss - a grey line under the lede, the full line shown on tall desktops only): reading text, not a caption */
+.need { margin: 0 0 var(--space-s); font-size: var(--step-0); line-height: 1.45; color: var(--text); }
+.need b { font-weight: var(--semibold); color: var(--heading); }
 .mac-only { display: none; }
 html.is-mac .mac-only { display: revert; }
 html.is-mac .win-only { display: none; }
@@ -206,8 +208,6 @@ html.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66p
   #install { align-self: start; }
   figure { grid-row: 2 / span 2; }
 }
-/* what you need, under the steps (tall screens): ends the left column level with the window */
-@media (min-width: 1080px) and (min-height: 760px) { .need { display: block; } }
 
 /* opening moment: the window's marks draw once per session (html.seen skips it), done by 2.8 s;
    everything is on the page from first paint, only marks start empty. --t0 / --t1 = start / end
