@@ -253,6 +253,34 @@ against remote jobs alone. Pay now placed among every job (`score(ladder_of=)`):
 list (one freshness window, one employer spread) then split - senior remote 0.261, junior 0.627 / 0.581;
 no employer spread - junior nearby 0.544. A check on direction, one resume each - not a study.
 
+### Distance (2026-10-26)
+
+Owner, North Jersey, New York City area search: "pay is important but so is distance" - every nearby
+job scored the same place (1, a tier state named) whether 8 miles off (Jersey City) or 33 (Stamford).
+Now `near` reads miles when it can (`app/places.py`): straight line from their home (`home_address`
+city + state, else the resume's town) to the job's nearest office its location names, else its city
+tags; 1 at `near_miles` (10) or closer, 0 at `far_miles` (40), straight between. A town named w/o a state
+is read in the tier's `states` ("Newark, United States" in a New York City area search = Newark NJ),
+else the biggest of that name. Town list: GeoNames cities1000, US rows (17,343 towns of 1,000+ people,
+CC BY 4.0, `app/us-places.tsv`). Office or home unknown => the reading above. The line says it:
+"Jersey City, 8 miles from home" - the office measured, not the job search's first city tag (one
+New York job read "Los Angeles").
+
+Live, 93 nearby jobs on the owner's list: 93 placed - New York City 75 (11 mi), Jersey City 8 (8), Livingston,
+Manhattan, Iselin (19) 1 each, and 7 whose only office is far (Albany 128 mi; Pittsburgh, Chicago, Los
+Angeles, Mountain View ...) - city-tagged New York, now 0 for place, at the foot of the list.
+Cut-offs are convention, not a study: 40 straight-line miles is an hour or more by road or rail around a
+big city. Not re-rated by an AI judge (#Two lists) - a check on direction, one user's list.
+
+### Level words for a mid-level user (2026-10-26)
+
+Owner: "senior jobs are hard to get ... software engineer 1, 2, 3 preferred". `career_level: mid` read only
+director / VP / chief as above; now Senior, Sr, Lead, Principal and Staff too (`rank.LEVEL_MISMATCH`) - one
+demerit, never hidden; numbered II / III never. Words that name no level are read out first, for entry and
+mid (`rank.ENTRY_TITLE_KEEP`): shift lead, lead generation, senior living / care, member of technical staff,
+staff accountant / nurse / auditor. Hiding Senior titles outright stays the user's call (`blocklist.title_phrases`,
+counted first: `rank --would-hide senior`).
+
 ### Plain software titles (2026-10-23)
 
 Senior lists stayed low: its own past titles are plain ("Senior Software Engineer"), so every plain

@@ -25,7 +25,7 @@ TITLE_ONLY = "title"
 # shortest wait before a follow-up is suggested: always holds two working days
 MIN_FOLLOW_UP_DAYS = 5
 # API ORs these together => two in one pass widen, never narrow
-GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
+GEOGRAPHY_PARAMS = {"regions", "countries", "cities", "metros"}
 
 
 def config_path() -> Path:

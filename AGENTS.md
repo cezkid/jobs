@@ -355,7 +355,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
+  `rank.py`, `places.py` (miles from home to a job's office; town list `us-places.tsv`, GeoNames CC BY 4.0), `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `doctor.py` (read-only self-check), `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see

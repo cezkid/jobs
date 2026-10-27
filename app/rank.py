@@ -37,7 +37,9 @@ DOD_LEVEL_IN_TITLE = re.compile(r"(?i)\b(?:IAT|IAM|IASAE)[\s-]*(?:Level[\s-]*)?(
 # level -> (words above it, words below it)
 LEVEL_MISMATCH = {
     "entry": (rf"senior|sr|principal|lead|{_TOP}", None),
-    "mid": (_TOP, r"interns?|internships?|co-?op|trainee|apprentice"),
+    # owner 2026-10-26: "senior jobs are hard to get ... software engineer 1, 2, 3 preferred" - a mid-level
+    # user's list was topped by Senior titles; mid now reads senior / lead / principal / staff as above too
+    "mid": (rf"senior|sr|principal|staff|lead|{_TOP}", r"interns?|internships?|co-?op|trainee|apprentice"),
     "senior": (None, _JUNIOR),
     "leader": (None, _JUNIOR),
 }
@@ -46,8 +48,13 @@ LEVEL_MISMATCH = {
 # a title naming an early-career job: where the job search's experience_years_min tag misreads
 # most (10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 2026-10-07)
 EARLY_CAREER = rf"{_JUNIOR}|new (?:college )?grad(?:uate)?s?|early career|graduate program|university grad(?:uate)?"
-# a shop's shift lead is an hourly floor role, not a level above entry
-ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b", re.I)
+# level words that name no level: a shop's shift lead (an hourly floor role), lead generation (sales), senior
+# living / care (who's served), member of technical staff (a general AI-lab title), staff accountant / nurse /
+# auditor (a first job in the field). Read out before entry + mid look for a title above theirs
+ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b|\blead[- ]gen(?:eration)?\b|"
+                              r"\bsenior (?:living|care|services|center|citizens?|housing|community|communities)\b|"
+                              r"\bmember of (?:the )?technical staff\b|"
+                              r"\bstaff (?:accountant|auditor|nurse|rn|attorney|writer|pharmacist|member|assistant|accounting)s?\b", re.I)
 # the job search tags 87 of 300 real internships full time (summer hours) and 17 part time
 # (2026-10-07, newest intern-titled US rows): the title says what the job is. One way only - a
 # title can keep a job its tag would hide or sort lower, never hide one ("Intern Program Manager")
@@ -338,7 +345,7 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     level = rc.get("career_level") or ""
     above, below = LEVEL_MISMATCH.get(level, (None, None))
     title = job.get("title") or ""
-    if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level == "entry" else title):
+    if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level in ("entry", "mid") else title):
         out.append("title above your level")
     if below and words(below).search(title) or level == "leader" and below_leader(title) \
             or level in ("senior", "leader") and first_rung(title):

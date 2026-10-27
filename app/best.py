@@ -14,6 +14,7 @@ from collections import deque
 from datetime import date, datetime, timezone
 
 import cfg
+import places
 import rank
 import software
 import store
@@ -478,8 +479,10 @@ HOME_WORK = re.compile(r"(?i)remote|work from home|wfh")
 
 
 def home_states(config: dict, facts: dict | None) -> set[str]:
-    """Where they live, as state codes: their resume's own location, else every city tier's `states`."""
-    own = rank.states_named((facts or {}).get("location"))
+    """Where they live, as state codes: their saved home address and resume's own location, plus every city
+    tier's `states`."""
+    addr = config.get("home_address") or {}
+    own = rank.states_named(f"{addr.get('city') or ''}, {addr.get('state') or ''}") | rank.states_named((facts or {}).get("location"))
     return own | {s.upper() for p in config["passes"] for s in p.get("states") or []}
 
 
@@ -504,13 +507,28 @@ def open_to(job: dict, home: set[str]) -> float:
     return 1.0 if not loc.strip() or IN_US.search(loc) or HOME_WORK.search(loc) else 0.5
 
 
-def near(job: dict, config: dict, home: set[str]) -> float:
-    """A nearby job's office in their area: 1 = its location names one of their tier's cities or
-    states, 0 = it names only a place elsewhere ("Toronto, ON" filed under New York City - the job
-    search's city list is loose, freehire.md), else the share of its cities that are theirs."""
+def tier_states(job: dict, config: dict, home: set[str]) -> set[str]:
+    """The states their search for this job's tier spans (its `states`), else where they live."""
+    return {s.upper() for p in config["passes"] if p["tier"] == job.get("tier") for s in p.get("states") or []} or home
+
+
+def closeness(miles: float, bn: dict) -> float:
+    """1 within near_miles of home, 0 at far_miles or more, straight between."""
+    full, zero = bn.get("near_miles", 10), bn.get("far_miles", 40)
+    return min(1.0, max(0.0, (zero - miles) / ((zero - full) or 1)))
+
+
+def near(job: dict, config: dict, home: set[str], miles: float | None = None) -> float:
+    """A nearby job's office in their area. Its distance from home known (`places.distance`) => `closeness`:
+    owner 2026-10-26: "pay is important but so is distance" - a Stamford office 30+ miles off scored the same
+    as one 8 miles off. Else 1 = its location names one of their tier's cities or states, 0 = it names
+    only a place elsewhere ("Toronto, ON" filed under New York City - the job search's city list is loose,
+    freehire.md), else the share of its cities that are theirs."""
+    if miles is not None:
+        return closeness(miles, config["rank"]["best_next"])
     loc = (job.get("location") or "").lower()
     theirs = {c for p in config["passes"] if p["tier"] == job.get("tier") for c in (p["params"].get("cities") or [])}
-    states = {s.upper() for p in config["passes"] if p["tier"] == job.get("tier") for s in p.get("states") or []} or home
+    states = tier_states(job, config, home)
     if rank.states_named(job.get("location")) & states or any(c.lower() in loc for c in theirs):
         return 1.0
     cities = job.get("cities") or []
@@ -519,8 +537,8 @@ def near(job: dict, config: dict, home: set[str]) -> float:
     return 0.5 if not cities or not theirs else sum(c in theirs for c in cities) / len(cities)
 
 
-def place(job: dict, config: dict, home: set[str]) -> float:
-    return open_to(job, home) if list_of(job) == "remote" else near(job, config, home)
+def place(job: dict, config: dict, home: set[str], miles: float | None = None) -> float:
+    return open_to(job, home) if list_of(job) == "remote" else near(job, config, home, miles)
 
 
 def posted_days(job: dict, now: datetime) -> int | None:
@@ -615,6 +633,7 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
         weights["where"] = bn.get("place", 0)
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
     home = home_states(config, facts)
+    here = places.home(config, facts)
     kinds = config["rank"].get("software_kinds")
     ladder = sorted(a for j in (jobs if ladder_of is None else ladder_of) if (a := rank.annual_usd(j)) is not None)
     out = []
@@ -622,14 +641,15 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
         m, counted = match(j, facts, bn.get("match_prior", 0))
         a, n_asks, lead = asks(j, config, bn, facts)
         title = title_fit(j, facts) * (bn.get("plain_title", 1) if plain_unnamed(j, kinds) else 1)
+        office = None if list_of(j) == "remote" else places.distance(j, here, tier_states(j, config, home))
         parts = {"match": m, "title": title, "asks": a, "pay": pay(j, ladder, floor),
-                 "where": place(j, config, home) if by_place else where(j, tiers),
+                 "where": place(j, config, home, office and office[0]) if by_place else where(j, tiers),
                  "fresh": fresh(j, now, bn["fresh_days"])}
         total = sum(weights[k] * parts[k] for k in weights) / (sum(weights.values()) or 1)
         total -= bn["demerit"] * rank.demerits(j, config)
         out.append(dict(j, best=round(total, 6), best_parts=parts,
                         best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config, facts),
-                                    "years_only": years_only(j, facts, counted)}))
+                                    "years_only": years_only(j, facts, counted), "office": office}))
     group = windows(out, now, bn["fresh_windows"], bn["fresh_enough"])
     out.sort(key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
     repeat, twin = bn.get("repeat", 0), bn.get("twin", 0)
@@ -702,6 +722,10 @@ def reasons(job: dict, config: dict, now: datetime) -> str:
     if f["above"]:
         parts.append(f"{job['seniority'].replace('_', '-')} level, above yours")
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
+    if job.get("work_mode") != "remote" and f.get("office"):
+        # the office it was measured to, not the job search's first city tag ("Los Angeles" on a New York job)
+        miles, where_at = f["office"]
+        place = f"{where_at}, {'under 1 mile' if miles < 1 else '1 mile' if round(miles) == 1 else f'{round(miles)} miles'} from home"
     parts += [rank.pay_words(job, rc), place, ago(posted_days(job, now))]
     parts += rank.flags(job, config)
     return " · ".join(p for p in parts if p)

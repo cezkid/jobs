@@ -175,6 +175,14 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   carries `states:` (local only, `cfg` checks the codes); `rank.far` drops a row whose `location`
   names only other states or `countries` lacks us. No state written / remote => kept (can't tell):
   0 wrong drops on 151 rows read by hand.
+- **Metro areas** (2026-10-26). `metros=` takes the job search's metro names, country in brackets
+  (`New York City (US)`; `probe --facets metros countries=us` lists them w/ counts) and matches each row's
+  own `metros` list - the city and its suburbs. React jobs, 7 days: `cities=New York City` 243,
+  `metros=New York City (US)` 288 - 56 new (Jersey City 36, Norwalk CT 3, Rutherford 2, Secaucus,
+  Hoboken, Parsippany, Woodbridge, Iselin, Yonkers, Stamford ...), 11 gone, every one w/o a real place
+  ("United States", "Remote", blank). A North Jersey user's city tier never saw Jersey City (its own
+  `cities=` value). Metro rows still carry loose tags (Saint Paul MN, Menlo Park CA 1 each) => keep
+  `states:`. Geography facet like the rest: alone in its pass.
 - **Reposter pollution** (2026-09-15). `jobgether` re-lists other employers' postings, held 4 of
   top 12 rows. Every profile blocklists it; `uv run app/jobs.py rank --suspects` lists companies spanning
   `rank.suspect_min_categories` enrichment categories.
