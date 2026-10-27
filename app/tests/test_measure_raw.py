@@ -28,6 +28,7 @@ PAGE = """<!doctype html><body>
 <form name="form"><input name="cName"></form>
 <form id="job-application-form"><input name="candidate[first_name]"></form>
 <form action="/job/x/finish"><input name="email"></form>
+<div><span>First name</span><div><input type="text"></div></div>
 <div><input name="rec-form_600000000000063542"></div>
 <div data-automation-id="progressBarActiveStep">My Information</div>
 <div id="host"></div><div id="closed"></div>

@@ -115,6 +115,14 @@ def test_link_picks_its_system_or_says_where_else():
 
 # --- shared answers: work the same for every system ---
 
+@pytest.mark.parametrize("given", ["linkedin.com/in/ada", "www.linkedin.com/in/ada", "https://linkedin.com/in/ada",
+                                   "http://linkedin.com/in/ada", "https://www.linkedin.com/in/ada", "https://uk.linkedin.com/in/ada"])
+def test_linkedin_link_written_as_linkedin_writes_it(given):
+    # Gem refused "https://linkedin.com/in/..." on a user's form (2026-10-26): every spelling -> one
+    assert questions.link({"links": [given]}, "linkedin.") == "https://www.linkedin.com/in/ada"
+
+
+
 def test_resume_answers_only_what_it_states():
     qs = [q("Name", key="name"), q("First name", key="first_name"), q("Last name", key="last_name"),
           q("Email", "email"), q("Phone", "phone"), q("LinkedIn Profile URL", key="linkedin"),

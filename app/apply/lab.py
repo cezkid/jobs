@@ -31,12 +31,23 @@ OUT = cfg.DATA / "measure"
 # pixel w/ typed text went through) - tolerated because measure types nothing, try types only
 # synthetic values
 READS = ("GET", "HEAD", "OPTIONS")
-# the one exception to "no allow-lists" (owner OK 2026-10-05): Ashby's page reads its questions by
-# POST - blocked, it shows "Application submission is unavailable" instead of the form (measured
-# 2026-10-05). Passes only a GraphQL query (never mutation / subscription) named here, to the
-# page's own graphql path, w/ exactly these variables, all strings - the read `prepare` sends
-NAMED_READS = {("jobs.ashbyhq.com", "ApiJobPosting"): {"organizationHostedJobsPageName", "jobPostingId"}}
-NAMED_PATH = re.compile(r"^/[^/]+/non-user-graphql$|^/api/non-user-graphql$")
+# the exceptions to "no allow-lists", each the owner's OK: Ashby's page reads its questions by POST -
+# blocked, it shows "Application submission is unavailable" instead of the form (OK + measured 2026-10-05);
+# Gem's job board the same, its posting + its colours in one batched POST - blocked, "Job not found" -
+# then the board's own settings + the applicant's saved Gem details (empty in a fresh profile) in a second
+# batch, without which the form never draws (OK + measured 2026-10-26). Passes only a GraphQL query (never mutation / subscription) named here, to
+# the page's own graphql path, w/ exactly these variables, all strings - the read `prepare` sends
+NAMED_READS = {("jobs.ashbyhq.com", "ApiJobPosting"): {"organizationHostedJobsPageName", "jobPostingId"},
+               ("jobs.gem.com", "ExternalJobPosting"): {"boardId", "extId"},
+               ("jobs.gem.com", "JobBoardTheme"): {"boardId"},
+               ("jobs.gem.com", "OneClickApplyEnabled"): {"boardId"},
+               ("jobs.gem.com", "OatsTeamSettingExternalPublic"): {"boardId"},
+               ("jobs.gem.com", "OatsIsJobBoardSeoStructuredDataEnabled"): {"externalId"},
+               ("jobs.gem.com", "FormAutofillData"): set()}
+NAMED_PATH = {"jobs.ashbyhq.com": re.compile(r"^/[^/]+/non-user-graphql$|^/api/non-user-graphql$"),
+              "jobs.gem.com": re.compile(r"^/api/public/graphql(?:/batch)?$")}
+# hosts whose page sends its reads as one JSON list (Apollo's batch link): each one checked alone, all must pass
+BATCHED = {"jobs.gem.com": 4}
 # a click that could send the application or sign something: the applicant's own act, never ours.
 # "Apply", "Apply without an Account" only navigate to the form
 REFUSE_CLICK = re.compile(r"\b(?:submit|send|save|finish|complete|sign)", re.I)
@@ -88,23 +99,33 @@ CHROME = {"login", "log in", "sign in", "loading...", "loading", "next", "contin
 
 
 def named_read(method: str, url: str, body: str | None) -> str | None:
-    """The operation name when this request is one of NAMED_READS, exactly; else None."""
+    """The operation name when this request is one of NAMED_READS, exactly; else None. A batch (BATCHED
+    hosts only, at most that many) passes only when every operation in it does: their names, joined by +."""
     u = urlsplit(url)
-    if method != "POST" or u.scheme != "https" or not NAMED_PATH.match(u.path):
+    path = NAMED_PATH.get(u.hostname)
+    if method != "POST" or u.scheme != "https" or not path or not path.match(u.path):
         return None
     try:
         j = json.loads(body or "")
     except ValueError:
         return None
+    if isinstance(j, list) and u.path.endswith("/batch"):
+        ops = [one_read(u, item) for item in j] if 0 < len(j) <= BATCHED.get(u.hostname, 0) else [None]
+        return "+".join(ops) if all(ops) else None
+    return None if u.path.endswith("/batch") else one_read(u, j)
+
+
+def one_read(u, j) -> str | None:
     if not isinstance(j, dict) or set(j) - {"operationName", "query", "variables"}:
         return None
     op, query, variables = j.get("operationName"), j.get("query"), j.get("variables")
     keys = NAMED_READS.get((u.hostname, op))
     if keys is None or parse_qs(u.query).get("op", [op]) != [op] or not isinstance(query, str):
         return None
-    # opens w/ the named query; no mutation anywhere in it - a second operation in the same text
-    # could be picked by name. Fragments only shape a read
-    if not re.match(rf"\s*query\s+{op}\b", query) or re.search(r"\b(?:mutation|subscription)\b", query):
+    # opens w/ the named query (fragments may come first: Gem's page puts them there); no mutation
+    # anywhere in it - a second operation in the same text could be picked by name. Fragments only shape a read
+    head = re.sub(r"^\s*(?:fragment\s+\w+\s+on\s+\w+\s*\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}\s*)*", "", query)
+    if not re.match(rf"\s*query\s+{op}\b", head) or re.search(r"\b(?:mutation|subscription)\b", query):
         return None
     if not isinstance(variables, dict) or set(variables) != keys or not all(isinstance(v, str) for v in variables.values()):
         return None

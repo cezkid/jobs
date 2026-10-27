@@ -265,6 +265,10 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    box (texts, Terms of Service) is theirs to tick. Resume by hand: in the Upload File box only -
    a file set on the hidden input outside it shows nothing (and goes twice if added in the box
    too). `app/docs/apply/loxo.md`.
+   Gem (`jobs.gem.com`): one page; everything, resume too, goes at Apply. Two buttons may show -
+   "Apply and save" keeps their contact details on Gem for its next forms, "Apply without saving"
+   doesn't: their click, say so. LinkedIn typed by hand: `https://www.linkedin.com/in/...` - Gem
+   refuses `https://linkedin.com/...`. `app/docs/apply/gem.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
@@ -314,7 +318,8 @@ they answer after. `apply` / `fill` record the fill, so a next chat asks again i
 
 They answer while the tab is still open -> look first (`app/docs/apply/sent.md`): Greenhouse address
 ends `/confirmation`; Workday lands on Candidate Home (`/jobTasks/completed/application`); UKG -> My
-Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so). "Not yet" but the sent page shows -> say so, `status set 12
+Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so); Gem, same address: "Your application for
+<title> has been received!". "Not yet" but the sent page shows -> say so, `status set 12
 applied`. Ashby + any page showing nothing -> their answer stands.
 
 One question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):

@@ -1,0 +1,244 @@
+{
+ "oatsExternalJobPosting": {
+  "id": "T2F0c0pvYlBvc3Q6ODQ0MzM3NQ==",
+  "title": "Software Engineer",
+  "isApplicationFormHidden": false,
+  "applicationFormTemplate": {
+   "includeEeoc": false,
+   "eeocConfig": {
+    "includeRaceXGender": true,
+    "includeVeteranStatus": false,
+    "includeDisabilityStatus": false
+   }
+  }
+ },
+ "oatsJobPostFieldsAndQuestions": {
+  "fields": [
+   {
+    "fieldType": "FIRST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LAST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "EMAIL",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LINKEDIN_URL",
+    "isRequired": true
+   },
+   {
+    "fieldType": "PHONE",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LOCATION",
+    "isRequired": true
+   },
+   {
+    "fieldType": "RESUME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "COVER_LETTER",
+    "isRequired": false
+   }
+  ],
+  "questions": [
+   {
+    "extId": "cXVlczpbXZn-n23b172KN8pH4HFG",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "Have you worked with TypeScript in a production environment?",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDqSIVAltTZNb5077EJ01mau",
+      "value": "No"
+     },
+     {
+      "extId": "cXVlc29wdDpfOLLqM9oJbPqIqbJPA_2-",
+      "value": "Yes"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczrEmmz8UwB6RAn3Njy44rhF",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "How many years of experience do you have working with TypeScript?",
+    "description": null,
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczo2etOZmEkWMP51XjdOeKlD",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "Have you worked with React in a production environment?",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDr7zzO6gcFZUp4iW6xuLmbf",
+      "value": "No"
+     },
+     {
+      "extId": "cXVlc29wdDqtMrPQJV95zHzmfC3HDdny",
+      "value": "Yes"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczq209yEwkFnPxDiNrAIqjyl",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "How many years of experience do you have working with React?",
+    "description": null,
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczqvX33qDElTl-bAeWhzXTbX",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "What interests you about this particular role?",
+    "description": null,
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczqp5XUPTEAhj2aqz574e-Me",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "Why are you interested in working at Acme?",
+    "description": null,
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczoX1leIz7d0680JKpyMSG4j",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "We would like to hire this role into the United States or Canada. Please confirm your current residence.",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDph2ZThh7CEPUZ_dJ79si2I",
+      "value": "Canada"
+     },
+     {
+      "extId": "cXVlc29wdDprtJFAi0D8LI-Jnc08GISb",
+      "value": "United States"
+     },
+     {
+      "extId": "cXVlc29wdDrsqLTlVkVrb8IM4g3Zwsy4",
+      "value": "Neither"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczomcf4UJz7Jh6CpXz6jpMKA",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "Are you legally authorized to work in the United States or Canada without requiring sponsorship now or in the future?",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDqjwK8R6hskPkL-csQlcKF5",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDrXRNwiVxlIXjfmQQ4jMf5R",
+      "value": "No"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczrTrl0cP5c1P3wCtdaj1CGK",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "If you are based in the United States, would you require support to transfer an active H-1B Visa to work at Acme?",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDo7aovDZ02SpSfPOpYMckZR",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDqkkusSWFvmpm9ksxAF1VrV",
+      "value": "No"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczoiyBrq5Rigl6ODE0WXk5jb",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "LinkedIn Profile",
+    "description": null,
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczrFurcH7Z_h9MbC2ouJ8Nvq",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "Website",
+    "description": null,
+    "isRequired": false,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpMSa4LCN5XxKMWuTECql-J",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "When you apply to a job on this site, the personal data contained in your application will be collected by Acme (“Controller”), which is located at 2261 Market St PMB 4157, San Francisco, California, 94114, and can be contacted by emailing recruiting-privacy@Acme.co. Your personal data will be processed for the purposes of managing Controller’s recruitment related activities, which include setting up and conducting interviews and tests for applicants, evaluating and assessing the results thereto, and as is otherwise needed in the recruitment and hiring processes. Such processing is legally permissible under Art. 6(1)(f) of Regulation (EU) 2016/679 (General Data Protection Regulation) as necessary for the purposes of the legitimate interests pursued by the Controller, which are the solicitation, evaluation, and selection of applicants for employment.\n\nYour personal data will be shared with Greenhouse Software, Inc., a cloud services provider located in the United States of America and engaged by Controller to help manage its recruitment and hiring process on Controller’s behalf. Accordingly, if you are located outside of the United States, your personal data will be transferred to the United States once you submit it through this site. Because the European Union Commission has determined that United States data privacy laws do not ensure an adequate level of protection for personal data collected from EU data subjects, the transfer will be subject to appropriate additional safeguards under the standard contractual clauses.\n\nYour personal data will be retained by Controller as long as Controller determines it is necessary to evaluate your application for employment. Under the GDPR, you have the right to request access to your personal data, to request that your personal data be rectified or erased, and to request that processing of your personal data be restricted. You also have to right to data portability. In addition, you may lodge a complaint with an EU supervisory authority.",
+    "description": null,
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDoscrAiZVzz4y-__68jrQgT",
+      "value": "Acknowledge/Confirm"
+     }
+    ],
+    "numericRatingRange": null
+   }
+  ],
+  "demographicSurvey": {
+   "extId": "Y3N1cnY6Qo39qbQVRwVpEwAKKJ37iQ",
+   "surveyType": "EEO",
+   "questions": []
+  }
+ }
+}
