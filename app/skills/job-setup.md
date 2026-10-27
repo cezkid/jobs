@@ -143,14 +143,15 @@ Then narrowing what they picked:
   plainly ("Senior Software Engineer") - back-end, embedded and front-end alike (`freehire.md`
   #Software engineering kinds).
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
-  the `cities` facet; "Other" covers the rest
+  the `metros` facet (`probe --facets metros countries=us`); "Other" covers the rest
 - Student (entry level or internship picked) whose school isn't in their hometown: ask once
   "Look near home too, for summer?" (Yes - name it / No). Yes -> a second city tier, school first
   (they're there most of the year) unless they say summer is what they're after; live counts for each.
   A hometown next to a big city (North Jersey -> New York City): offer that city in the same tier, w/
   its count - measured 2026-10-08: 3 of 54 home-tier internships were in North Jersey itself, 49 NYC.
 - career level (entry - "student, new graduate or first job" / mid / senior / leader) -
-  `rank.career_level`: titles clearly above or below it sort lower, never hidden; entry also sorts
+  `rank.career_level`: titles clearly above or below it sort lower, never hidden (mid: Senior, Sr,
+  Lead, Principal, Staff, Director titles above; numbered II / III never); entry also sorts
   lower a job whose required line asks 3+ years (the posting's own words, not the job search's
   years tag - it read 10 on "Software Engineer - New Grad"). Never a `seniority` filter for
   everyone (facet null on 30-45% of rows, junior lives in title string) - internship passes only (#2)
@@ -210,12 +211,15 @@ showing jobs from <company>" any time.
   `uv run app/jobs.py probe --facets category countries=us` lists every valid value w/ live count
   (unknown slug answers 0, not error - a guess loop is silent and slow).
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
-  `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
-  Each city tier also gets `states:` - the state codes it spans (DC area [DC, MD, VA]; North
-  Jersey + NYC [NJ, NY]): city names match in any state ("Washington" brought Seattle into a DC
-  search, 29 of 78 rows; `freehire.md`). Pick cities from the area's own suburbs, check each
-  `probe --city` value is that town, not a namesake.
-  Exact city values: `uv run app/jobs.py probe --city <text>`.
+  `countries=us`; city tier `metros=` ALONE - the job search's metro area, e.g. `[New York City (US)]`
+  (geography facets OR together, `cfg` rejects mix). One city's `cities=` misses its suburbs: a North
+  Jersey user's `cities: [New York City]` never saw 36 Jersey City jobs a week (`freehire.md` #Metro
+  areas). `cities=` only for a town no metro covers, or a list of the area's own suburbs - check each
+  `probe --city` value is that town, not a namesake. Each city tier also gets `states:` - the state
+  codes it spans (DC area [DC, MD, VA]; New York City area [NJ, NY, CT]): a row naming only other
+  states is dropped ("Washington" brought Seattle into a DC search, 29 of 78 rows). Nearby jobs sort
+  by miles from their home address (`home_address`, else resume town; `best-next.md` #Distance).
+  Exact values: `probe --facets metros countries=us`, `probe --city <text>`.
 - `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
   role its category is too wide for (RN inside healthcare). The job search has no OR: one form
   per pass, the one w/ most postings; say which other forms it leaves out.

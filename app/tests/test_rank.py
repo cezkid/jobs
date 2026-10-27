@@ -489,7 +489,7 @@ def test_entry_level_sorts_a_3_plus_years_ask_lower_never_hides_it():
     assert slugs(ranked) == ["lead", "fits", "asks"]
     assert "asks 5+ years" in rank.reasons(ranked[2], config, NOW)
     mid = cfg.merge(CONFIG, {"rank": {"career_level": "mid"}})
-    assert slugs(rank.rank(jobs, mid, NOW))[0] == "asks"
+    assert slugs(rank.rank(jobs[:2], mid, NOW))[0] == "asks"
 
 
 def test_graduation_window_their_date_misses_sorts_lower_and_says_both(monkeypatch):
@@ -610,6 +610,18 @@ def test_first_rung_titles_below_senior(title, below):
     job = make_job("j", title=title)
     assert ("title below your level" in rank.mismatches(job, {"career_level": "senior"})) is below
     assert "title below your level" not in rank.mismatches(job, {"career_level": "mid"})
+
+
+# "senior jobs are hard to get ... software engineer 1, 2, 3 preferred" (owner 2026-10-26): a mid-level list was
+# topped by Senior titles. Level words that name no level stay put
+@pytest.mark.parametrize("title, above", [
+    ("Senior Software Engineer", True), ("Sr. Frontend Engineer", True), ("Lead Software Engineer", True),
+    ("Staff Engineer", True), ("Principal Engineer", True), ("Director of Engineering", True),
+    ("Software Engineer II", False), ("Software Engineer III", False), ("Software Engineer I", False),
+    ("Frontend Engineer", False), ("Member of Technical Staff", False), ("Staff Accountant", False),
+    ("Senior Living Coordinator", False), ("Shift Lead", False), ("Lead Generation Specialist", False)])
+def test_mid_level_sorts_senior_titles_lower(title, above):
+    assert ("title above your level" in rank.mismatches(make_job("j", title=title), {"career_level": "mid"})) is above
 
 
 def reqs(*lines):

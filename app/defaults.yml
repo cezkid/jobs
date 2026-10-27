@@ -143,7 +143,8 @@ rank:
   repost_demote: 3
   old_days: 90
   # setup answers; a title/type that clearly contradicts them sorts lower, never hidden.
-  # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched;
+  # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched; entry + mid
+  # sort Senior / Sr / Lead / Principal (mid: Staff too) + director-level titles lower;
   # leader also sorts lower individual-contributor + support titles (coordinator, generalist,
   # specialist, assistant ...) unless the title names a role that leads (rank.below_leader);
   # senior + leader sort numbered first rungs lower ("Analyst I", "Tier 1" - rank.first_rung).
@@ -237,6 +238,12 @@ rank:
     # Jersey / NYC), 2 resumes, every job rated by an AI for fit + "can they work it from home": top-10
     # nDCG junior 0.606 / 0.571 => 0.662 / 0.649 (remote / nearby) at 0.3; 0.15 / 0.5 / 0.8 lower; senior unmoved
     place: 0.3
+    # a nearby job's office this many miles from home or closer scores full place, none at far_miles, straight
+    # between (app/places.py: straight line from their saved home address, else their resume's town). Owner
+    # 2026-10-26: "pay is important but so is distance". 40 miles straight ~ an hour or more by road or rail
+    # around a big city - convention, not a study. Office unknown => the old place reading (tier city / state)
+    near_miles: 10
+    far_miles: 40
     # newer posting first: 1 posted today, 0 at fresh_days
     fresh: 0.15
     fresh_days: 21
