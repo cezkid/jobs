@@ -838,8 +838,13 @@ def far(job: dict, config: dict) -> bool:
 
 def age(job: dict, now: datetime) -> int | None:
     """Days since freehire first saw it: reality.age_days, else posted_at - which is restamped
-    on recrawl (reality.fake_freshness), so only a fallback."""
+    on recrawl (reality.fake_freshness), so only a fallback. age_days is as of the fetch that
+    stored it: a row no fetch returned since read "first seen 1d ago" 12 days on (2026-10-27,
+    real list - mostly jobs the job search had closed), so the days since that fetch are added."""
     days = (job.get("reality") or {}).get("age_days")
+    if days is not None and job.get("fetched_at"):
+        fetched = datetime.strptime(job["fetched_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        days += max(0, (now - fetched).days)
     if days is None and job.get("posted_at"):
         days = (now - datetime.strptime(job["posted_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)).days
     return days

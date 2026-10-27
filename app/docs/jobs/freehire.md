@@ -87,6 +87,26 @@ returns fewer than `window.min_jobs` (30) rows (`app/defaults.yml`, counts measu
 reason "may be closed - not seen in Nd"; digest never announces them. Demoted, not hidden:
 hiding a still-open job costs a chance, showing a closed one costs a click.
 
+Rows the window no longer reaches are asked about one by one after each check
+(`freehire.recheck`): `GET /jobs/<slug>` (listing id only; privacy table row), `closed_at` set or
+404 -> closed here; open -> asked again in `RECHECK_DAYS` (2); no answer -> next check. Never asked
+first (most recently seen of them first), then longest since asked; 400 a check: the job search
+allows 600 asks a minute across search + company records (`x-ratelimit-reset` 50 s; 81 of 300
+detail asks at 8 at once answered 429, 2026-10-27), and a 429 stops the rest till next check. Measured 2026-10-27 on a real list (3,368 open):
+of 219 sampled open rows outside the window, 83 marked closed or gone - 11 of 45 last seen 5-7
+days ago, 15 of 52 at 8-14 days (not yet stale-demoted); 8 of the first 70 shown, links 404 or
+"Position Closed". `reality.age_days` is as of the fetch that stored it: `rank.age` adds the days
+since `fetched_at` (those rows read "first seen 1d ago" 12 days on).
+
+Same pass drops jobs closed 30+ days (`store.DROP_CLOSED_DAYS`) the user never acted on - no
+status, application step, interview ask or score kept (owner 2026-10-27: 1,444 of 1,462 closed
+rows). Their `numbers` + `seen` rows stay: a number is never given twice, and a job that reopens
+is not announced again. Removing rows never makes numbers smaller - they count up per job shown.
+
+The job search's own word lags the employer: same day, 4 of the first 70 shown it still called
+open had a dead employer page (Ashby 404, a careers page saying "Position Closed"). Not fetched here - the
+employer's page would be a new thing off the computer; `status open` + the Apply step catch it.
+
 Jobs in progress (`status open`, `status.still_open`) read the same signals: `closed_at` set ->
 "may be closed - gone from your job search since D"; unseen more than `rank.stale_days` ->
 "may be closed - not seen in N days", counted from the last check, not today, so a morning

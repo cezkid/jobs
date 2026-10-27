@@ -212,3 +212,54 @@ def test_security_title_search_drops_the_boards_clearance_tag_and_keeps_its_flag
     assert freehire.pay_word_only("Software Engineer with Security Clearance", {"q": "security engineer"})
     assert freehire.normalize({**raw("x"), "title": "Software Developer III with Security Clearance"}, "remote")[
         "requires_clearance"] is True
+
+
+def detail(answers: dict[str, tuple[int, dict]]) -> httpx.Client:
+    """GET /jobs/<slug> -> answers[slug] (status, data); anything else fails the request."""
+    def handler(request):
+        slug = request.url.path.rsplit("/", 1)[-1]
+        if slug not in answers:
+            return httpx.Response(500)
+        status, data = answers[slug]
+        return httpx.Response(status, json={"data": data})
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_recheck_closes_older_jobs_the_job_search_closed_or_dropped(conn):
+    store.upsert(conn, [make_job(s) for s in ("closed", "gone", "open", "unanswered")], days_ago(5))
+    started = days_ago(0)
+    store.upsert(conn, [make_job("fetched-now")], started)
+    asks = {"closed": (200, {"closed_at": days_ago(1)}), "gone": (404, {}), "open": (200, {"closed_at": None})}
+    with detail(asks) as c:
+        assert freehire.recheck(conn, c, "https://api.test", since=started) == (3, 2)
+    assert {j["public_slug"] for j in store.all_jobs(conn)} == {"open", "unanswered", "fetched-now"}
+    # asked rows wait RECHECK_DAYS; the unanswered one is asked again next check
+    assert freehire.recheck_due(conn, started, datetime.now(timezone.utc)) == ["unanswered"]
+
+
+def test_recheck_asks_never_asked_then_most_recently_seen(conn):
+    store.upsert(conn, [make_job("old")], days_ago(20))
+    store.upsert(conn, [make_job("recent")], days_ago(3))
+    store.upsert(conn, [make_job("asked-long-ago")], days_ago(2))
+    conn.execute("UPDATE jobs SET checked_at = ? WHERE public_slug = 'asked-long-ago'", (days_ago(9),))
+    due = freehire.recheck_due(conn, days_ago(0), datetime.now(timezone.utc))
+    assert due == ["recent", "old", "asked-long-ago"]
+
+
+def test_recheck_failure_never_stops_the_check(conn, capsys):
+    store.upsert(conn, [make_job("a")], days_ago(5))
+    with httpx.Client(transport=httpx.MockTransport(lambda r: (_ for _ in ()).throw(RuntimeError("boom")))) as c:
+        freehire.recheck_quietly(conn, c, "https://api.test", days_ago(0))
+    assert "a" in {j["public_slug"] for j in store.all_jobs(conn)}
+
+
+def test_recheck_stops_asking_at_the_rate_limit(conn):
+    store.upsert(conn, [make_job(f"j{i}") for i in range(20)], days_ago(5))
+    asked = []
+    def handler(request):
+        asked.append(request.url.path)
+        return httpx.Response(429)
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        assert freehire.recheck(conn, c, "https://api.test", since=days_ago(0)) == (0, 0)
+    assert len(asked) <= freehire.RECHECK_WORKERS
+    assert len(store.all_jobs(conn)) == 20

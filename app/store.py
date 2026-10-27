@@ -51,7 +51,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     reality TEXT,
     requires_clearance INTEGER,
     first_fetched_at TEXT NOT NULL,
-    fetched_at TEXT NOT NULL
+    fetched_at TEXT NOT NULL,
+    -- last time the job search was asked about it by listing id (freehire.recheck)
+    checked_at TEXT
 );
 CREATE INDEX IF NOT EXISTS jobs_tier_posted ON jobs (tier, posted_at);
 CREATE TABLE IF NOT EXISTS seen (
@@ -144,7 +146,7 @@ def connect(path: Path | str) -> sqlite3.Connection:
 def add_columns(conn: sqlite3.Connection) -> None:
     """Columns newer than a user's database: CREATE TABLE IF NOT EXISTS never adds them."""
     for table, col, kind in (("jobs", "requires_clearance", "INTEGER"), ("companies", "nonprofit", "INTEGER"),
-                             ("companies", "staffing", "INTEGER")):
+                             ("companies", "staffing", "INTEGER"), ("jobs", "checked_at", "TEXT")):
         if col not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:
             try:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {kind}")
@@ -197,6 +199,24 @@ def close_missing(
         " AND public_slug NOT IN (SELECT slug FROM fetched)",
         (now, tier, posted_since, posted_since),
     )
+    return cur.rowcount
+
+
+# closed this long => removed, unless the user acted on it; its number + seen row stay, so the
+# number is never given again and a job that reopens is never announced twice
+DROP_CLOSED_DAYS = 30
+
+
+def drop_closed(conn: sqlite3.Connection, before: str) -> int:
+    """Removes jobs closed before `before` the user never acted on: no status, no application step,
+    no interview ask, no score kept. Owner 2026-10-27: 1,444 of 1,462 closed rows never acted on."""
+    cur = conn.execute(
+        "DELETE FROM jobs WHERE closed_at IS NOT NULL AND closed_at < ?"
+        " AND public_slug NOT IN (SELECT public_slug FROM applications WHERE public_slug IS NOT NULL)"
+        " AND public_slug NOT IN (SELECT key FROM applications)"
+        " AND public_slug NOT IN (SELECT key FROM application_log)"
+        " AND public_slug NOT IN (SELECT key FROM asked)"
+        " AND public_slug NOT IN (SELECT key FROM score_snapshots)", (before,))
     return cur.rowcount
 
 

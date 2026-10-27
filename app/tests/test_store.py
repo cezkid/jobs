@@ -134,3 +134,19 @@ def test_old_db_gains_clearance_column(tmp_path):
     assert "requires_clearance" in {r[1] for r in conn.execute("PRAGMA table_info(jobs)")}
     store.upsert(conn, [make_job("c", requires_clearance=True)], "2026-10-01T00:00:00Z")
     assert store.all_jobs(conn)[0]["requires_clearance"] == 1
+
+
+def test_drop_closed_keeps_open_recent_and_acted_on_jobs_and_every_number(conn):
+    store.upsert(conn, [make_job(s) for s in ("open", "recent", "old", "applied", "logged")], "2026-09-01T00:00:00Z")
+    for slug, at in (("recent", "2026-10-20T00:00:00Z"), ("old", "2026-09-10T00:00:00Z"),
+                     ("applied", "2026-09-10T00:00:00Z"), ("logged", "2026-09-10T00:00:00Z")):
+        conn.execute("UPDATE jobs SET closed_at = ? WHERE public_slug = ?", (at, slug))
+    conn.execute("INSERT INTO applications (key, public_slug, state, state_at, added_at) VALUES"
+                 " ('k', 'applied', 'applied', '2026-09-05T00:00:00Z', '2026-09-05T00:00:00Z')")
+    conn.execute("INSERT INTO application_log VALUES ('logged', 'saved', '2026-09-05T00:00:00Z')")
+    num = store.number(conn, "old")
+    assert store.drop_closed(conn, "2026-09-27T00:00:00Z") == 1
+    left = {r[0] for r in conn.execute("SELECT public_slug FROM jobs")}
+    assert left == {"open", "recent", "applied", "logged"}
+    # its number stays its own: never given to another job
+    assert store.number(conn, "old") == num and store.number(conn, "new") == num + 1
