@@ -348,3 +348,10 @@ next-time:
     contains: Next time, double-click "CEZ Job Finder" on your Desktop.
   - file: app/install/install-windows.ps1
     contains: Next time, double-click "CEZ Job Finder" on your Desktop.
+home-need:
+  page: index.html
+  text: 'You need a Windows 10 or 11 PC or a Mac – it’s not a website or a phone app – and a paid AI plan: Claude Pro, ChatGPT Plus ($20 a month) or Copilot Pro ($10).'
+  why: 'the app runs on the user''s own paid AI, installed on Windows or Mac'
+  rests_on:
+  - file: AGENTS.md
+    contains: 'can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan'

@@ -687,6 +687,13 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
 - robots.txt allows search, retrieval AND AI training bots on purpose (free public tool, research meant to be quoted; Google-Extended never blocked): a `# Training bots:` comment lists both groups (2026-10-03). `.well-known/security.txt` Contact = GitHub private advisory; `docs/_config.yml` `include` keeps Jekyll from dropping the dot folder; test fails within 30 days of Expires - renew yearly.
 - Home JSON-LD = WebSite only (site name in results); research pages carry their own (above). SoftwareApplication w/o ratings = invalid in
   Search Console; FAQ rich results now limited to government + health sites.
+- What it needs, said up front (owner 2026-10-27: the paid AI plan + "not a website" were easy to miss): home's
+  hero carries `.need` (claim `home-need`) right under the lede on every screen - Windows 10/11 or a Mac, not a
+  website or phone app, a paid Claude Pro / ChatGPT Plus ($20) or Copilot Pro ($10) plan; the share card says
+  the plan under its h1; the meta + og descriptions say "paid". Was: a grey line under the lede + a full "You
+  need" line shown on tall desktops only. A paragraph, not a heading + list: the list cost +57px at 1366x641,
+  where home sits at its 8-screen cap; the paragraph + a tighter lede gap, +16px, and "What do I need?" left
+  the Questions (its "no administrator password" moved to "Is it safe to paste a line?").
 - `og:title` w/o brand suffix (`og:site_name` carries it). Cards 1200x630, < 300 KB (WhatsApp
   drops larger). `assets.render_card()` screenshots a 1200x630 clip and fails loudly on an element
   outside the card, in its bottom 90px (X lays its headline there) or clipped by an overflow-hidden
@@ -700,7 +707,7 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
 - GitHub Pages types: `.ico` image/vnd.microsoft.icon, `.webmanifest` application/manifest+json,
   `.woff2` font/woff2 - no headers file needed.
 - `/privacy` + `/index.html` also answer 200 -> every page carries a canonical == sitemap URL.
-- Font subset: regular 18.2 KB, bold 18.2 KB; og.png 81.4 KB, og-research.png 51.6 KB.
+- Font subset: regular 18.2 KB, bold 18.2 KB; og.png 98.8 KB, og-research.png 51.6 KB.
 - Polish pass end (plan-dxn G1, 2026-10-04, vs base e704f97): home 7.28 screens at 1366x641 (was 7.12),
   8.11 at 375x812 (was 7.90), print 5; perf median of 3 phone LCP 532 ms (base 516), desktop 116 (92),
   no-GPU 336 (276), CLS 0, scroll long frame 136-149 ms (base 136-146); Lighthouse 6 pages x phone +
