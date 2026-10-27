@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- Gem's apply form as measured 2026-10-26 (gem.md "Widgets"), class names left out, words anonymised:
+     a label span then the box; radios + ticks carry the option id; dropdowns open a list in #floating-ui-portal
+     (questions role=option, the voluntary survey role=menuitem); the resume box shows the chosen file's name.
+     The small script stands in for Gem's React, which draws the same parts. -->
+<html><body>
+<div>
+ <div><div>Ready to apply?</div><div><div><div>Powered by</div></div></div></div>
+ <div>
+  <div><span>First name<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>Last name<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>Email<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>LinkedIn URL<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>Phone number<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>Location<span>*</span></span><div><div><div><input type="text"></div></div></div></div>
+  <div><span>Resume<span>*</span></span><div><div class="files"></div><div><div role="presentation">
+   <input type="file" tabindex="-1" accept="application/pdf,.pdf"><span>Click to upload or drag and drop here</span></div></div></div></div>
+  <div><span>Cover letter</span><div><div class="files"></div><div><div role="presentation">
+   <input type="file" tabindex="-1" accept="application/pdf,.pdf"><span>Click to upload or drag and drop here</span></div></div></div></div>
+ </div>
+ <div>
+  <div><div><span>How did you hear about this job?<span>*</span></span></div>
+   <div><div><button type="button" data-options="Company Website|LinkedIn|Indeed|Other" data-role="option"><div>Select an option</div><i></i></button></div></div></div>
+  <div><div><span>Will you now or in the future require employment sponsorship to work in the United States?<span>*</span></span></div>
+   <div><div><div>
+    <div><input id="cXVlc29wdDpZZXM" type="radio" name="r1"><label for="cXVlc29wdDpZZXM"><span></span><div>Yes</div></label></div>
+    <div><input id="cXVlc29wdDpObw" type="radio" name="r1"><label for="cXVlc29wdDpObw"><span></span><div>No</div></label></div>
+   </div></div></div></div>
+  <div><div><span>**In 1-2 sentences, what professional accomplishment are you most proud of, and why?**<span>*</span></span></div>
+   <div><div><div><textarea></textarea></div></div></div></div>
+  <div><div><span>By checking this box, you agree to receive text messages from Acme at the mobile number provided.</span></div>
+   <div><div><div><input id="cXVlc29wdDpUeHQ" type="checkbox"><label for="cXVlc29wdDpUeHQ"><span></span><div>I Acknowledge and Opt-In</div></label></div></div></div></div>
+ </div>
+ <div><div>
+  <div>Voluntary Self-Identification</div>
+  <div>To comply with government reporting requirements, we invite candidates to take part.</div>
+  <div><div>Gender</div><button type="button" data-options="Male|Female|Decline to self-identify" data-role="menuitem"><div>Please select</div><i></i></button></div>
+ </div></div>
+ <button type="submit">Apply and save</button><button type="submit">Apply without saving</button>
+ <textarea name="h-captcha-response" style="display:none"></textarea>
+</div>
+<div id="floating-ui-portal"></div>
+<script>
+const portal = document.getElementById('floating-ui-portal');
+document.querySelectorAll('button[type=button][data-options]').forEach(b => b.addEventListener('click', () => {
+  portal.innerHTML = '';
+  const menu = document.createElement('menu');
+  menu.setAttribute('role', b.dataset.role === 'option' ? 'listbox' : 'menu');
+  for (const text of b.dataset.options.split('|')) {
+    const li = document.createElement('li');
+    li.setAttribute('role', b.dataset.role);
+    li.innerHTML = '<div><div><div></div></div></div>';
+    li.querySelector('div div div').textContent = text;
+    li.addEventListener('click', () => { b.firstElementChild.textContent = text; portal.innerHTML = ''; });
+    menu.appendChild(li);
+  }
+  portal.appendChild(menu);
+}));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') portal.innerHTML = ''; });
+document.querySelectorAll('input[type=file]').forEach(f => f.addEventListener('change', () => {
+  const files = f.closest('div[role=presentation]').parentElement.parentElement.querySelector('.files');
+  files.textContent = f.files[0] ? f.files[0].name + ' ×' : '';
+}));
+</script>
+</body></html>

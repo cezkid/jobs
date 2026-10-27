@@ -172,6 +172,58 @@ def test_named_read_refuses(method, url, body):
     assert lab.named_read(method, url, body) is None
 
 
+# the second (owner OK 2026-10-26): Gem's page sends its posting read + its colours as one batch
+GEM = "https://jobs.gem.com/api/public/graphql/batch"
+GEM_POSTING = {"boardId": "acme", "extId": "am9icG9zdDpBQ01F"}
+GEM_FRAG = "fragment Q on PublicOatsQuestion { extId options { extId value } }"
+
+
+def gem_op(op="ExternalJobPosting", query=None, variables=None):
+    query = query or f"{GEM_FRAG} query {op}($boardId: String!) {{ a {{ ...Q }} }}"
+    variables = (GEM_POSTING if op == "ExternalJobPosting" else {"boardId": "acme"}) if variables is None else variables
+    return {"operationName": op, "query": query, "variables": variables}
+
+
+def gem_body(*ops):
+    import json
+    return json.dumps(list(ops))
+
+
+def test_gem_batched_read_passes_whole():
+    assert lab.named_read("POST", GEM, gem_body(gem_op("JobBoardTheme"), gem_op())) == "JobBoardTheme+ExternalJobPosting"
+    import json  # the same read unbatched, as prepare sends it
+    assert lab.named_read("POST", "https://jobs.gem.com/api/public/graphql", json.dumps(gem_op())) == "ExternalJobPosting"
+
+
+@pytest.mark.parametrize("body", [
+    # one write in the batch refuses the whole batch
+    gem_body(gem_op(), {"operationName": "ATSLiteCreateApp", "query": "mutation ATSLiteCreateApp { a }", "variables": {}}),
+    gem_body(gem_op(query=f"{GEM_FRAG} query ExternalJobPosting {{ a }} mutation X {{ b }}")),
+    # typed text riding along, an operation not named, an empty or too long batch
+    gem_body(gem_op(variables=GEM_POSTING | {"email": "test@example.com"})),
+    gem_body(gem_op("FormAutofillData", variables={"email": "test@example.com"})),
+    gem_body(gem_op("ATSLiteCreateApp", variables={})),
+    gem_body(),
+    gem_body(gem_op(), gem_op(), gem_op(), gem_op(), gem_op()),
+    # a batch where none belongs: unbatched path, or Ashby's
+    None,
+])
+def test_gem_named_read_refuses(body):
+    assert lab.named_read("POST", GEM, body) is None
+
+
+def test_gem_settings_batch_passes_whole():
+    ops = [gem_op("OneClickApplyEnabled"), gem_op("OatsTeamSettingExternalPublic"),
+           gem_op("FormAutofillData", variables={}), gem_op("OatsIsJobBoardSeoStructuredDataEnabled", variables={"externalId": "acme"})]
+    assert lab.named_read("POST", GEM, gem_body(*ops)) == \
+        "OneClickApplyEnabled+OatsTeamSettingExternalPublic+FormAutofillData+OatsIsJobBoardSeoStructuredDataEnabled"
+
+
+def test_gem_batch_only_on_its_batch_path():
+    assert lab.named_read("POST", "https://jobs.gem.com/api/public/graphql", gem_body(gem_op())) is None
+    assert lab.named_read("POST", "https://jobs.gem.com/api/graphql/batch", gem_body(gem_op())) is None  # signed-in app
+
+
 class FakeRoute:
     def __init__(self, method, url, body):
         self.request = type("R", (), {"method": method, "url": url, "post_data": body, "resource_type": "fetch"})()

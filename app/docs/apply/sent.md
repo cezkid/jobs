@@ -24,6 +24,7 @@ made" and the job keeps asking. Code: `app/sent.py`, run as `uv run app/jobs.py 
 | UKG Pro Recruiting | none seen | My Presence (`.../Candidate/ViewPresence`) -> Applications: rows Job / Status / Date applied; "You have not yet applied to any opportunities" when empty. Signed in only. Detail page keeps "Apply now" either way |
 | Rippling | none seen | none |
 | Loxo | `/job/<id>/finish`, "Application submitted" - seen on 1 sent job (2026-10-26); matched to the job by its base64 id (the address names no company) | none - no candidate account |
+| Gem | none - same address after Apply; the page says "Your application for <title> has been received!" (1 sent job, 2026-10-26), browser history can't tell | none - no candidate account (a saved Gem profile only fills the next form) |
 
 Greenhouse + Workday: form opened, no sent page -> `likely not sent`. Systems w/o one ->
 `can't tell`: say where to look (account list, confirmation email), never guess. Not settled by

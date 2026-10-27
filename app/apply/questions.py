@@ -266,11 +266,17 @@ WORK_LINK = re.compile(r"\b(?:demo |show)?reel\b|\bwork samples?\b|\bsamples? of
                        r"\bexamples? of (?:your )?work\b|\byour work\b|\bvimeo\b", re.I)
 
 
+# LinkedIn written as LinkedIn writes it: Gem refuses "https://linkedin.com/in/..." ("Please enter a valid
+# LinkedIn URL", a user's application 2026-10-26 - its check wants a dot before linkedin.com, gem.md)
+LINKEDIN_HOST = re.compile(r"^https?://(?:[\w-]+\.)?linkedin\.com/", re.I)
+
+
 def link(contact: dict, host: str) -> str:
     """A profile link from the page's links, else one kept for forms only (contact.form_links)."""
     for url in (contact.get("links") or []) + (contact.get("form_links") or []):
         if host in url.casefold():
-            return url if url.startswith("http") else "https://www." + url.removeprefix("www.")
+            url = url if url.startswith("http") else "https://www." + url.removeprefix("www.")
+            return LINKEDIN_HOST.sub("https://www.linkedin.com/", url)
     return ""
 
 

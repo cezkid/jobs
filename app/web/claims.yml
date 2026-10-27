@@ -8,11 +8,11 @@
 # Fails => the app changed: fix the page sentence first, then `text` + the fact here.
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Gem Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Breezy, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
+    filled: [Ashby, BambooHR, Breezy, Gem, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -115,6 +115,7 @@ privacy-employers:
     - '| Zip code, city, state, skills you type | that employer''s Zoho Recruit site (each box searches Zoho Recruit''s own list) | That employer, letter by letter as it''s typed - before Submit |'
     - '| Contact details, work history, education, answers, resume you apply with | that employer''s Zoho Recruit site | That employer, once you click Submit |'
     - '| Contact details, answers, resume you apply with | that employer''s Loxo site | That recruiting firm (a Loxo site is a recruiter''s; the posting may name the hiring company), once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Gem site | That employer, once you click Apply |'
     - '| Each page''s answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer''s site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |'
     - '| Which posting you''re applying to (its public page read once, nothing about you) | that employer''s careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |'
 privacy-email:
