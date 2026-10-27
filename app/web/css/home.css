@@ -6,7 +6,8 @@
 :root { --h1: clamp(2.5rem, 1.5rem + 3vw, 6rem); }
 @media (max-width: 600px) { :root { --h1: clamp(2.25rem, 1rem + 6.4vw, 3rem); } }
 @media (min-width: 1080px) { :root { --h1: var(--display); } }
-@media (min-width: 1080px) and (min-height: 760px) { :root { --h1: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); } }
+/* top 5.375rem (86px): the h1 holds 2 lines in the 1320px --max column (3 from 92px; 7rem set 3 lines from 1680 wide) */
+@media (min-width: 1080px) and (min-height: 760px) { :root { --h1: min(clamp(2.5rem, 1rem + 4.6vw, 5.375rem), 8.6vh + 0.5rem); } }
 
 /* hero: literal h1 + install steps beside the app window (story A: the morning list, finished state) */
 .hero { padding-top: clamp(28px, 4.2vh, 56px); padding-bottom: var(--space-xl); row-gap: var(--space-l); }
