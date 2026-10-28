@@ -3,7 +3,9 @@
 Claude Code adds "Co-Authored-By: Claude" to commits and "Generated with Claude Code" to PR text
 unless `attribution` (or the older `includeCoAuthoredBy`) in its settings turns that off. An
 assistant can still type the lines by hand, so when the setting is off `strip` removes them and
-`hook` installs a commit-msg hook that runs `strip` on every commit.
+`hook` installs a commit-msg hook that runs `strip` on every commit - and stops one made under
+Claude's own name (a cloud session's git identity): GitHub turns that author into a
+"Co-authored-by: Claude" line when the change is squash-merged.
 Standard library only: the hook runs this file directly, without the program's packages.
 """
 import argparse
@@ -17,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 KINDS = ("commit", "pr")
 CREDIT = re.compile(
-    r"^\s*(co-authored-by:\s*claude\b.*|.*generated with \[?claude code\]?.*|.*noreply@anthropic\.com.*"
+    r"^\s*(co-authored-by:\s*claude\b.*|[\W_]*generated (?:with|by) \[?claude code\]?.*|.*noreply@anthropic\.com.*"
     r"|claude-session:.*|.*claude\.ai/code/session.*)\s*$", re.I)
 OFF = {"commit": "", "pr": "", "sessionUrl": False}
 HOOK_MARK = "# Job Finder: strip Claude credit when the user's setting is off"
@@ -69,6 +71,17 @@ def choose(on: bool, path: Path | None = None) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
+CLAUDE_AUTHOR = re.compile(r"noreply@anthropic\.com", re.I)
+
+
+def author_problem(ident: str, settings: dict) -> str | None:
+    """Why a commit by this author (`git var GIT_AUTHOR_IDENT`) carries Claude's name while credit is off."""
+    if state("commit", settings) == "off" and CLAUDE_AUTHOR.search(ident):
+        return ("commit author is Claude - Claude credit is off. Set the user's own name first:\n"
+                '  git config user.name "<their name>" && git config user.email "<their email>"')
+    return None
+
+
 def install_hook(repo: Path) -> str:
     common = subprocess.run(["git", "-C", str(repo), "rev-parse", "--git-common-dir"],
                             capture_output=True, text=True, check=True).stdout.strip()
@@ -78,7 +91,7 @@ def install_hook(repo: Path) -> str:
     hook.parent.mkdir(parents=True, exist_ok=True)
     # program moved or an old branch checked out -> let the commit through untouched, never block it
     hook.write_text(f'#!/bin/sh\n{HOOK_MARK}\npy="{sys.executable}"; f="{Path(__file__).resolve()}"\n'
-                    '[ -x "$py" ] && [ -f "$f" ] || exit 0\nexec "$py" "$f" strip "$1"\n', encoding="utf-8")
+                    '[ -x "$py" ] && [ -f "$f" ] || exit 0\n"$py" "$f" strip "$1" && exec "$py" "$f" author\n', encoding="utf-8")
     hook.chmod(0o755)
     return f"installed: {hook}"
 
@@ -99,6 +112,7 @@ def main() -> None:
     s = sub.add_parser("strip", help="remove credit lines from a commit message or PR body file when the setting is off")
     s.add_argument("file")
     s.add_argument("--pr", action="store_true", help="file is PR text, not a commit message")
+    sub.add_parser("author", help="fail when the commit being made is authored by Claude and credit is off")
     h = sub.add_parser("hook", help="install the commit-msg hook in a git checkout")
     h.add_argument("repo", nargs="?", default=str(ROOT / ".data" / "upstream"))
     args = ap.parse_args()
@@ -109,6 +123,10 @@ def main() -> None:
         if state("pr" if args.pr else "commit", merged()) == "off":
             path = Path(args.file)
             path.write_text(strip(path.read_text(encoding="utf-8")), encoding="utf-8")
+    elif args.action == "author":
+        ident = subprocess.run(["git", "var", "GIT_AUTHOR_IDENT"], capture_output=True, text=True).stdout
+        if problem := author_problem(ident, merged()):
+            sys.exit(problem)
     elif args.action == "hook":
         print(install_hook(Path(args.repo)))
     else:
