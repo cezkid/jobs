@@ -291,7 +291,7 @@ def test_blocklist_hides_by_type_and_clearance_never_untagged():
 
 
 def test_max_age_days_hides_older_first_seen_keeps_unknown():
-    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 7}})
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 7, "age_min_jobs": 0}})
     jobs = [
         make_job("fresh", reality={"age_days": 7}),
         make_job("old", reality={"age_days": 8}),
@@ -299,7 +299,29 @@ def test_max_age_days_hides_older_first_seen_keeps_unknown():
         make_job("unknown", posted_at=None),
     ]
     assert sorted(slugs(rank.rank(jobs, config, NOW))) == ["fresh", "unknown"]
-    assert len(rank.rank(jobs, CONFIG, NOW)) == 4
+    assert len(rank.rank(jobs, cfg.merge(CONFIG, {"rank": {"max_age_days": None}}), NOW)) == 4
+
+
+def test_age_limit_widens_per_list_only_when_thin():
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 3, "age_min_jobs": 3, "age_widen_to": [5, 14]}})
+    remote = [make_job(f"r{d}", work_mode="remote", reality={"age_days": d}) for d in (1, 2, 3, 4, 6)]
+    near = [make_job(f"n{d}", company=f"C{d}", work_mode="onsite", reality={"age_days": d}) for d in (1, 4, 10, 20)]
+    shown = set(slugs(rank.rank(remote + near, config, NOW)))
+    # remote holds 3 at 3 days => stays; nearby holds 1, 2 at 5, 3 at 14 => widens to 14, not past
+    assert shown == {"r1", "r2", "r3", "n1", "n4", "n10"}
+    assert rank.age_limits(rank.collapse(rank.unaged(remote + near, config, NOW)), config["rank"], NOW) \
+        == {"remote": 3, "nearby": 14}
+    # too few even at the last step => no age limit
+    assert rank.age_limits(rank.collapse(rank.unaged(near[:2], config, NOW)), config["rank"], NOW)["nearby"] is None
+
+
+def test_age_limit_counts_only_live_jobs_the_pay_filter_keeps():
+    config = cfg.merge(pay_config(relax_under_new_per_week=0),
+                       {"rank": {"max_age_days": 3, "age_min_jobs": 2, "age_widen_to": [7]}})
+    jobs = [make_job("ok", work_mode="remote", reality={"age_days": 1}, **usd(120000, 130000)),
+            make_job("low", work_mode="remote", reality={"age_days": 2}, **usd(50000, 60000)),
+            make_job("older", work_mode="remote", reality={"age_days": 6}, **usd(120000, 130000))]
+    assert set(slugs(rank.rank(jobs, config, NOW))) == {"ok", "older"}
 
 
 def test_rank_hidden_counts_per_rule_with_samples_in_window():

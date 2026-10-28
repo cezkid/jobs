@@ -742,18 +742,24 @@ def collapse(jobs: list[dict]) -> list[dict]:
     return kept
 
 
-def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[dict]:
+def unaged(jobs: list[dict], config: dict, now: datetime) -> list[dict]:
+    """Rows past the blocklist + cities, marked stale / link dead: what the age cutoff reads."""
     rc = config["rank"]
-    tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
-    now = now or datetime.now(timezone.utc)
 
     def marked(j: dict) -> dict:
         dead = link_dead(j, rc, now)
         return dict(j, stale=stale_for(j, rc, now) or dead, link_dead=dead)
 
-    kept = pay_filter(collapse([marked(j) for j in jobs
-                                if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)
-                                and not far(j, config)]), rc, now)
+    return [marked(j) for j in jobs if not blocked(j, config["blocklist"]) and not far(j, config)]
+
+
+def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[dict]:
+    rc = config["rank"]
+    tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
+    now = now or datetime.now(timezone.utc)
+    base = unaged(jobs, config, now)
+    limits = age_limits(collapse(base), rc, now)
+    kept = pay_filter(collapse([j for j in base if not too_old(j, limits.get(list_of(j)), now)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
     graduation, credentials = student_graduation(config, now.date()), resume_credentials(config)
     kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date(), credentials)) for j in kept]
@@ -800,10 +806,31 @@ def flags(job: dict, config: dict) -> list[str]:
             + clearance(job) + named)
 
 
-def too_old(job: dict, rc: dict, now: datetime) -> bool:
-    """User's own cutoff (rank.max_age_days): first seen longer ago hides. Age unknown stays."""
-    limit, days = rc.get("max_age_days"), age(job, now)
+def too_old(job: dict, limit: int | None, now: datetime) -> bool:
+    """Age cutoff (age_limits): first seen more than limit days ago hides. Age unknown stays."""
+    days = age(job, now)
     return limit is not None and days is not None and days > limit
+
+
+def list_of(job: dict) -> str:
+    """Which of Today's two lists: a remote job, else one near them (hybrid, on-site, not tagged)."""
+    return "remote" if job.get("work_mode") == "remote" else "nearby"
+
+
+def age_limits(jobs: list[dict], rc: dict, now: datetime) -> dict[str, int | None]:
+    """Each list's age cutoff: rank.max_age_days, widened through age_widen_to (then none) while the
+    list holds fewer than age_min_jobs live jobs the pay filter keeps - a thin search still fills
+    up, a busy one stays fresh (owner 2026-10-27). jobs = rows past every other filter, collapsed."""
+    limit, want = rc.get("max_age_days"), rc.get("age_min_jobs") or 0
+    if limit is None:
+        return {}
+    steps = [limit, *[d for d in rc.get("age_widen_to") or [] if d > limit], None] if want else [limit]
+    ages = defaultdict(list)
+    for j in jobs:
+        if not j["stale"] and not pay_hidden(j, rc):
+            ages[list_of(j)].append(age(j, now))
+    return {k: next((s for s in steps if s is None or sum(d is None or d <= s for d in v) >= want), steps[-1])
+            for k, v in {"remote": ages["remote"], "nearby": ages["nearby"]}.items()}
 
 
 US_STATES = {
@@ -913,9 +940,10 @@ def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
-def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
+def hidden_rule(job: dict, config: dict, now: datetime, limits: dict[str, int | None] | None = None) -> str | None:
     """The first setting that hides a row, in plain words; None = shown. Same tests as blocked(),
-    too_old, far and pay_filter, one rule per row (first match)."""
+    too_old, far and pay_filter, one rule per row (first match). limits = age_limits of the list;
+    None = max_age_days unwidened."""
     bl, rc = config["blocklist"], config["rank"]
     if norm_company(job.get("company")) in {norm_company(c) for c in bl.get("companies") or []} \
             or (job.get("company_slug") or "").lower() in {v.lower() for v in bl.get("companies") or []}:
@@ -934,7 +962,7 @@ def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
         return "kind of software work hidden"
     if title_blocked(job.get("title") or "", bl):
         return "title phrase hidden"
-    if too_old(job, rc, now):
+    if too_old(job, rc.get("max_age_days") if limits is None else limits.get(list_of(job)), now):
         return "older than your age limit"
     if far(job, config):
         return "too far from your cities"
@@ -946,9 +974,10 @@ def hidden_report(jobs: list[dict], config: dict, now: datetime, days: int = 7, 
     """What the settings hid among jobs first listed in the last `days` days: count per rule +
     up to `samples` titles. Pay-floor rows the thin-week relax brought back are not counted."""
     recent = [j for j in jobs if (d := listed_days(j, now)) is not None and d < days]
+    limits = age_limits(collapse(unaged(jobs, config, now)), config["rank"], now)
     by_rule = defaultdict(list)
     for j in recent:
-        if rule := hidden_rule(j, config, now):
+        if rule := hidden_rule(j, config, now, limits):
             by_rule[rule].append(j)
     total = sum(len(v) for v in by_rule.values())
     out = [f"settings hid {total} of {len(recent)} jobs listed in the last {days} days"

@@ -486,9 +486,8 @@ def home_states(config: dict, facts: dict | None) -> set[str]:
     return own | {s.upper() for p in config["passes"] for s in p.get("states") or []}
 
 
-def list_of(job: dict) -> str:
-    """Which of Today's two lists: a remote job, else one near them (hybrid, on-site, not tagged)."""
-    return "remote" if job.get("work_mode") == "remote" else "nearby"
+# Today's two lists; rank's age cutoff widens per list on the same split
+list_of = rank.list_of
 
 
 def open_to(job: dict, home: set[str]) -> float:
