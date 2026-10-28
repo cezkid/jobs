@@ -457,6 +457,13 @@ in passing ("integrate backend services with frontend applications"). Sorted low
 A language they don't want ("no Java"): `rank.avoid_skills` reads the required lines, not the tags,
 when there are any - a front-end list, 2026-10-12: 31 of 161 open rows name Java in a required line or
 tag, 17 only as one choice of several ("Python, Node.js, or Java"), so 14 sort lower.
+Customer-facing titles (2026-10-28, `customer` kind): the job search tags pre-sales, setup + support
+jobs w/ the product's stack - "Solutions Engineer - NYC" carried react + typescript, read as
+front-end, #3 of a front-end user's nearby list. Category can't sort them: `solutions_engineering`
+held 54 open rows of a React search, 40 Forward Deployed (builds software). Title words do: of 2,558
+open rows, 44 named (sales / solutions / presales / customer / implementation / support engineer,
+technical consultant, technical account manager), 0 Forward Deployed, 0 "Software Engineer,
+Solutions Engineering" (the team, not the job). Sorted lower for any `rank.software_kinds` w/o it.
 
 ## Null facets outside tech (2026-09-19)
 
