@@ -28,6 +28,8 @@ Over 400 words fails; under 250 is said, never padded.
 ## Declined
 
 - **AI-written enthusiasm or reasons.** The user's sentence, or the letter opens with the role + their strongest fact.
+  A form's short written-answer box differs since 2026-10-28 (owner): an AI draft is offered there,
+  every motive clause confirmed word for word (`app/docs/apply/written-answers.md`).
 - **A letter for every application.** Only where a box asks; no evidence an unasked one helps.
 - **Company web research for the letter.** Would fetch the employer's site: something new off the
   computer (privacy table row + user yes first, AGENTS.md); a researched fact is no fact of theirs, so

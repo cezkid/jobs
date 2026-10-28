@@ -470,7 +470,8 @@ Read before adding a wording rule - it records rules measured and rejected, so n
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
 resume for one posting, `job-apply` fill an application, never Submit (Save / Next only w/ their `continue_on_apply` yes) ("apply to job N" / Today's Apply = resume + form in one run) (systems + adding one:
-`app/docs/apply/apply-systems.md`), `job-interview` practice for an interview + debrief after one,
+`app/docs/apply/apply-systems.md`), `job-answers` written-answer boxes on a form (why us, a recent
+project; motive confirmed word for word), `job-interview` practice for an interview + debrief after one,
 `report-defect` send fix upstream.
 
 ## Personal data - never stage
