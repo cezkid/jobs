@@ -362,7 +362,8 @@ def mismatches(job: dict, rc: dict) -> list[str]:
             and not title_type(job) and not words(rf"{EARLY_CAREER}|{STUDENT_PROGRAM}").search(title):
         out.append("title doesn't say internship")
     # another kind of software work than theirs (front-end user, back-end title): one reason, sorted lower
-    return out + software.mismatch(job, rc.get("software_kinds")) + avoided(job, rc.get("avoid_skills"))
+    return (out + software.mismatch(job, rc.get("software_kinds")) + avoided(job, rc.get("avoid_skills"))
+            + engineer_asked(job, rc.get("engineer_background")))
 
 
 # a name another one starts with, written apart: "Java Script" is JavaScript
@@ -398,6 +399,43 @@ def avoided(job: dict, skills: list[str] | None) -> list[str]:
         elif s.lower() in tags:
             return [f"lists {s}"]
     return []
+
+
+# a required line asking for the background of someone who built the systems, not led them: worked as an
+# engineer, codes, or deep technical / engineering depth. For rank.engineer_background false - a project /
+# program manager who leads technical work at a high level. Managing software development ("5+ years
+# managing software development projects") never counts; a line saying no code is needed never does.
+ENGINEER_ASK = re.compile(
+    r"(?i)\b(?:experience|years|background|career|time)\s+(?:working\s+)?as\s+an?\s+(?:[\w/-]+\s+){0,3}?"
+    r"(?:engineers?|developers?|programmers?|data scientists?|software architects?)\b"
+    r"|\b(?:software|hands[- ]on|technical) (?:engineering|development|developer) (?:background|experience)\b"
+    r"|\b(?:prior|previous|hands[- ]on) (?:software |firmware |technical )?(?:engineering|development)(?: or test)?"
+    r" (?:experience|background|role)"
+    r"|\b\d+\+?\s*(?:-\s*\d+\+?\s*)?years? (?:of )?(?:professional |hands[- ]on )?(?:software|firmware) (?:development|engineering)"
+    r"(?! (?:projects?|programs?|teams?|lifecycle|life cycle|methodolog\w*|processe?s?))\b"
+    r"|\b(?:coding|programming|scripting) (?:skills?|experience|ability|background|proficiency)\b"
+    r"|\b(?:write|read|reading|writing) (?:production |a )?code(?:base)?\b|\bhands[- ]on (?:coding|programming)\b"
+    r"|\bproficien\w* (?:in|with) (?:\w+ ){0,2}(?:python|java|c\+\+|golang|javascript|typescript|scala|rust)\b"
+    r"|\b(?:deep|strong|solid|significant) (?:technical|engineering) (?:background|depth|expertise|foundation|acumen)\b"
+    r"|\bengineering background\b|(?<!enough )(?<!sufficient )\btechnical depth\b"
+    r"|\bbackground in (?:software|computer|electrical|mechanical|systems|network) engineering\b")
+NO_CODE = re.compile(r"(?i)\bno (?:coding|programming)\b|\bwithout (?:writing|write) code|"
+                     r"\b(?:do not|don't|won't|will not|doesn't|does not) (?:need|have|require) (?:you )?to (?:write )?code|"
+                     r"\b(?:coding|programming) (?:is )?not required|"
+                     # a door a high-level manager can walk through: "Strong technical background or proven
+                     # ability to engage in technical discussions"
+                     r"\bor (?:a )?(?:proven |demonstrated )?(?:ability|experience) (?:to )?(?:engage|work|partner)")
+
+
+def engineer_asked(job: dict, background: bool | None) -> list[str]:
+    """One reason when they said they never worked as an engineer (rank.engineer_background false) and a
+    required line asks that background - wishes cut ("C++ a plus" asks nothing). Sorted lower, never hidden:
+    most TPM postings ask a CS degree "or equivalent", which this never reads (docs/jobs/freehire.md)."""
+    if background is not False:
+        return []
+    import best  # imports this module
+    lines = [a for t in required_lines(job) if (a := best.asked(t)) and not NO_CODE.search(a)]
+    return ["asks an engineer's background"] if any(ENGINEER_ASK.search(t) for t in lines) else []
 
 
 def required_lines(job: dict) -> list[str]:

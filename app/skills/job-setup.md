@@ -249,9 +249,12 @@ showing jobs from <company>" any time.
   construction / facilities). ONE clickable question with counts: technical program + project
   roles only (TPM, technical / IT project manager passes) / any program manager role (the broad
   pass) / project manager roles too. Background they didn't come from ("not an engineer",
-  "never coded") -> nothing to filter: 1 in 3 TPM postings name computer science or engineering in a
-  required line, almost always a degree "or equivalent experience"; a hard "N years as a software engineer" is about 2 in 100 -
-  say that once, no setting. PMP / PgMP / SAFe asks are read: a job asking one their resume lacks
+  "never coded", "technical at a high level") -> `rank.engineer_background: false`, no question: a job
+  whose required lines ask an engineer's background (worked as one, coding, "strong technical depth")
+  sorts lower, says "asks an engineer's background", never hidden - TPM 36 of 413, technical project
+  manager 21 of 395, IT project manager 2 of 329 (2026-10-28). A CS degree "or equivalent" never counts
+  (1 in 3 TPM postings ask one) - say that once. Their pick of passes matters more: technical / IT
+  project manager + program manager ask it least. PMP / PgMP / SAFe asks are read: a job asking one their resume lacks
   sorts lower ("asks PMP, not in your resume"). After the first job check, kinds they don't do,
   counted w/ `rank --would-hide`: hardware / manufacturing / defense / space (about 1 in 9 TPM
   titles: silicon, vehicle, mission systems), construction / facilities (project manager passes),

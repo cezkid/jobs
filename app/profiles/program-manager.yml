@@ -84,3 +84,5 @@ rank:
   boost_collections: [fortune500]
   salary_floor_usd: 120000
   career_level: senior
+  # from delivery, not engineering: jobs asking a former engineer's background sort lower (defaults.yml)
+  engineer_background: false
