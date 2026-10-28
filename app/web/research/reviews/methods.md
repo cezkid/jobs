@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-28
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
@@ -199,3 +199,9 @@ Fresh subagent; made none of the edits. Read the current article, its diff, the 
 - No medium or high open. Verdict: publish.
 
 Editor, after the resolution check (2026-10-05): M4 fixed by editor (next to that finding; research.md same).
+
+## Re-review 2026-10-28
+
+Fresh AI session; made none of the edits. Change: "What do we gain" adds that the app tailors resumes, so it competes with some resume companies the articles name; Changes line added, `modified` bumped.
+- Accurate: the app tailors resumes (`job-tailor`), and resume companies are named in other articles (Jobscan, ResumeGo, Ladders). The methods page itself names none, so "named here" was loose; fixed by reviewer to "named in these articles", matching the sentence before it and the Changes line.
+- No number or citation moved. Plain words, 18 words. Verdict: publish

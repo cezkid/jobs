@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-07
+reviewed: 2026-10-28
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
@@ -451,3 +451,9 @@ Findings (verdict revise):
 - R3: resolved. "Finding and fixing them takes minutes." is deleted, and the section still ends with the proofread line.
 - The Changes line now reads "a worked example of two spelling errors". It is accurate.
 - No new finding. Verdict: publish
+
+## Re-review 2026-10-28
+
+Fresh AI session; made none of the edits. Change: the 10.6 times myth line's "with no method beyond one line" now reads "the report we read in October 2026 describes its method in one line"; Changes line added, `modified` bumped.
+- Source `jobscan-2025` (jobscan.co/state-of-the-job-search) re-read 2026-10-28: its Methodology section gives the interview-rate study one sentence ("Anonymous job seeker activity was studied based on activity in Jobscan tools."), with no interview definition or calculation. Claim holds; dating it is right for a named company's page that can change.
+- 10.6 and 6.1 figures and the citation unchanged; consistent with the body (line 94) and `sources.yml` sample. Verdict: publish

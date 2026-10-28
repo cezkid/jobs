@@ -41,6 +41,10 @@ function Pick-Ai {
             ForEach-Object { "$_".ToLower() })
         if ($have -contains 'anthropic.claude-code') { $word = 'claude' }
         elseif ($have -contains 'openai.chatgpt') { $word = 'chatgpt' }
+        # AI found, so no question below: still one keypress that accepts the terms (clickwrap, not just a notice)
+        if ($word -and [Environment]::UserInteractive -and -not [Console]::IsInputRedirected) {
+            [void](Read-Host 'Press Enter to accept the terms and install, or close this window to stop')
+        }
     }
     if ($word) { return $word }
     if (-not [Environment]::UserInteractive -or [Console]::IsInputRedirected) {

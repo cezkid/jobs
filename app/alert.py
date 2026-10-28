@@ -110,11 +110,18 @@ def check_login(config: dict, user: str, password: str, connect=smtplib.SMTP_SSL
         server.login(user, password)
 
 
+def owner_only(path: Path) -> None:
+    """App password file readable by this account only (POSIX; Windows keeps the profile's ACL)."""
+    if os.name == "posix" and path.exists():
+        path.chmod(0o600)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Email unseen ranked jobs, then mark seen")
     ap.add_argument("--db", help="override config db path")
     ap.add_argument("--dry-run", action="store_true", help="print message; no send, no seen insert")
     args = ap.parse_args()
+    owner_only(cfg.EMAIL_ENV)
     load_dotenv(cfg.EMAIL_ENV)
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))

@@ -14,6 +14,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+import cfg
+
 from apply import answers, browser, dom
 from apply.questions import signs
 
@@ -120,7 +122,7 @@ def closed(url: str) -> str | None:
     once iCIMS has taken it down (3 of 19 links, 2026-10-06), 200 while it's up. None = still up."""
     job_page = application_url(url).removesuffix("login") + "job?in_iframe=1"
     try:
-        r = httpx.get(job_page, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+        r = httpx.get(job_page, timeout=30, headers={"User-Agent": cfg.USER_AGENT})
     except httpx.HTTPError as e:
         return f"can't tell if the posting is open - iCIMS didn't answer ({type(e).__name__})"
     if r.status_code == 410:

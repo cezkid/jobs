@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import alert
@@ -186,3 +188,13 @@ def test_morning_check_and_email_step_at_once_send_once(tmp_path):
         t.join()
     assert len(sent) == 1
     assert not (tmp_path / "alert.lock").exists()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="file mode is POSIX only")
+def test_email_password_file_is_owner_only(tmp_path):
+    env = tmp_path / "email.env"
+    env.write_text("SMTP_PASSWORD=x\n")
+    env.chmod(0o644)
+    alert.owner_only(env)
+    assert env.stat().st_mode & 0o777 == 0o600
+    alert.owner_only(tmp_path / "missing.env")  # no file yet: nothing to do

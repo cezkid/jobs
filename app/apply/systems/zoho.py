@@ -10,6 +10,8 @@ from pathlib import Path
 
 import httpx
 
+import cfg
+
 from apply import dom
 from apply.questions import (MONTHS, asks_complete_history, form_roles, key_from_title, left_on_page, question,
                              signs)
@@ -29,8 +31,7 @@ EDUCATION_ENTRIES = True
 # Skill Set box its skills list (competency_skills) - GETs to the employer's Zoho Recruit, before Submit
 SEARCHED_AS_TYPED = ("zip", "city", "state", "skills")
 DEFINITION = "https://{tenant}.zohorecruit.com/recruit/v2/public/Job_Openings/{job}/apply/{webform}"
-UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/141.0.0.0 Safari/537.36"}
+UA = {"User-Agent": cfg.USER_AGENT}
 # the posting's apply button (its words are the tenant's own: "I'm interested", "Apply now") or the form
 # itself: either says the posting is open (form.closed); recover() opens the form from the button
 APPLY = "lyte-button#detail-page-applybtn"
