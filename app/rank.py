@@ -658,17 +658,32 @@ def posting_says(job: dict, rc: dict) -> list[str]:
 # the job search's company record (companies.staffing - most of them), a name saying so, contract
 # terms only a third party writes. Docs: app/docs/jobs/freehire.md #Staffing firms
 STAFFING_NAME = re.compile(r"staffing|recruit(?:ing|ment|ments|ers)?\b|personnel|placements?\b|manpower|\btalent", re.I)
+# a name written as one word (recruitingfromscratch, decircletalentpartner): no word edge to find,
+# 3 of 3 such names in a React search staffing firms, 2026-10-27
+STAFFING_ONE_WORD = re.compile(r"recruit|talent", re.I)
 # a hiring system's host in the name (murphysfamilystaffing.zohorecruit.com): its word is no sign
 ATS_HOST = re.compile(r"\.(?:zohorecruit|recruitee|smartrecruiters)\.\w+.*$", re.I)
 # C2C / corp-to-corp / "on W2" / "W2 contract": 32 of 1,502 rows above, 25 of their firms already on
 # record, the other 7 staffing firms read by hand. "No C2C" is an employer turning third parties away
+# One employer the poster won't name - "Our client is a seed-stage AI company", "on behalf of our
+# client", a rewrite opening "About the Role Join an early-stage ... team" (Clera, True Talent): 2026-10-27,
+# 2,509 rows of a React search 97 hits, 71 firms on record, the rest recruiters or outsourcers read by
+# hand; 2,400 newest US rows (PM, consultant, analyst, software) 17, all placing at another company.
+# Plain "our client" stays out (a contractor's own "our clients", Accenture Federal) and so does
+# "our client is the ..." (a government agency).
 STAFFING_TEXT = re.compile(r"(?<!\bno )(?<!\bnot )(?<!\bnot a )\b(?:C2C|corp[- ]to[- ]corp)\b"
-                           r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b", re.I)
+                           r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b"
+                           r"|\bour\s+(?:[\w-]+\s+){0,2}client,?\s+(?:is\s+)?(?:an?|looking|seeking|hiring|searching|building)\b"
+                           r"|\babout\s+(?:our|the)\s+client\b|\bon\s+behalf\s+of\s+(?:our|a|one\s+of\s+our)\s+(?:[\w-]+\s+)?clients?\b"
+                           r"|^\s*About the Role\s+Join\s+an?\s+(?:[\w-]+\s+){0,5}(?:team|company|startup)\b", re.I)
 
 
 def staffing_firm(job: dict) -> bool:
-    """Posted by a staffing firm: its company record says so, its name does, or its contract terms."""
-    return bool(job.get("company_staffing")) or bool(STAFFING_NAME.search(ATS_HOST.sub("", job.get("company") or ""))) \
+    """Posted by a staffing firm: its company record says so, its name does, its contract terms, or
+    an employer it won't name."""
+    name = ATS_HOST.sub("", job.get("company") or "").strip()
+    return bool(job.get("company_staffing")) or bool(STAFFING_NAME.search(name)) \
+        or (" " not in name and bool(STAFFING_ONE_WORD.search(name))) \
         or bool(STAFFING_TEXT.search(TAG.sub(" ", job.get("description") or "")))
 
 

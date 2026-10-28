@@ -175,7 +175,16 @@ def test_staffing_firm_named_sorted_lower_kept_or_hidden():
     ("Sapear Inc", "Rate-$60/per hr. on C2C all inclusive", True), ("ASK Consulting", "Pay rate: $75/hr. On W2", True),
     ("ektello", "<p>W2 contract, 4 months</p>", True), ("Silicon Beach Solutions", "structured as a Corp-to-Corp engagement", True),
     ("Acme", "Full-time role. No C2C or third parties.", False), ("Satsyil", "Employment: Full-Time, W2", False),
-    ("AmazonWebServices", "please contact your Recruiting Partner", False), ("Vanguard", "We value talent.", False)])
+    ("AmazonWebServices", "please contact your Recruiting Partner", False), ("Vanguard", "We value talent.", False),
+    # one word, no edge to find (2026-10-27); founding-engineer posts for a startup the poster won't name
+    ("recruitingfromscratch", "", True), ("decircletalentpartner", "", True),
+    ("mlabs", "<p>Our client, an innovative venture-backed fintech start-up, is building</p>", True),
+    ("David Joseph & Company", "<h2>About the Company</h2><p>Our client is a seed-stage AI company</p>", True),
+    ("Raydar", "Raydar is recruiting for this role on behalf of our client.", True),
+    ("Clera", "<h3>About the Role</h3><p>Join an early-stage financial technology team building AI", True),
+    ("Accenture Federal", "We help our clients modernize. Our client is the Department of Veterans Affairs.", False),
+    ("CalCPA", "strengthen our client, employer, public and government trust", False),
+    ("Scope Labs", "<h3>About the Role</h3><p>You will join our team", False)])
 def test_staffing_firm_by_name_or_terms(company, text, expected):
     assert rank.staffing_firm(make_job("j", company=company, description=text)) is expected
 

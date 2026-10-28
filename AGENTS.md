@@ -307,7 +307,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone, LinkedIn, town you apply with, if you click "Apply and save" | Gem (the hiring system behind that employer's site) | Gem, kept to fill its next forms for you |
 | Each page's answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer's site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |
 | Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
-| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm, and whether each job the newest search no longer returns is still open |
+| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each job check (morning, then every 2 hours until 22:00), to find each company's website and whether it's a staffing firm, and whether each job the newest search no longer returns is still open |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user's own GitHub account name |
 
@@ -332,7 +332,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   Claude's new chats get the same line (`today --brief`).
 - `Today.md` - generated (`today`): waiting on you, follow up, best to apply next - two lists, remote + near them, each its own order (`app/docs/jobs/best-next.md`;
   same lists in the brief; email one order), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
-  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
+  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each job check (every 2 hours, 08:00-22:00 by default; only the day's first sends the email / pop-up).
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.

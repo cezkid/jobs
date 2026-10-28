@@ -148,6 +148,18 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   25 of their firms on record already, the other 7 staffing firms. Rejected: "our client" (consulting
   firms' own postings - Accenture Federal, DLR Group), "staffing" (equal-opportunity wording), plain
   "W2" (a contractor's "Full-Time, W2"), "recruiting partner" (AWS, Anduril name their own).
+- Employer left unnamed (2026-10-27, user: Founding Engineer results "mixed"): of 8 Founding
+  Engineer rows on a React list, 6 posted by a recruiter for a startup it won't name, 1 marked.
+  `rank.STAFFING_TEXT` also takes "Our client is a / an ...", "Our client, a ...", "about our client",
+  "on behalf of our client" and a rewrite opening "About the Role Join an early-stage ... team" (Clera,
+  True Talent): 97 of 2,509 stored rows, 71 on record already, the rest recruiters or outsourcers
+  (Luxoft, Software Mind) read by hand; 2,400 newest US rows (PM, consultant, analyst, software) 17,
+  every one placing at another company. Plain "our client" + "our client is the ..." (an agency)
+  stay out. One-word names (`recruitingfromscratch`, `decircletalentpartner`) have no word edge:
+  recruit / talent anywhere in a name without spaces (`rank.STAFFING_ONE_WORD`). React list: 21 of
+  143 shown named "staffing firm", 4 of 8 founding rows. Left: reposters under a name not theirs
+  (`urban-ridge-supplies` lists Auth0 + Noto jobs, `nsimechanical` an AI startup's) - `rank
+  --suspects` lists them for a blocklist.
 - 1,000 records in one check: 13.7 s at 8 at once, 0 failures; `x-ratelimit-limit: 600`, reset 1 s
   (`companies.BATCH`, `WORKERS`).
 - => "staffing firm" named on every such job, sorted lower (`rank.staffing: lower`, default) - a

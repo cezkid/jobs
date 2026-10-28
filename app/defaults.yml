@@ -29,10 +29,13 @@ alert:
   smtp_port: 465
   timeout_s: 30
 
-# local_daily: autorun.py on this computer's clock, poll + notify/email once
+# local_daily: autorun.py on this computer's clock, poll + notify/email once; then a quiet check
+# every every_hours until last_check (Today + the job list, no message; 0 = morning only)
 # poll + digest: systemd calendars for VPS (deploy/render_units.py)
 schedule:
   local_daily: "08:00"
+  every_hours: 2
+  last_check: "22:00"
   poll: "*:0/30"
   digest: "08:00 America/New_York"
 
