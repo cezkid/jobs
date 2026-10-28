@@ -27,6 +27,7 @@ small plug-in.
 | Loxo | `app.loxo.co/job/<base64 id>` (also `<firm>.app.loxo.co`; form `+ /form?source_type=app`, `?utm_source=` tail) - a recruiting firm's own site | `apply-form`, Job Finder's own Chrome; questions read off the form page (plain HTTP); resume set inside the upload box's shadow root (its hidden twin outside shows nothing); everything, resume too, sent at Submit | `loxo.md` |
 | Gem | `jobs.gem.com/<board>/<id>` (id starts `am9icG9zdD`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the job board's own GraphQL read (plain HTTP); boxes found by their labels (no ids); everything, resume too, sent at Apply | `gem.md` |
 | Zoho Recruit | `<tenant>.zohorecruit.com/jobs/Careers/<id>` (a slug + `?source=` after it too) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP), form opened by the posting's own apply button; email checked as its box is left (forms with screening questions), zip / city / state / skills searched as typed, the rest - resume too - at Submit | `zoho.md` |
+| Rippling | `ats.rippling.com/<employer>/jobs/<uuid>` (form `+ /apply?step=application`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the form definition inside the posting page (plain HTTP); boxes found by their `data-testid` (the definition's ids); resume sent on choosing it and read back into the name / email / phone / Location boxes, town letters to Google as typed, the rest at Apply | `rippling.md` |
 
 Careers-site postings (freehire `source` radancy): the job list's link is the employer's own page;
 `prepare` reads it once and goes on with the system its Apply leads to (`apply/careers_page.py`,
@@ -37,7 +38,7 @@ signed-in users, so `prepare` finds the employer's own posting on the job search
 opening text, a link a system here fills (`apply/listing_copy.py`; 96 of 180 copies found one,
 2026-10-22) - and goes on with that link.
 
-Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
 plainly -> user gets tailored PDF + answers to paste.

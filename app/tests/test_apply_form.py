@@ -2301,6 +2301,8 @@ def test_saved_pronouns_filled_after_the_users_yes():
     assert a["answer"] == "He/Him" and questions.VOLUNTARY_SAVED in a["source"]
     longer = questions.question("p", "Pronouns", "choice", False, ["he / him / his", "she / her / hers"])
     assert questions.draft([longer], {}, config={"self_identification": saved})[0]["answer"] == "he / him / his"
+    two_sets = questions.question("p", "Pronouns", "choice", False, ["He/him/his", "He/him/his, they/them/theirs"])
+    assert questions.draft([two_sets], {}, config={"self_identification": saved})[0]["answer"] == "He/him/his"
     typed = questions.question("p", "Your pronouns", "text", False)
     assert questions.draft([typed], {}, config={"self_identification": {"pronouns": "they/them", "fill_on_forms": True}}
                            )[0]["answer"] == "they/them"
