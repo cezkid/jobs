@@ -173,6 +173,13 @@ rank:
   # a wish ("Java a plus") don't count; a posting listing no requirements counts on the job search's own
   # skill tags ("lists Java"). Whole names: Java never inside JavaScript. [] = none (rank.avoided)
   avoid_skills: []
+  # false = they never worked as an engineer or coder - a project / program manager who leads technical
+  # work at a high level: a job whose required lines ask that background (worked as an engineer, coding,
+  # "strong technical depth") sorts lower w/ "asks an engineer's background", never hidden. A CS degree
+  # "or equivalent", managing software projects, "enough technical depth to follow" never count.
+  # 2026-10-28, 1,462 live US postings w/ requirements: TPM 36 of 413, technical project manager 21 of 395,
+  # IT project manager 2 of 329, program manager 4 of 325 (rank.engineer_asked). null / true = not read
+  engineer_background: null
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0

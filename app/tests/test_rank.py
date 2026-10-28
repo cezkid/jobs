@@ -734,6 +734,41 @@ def test_avoided_skill_ranks_below_and_says_why():
     assert "asks Java" in rank.reasons(ranked[1], config)
 
 
+@pytest.mark.parametrize("line, flagged", [
+    # worked as an engineer, codes, or engineering depth - 2026-10-28, live TPM / technical PM postings
+    ("2+ years of experience as a software engineer or comparable technical role", True),
+    ("Engineering degree or equivalent; started career as an engineer and transitioned into program management", True),
+    ("5+ years of software development experience", True),
+    ("Hands-on software development background, or enough time embedded with engineering teams to read a codebase", True),
+    ("Strong technical depth: Kubernetes orchestration, storage engines, ML serving infrastructure", True),
+    ("Strong technical background with familiarity in systems engineering and/or software development", True),
+    # leading the work, a degree "or equivalent", or the bar a high-level manager meets: not asked
+    ("5+ years managing software development projects or major technical workstreams", False),
+    ("5+ years of software development lifecycle experience in an Agile environment", False),
+    ("Bachelor's degree in Computer Science, Engineering, or equivalent practical experience", False),
+    ("Strong understanding of the software development lifecycle", False),
+    ("Enough technical depth to understand security concepts and engage in design conversations", False),
+    ("Strong grasp of system design, with the ability to follow engineering conversations (no coding required)", False),
+    ("Strong technical background or proven ability to engage in technical discussions (APIs, CI/CD)", False),
+    ("Prior hands-on software development experience (C++, Python) is a plus", False),
+])
+def test_engineer_background_asked(line, flagged):
+    job = _asking("a", line)
+    assert rank.engineer_asked(job, False) == (["asks an engineer's background"] if flagged else [])
+    # only when they said they never worked as one
+    assert rank.engineer_asked(job, None) == rank.engineer_asked(job, True) == []
+
+
+def test_engineer_background_ranks_below_and_says_why():
+    config = cfg.load(cfg.PROFILES / "program-manager.yml")
+    config["rank"]["engineer_background"] = False
+    eng = _asking("eng", "3-5+ years of experience as a software engineer")
+    eng.update(salary_min=300000, salary_currency="USD", salary_period="year")
+    ranked = rank.rank([eng, _asking("pm", "8+ years leading cross-functional programs")], config)
+    assert [j["public_slug"] for j in ranked] == ["pm", "eng"]
+    assert "asks an engineer's background" in rank.reasons(ranked[1], config)
+
+
 def gap_facts(**over):
     return {"stems": set(), "titles": set(), "years": 10, "credentials": knockout.credential_text({}),
             "portfolio": False, "degree": 2, "languages": set(), **over}

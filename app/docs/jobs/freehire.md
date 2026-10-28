@@ -286,6 +286,11 @@ Charlotte: program manager 101, TPM 3.
   name CS / engineering in a required line, nearly all a degree "or equivalent" or a "TPM or
   software engineering" menu; a hard "N years as a software engineer" w/o alternative 20 of 1,249
   PM postings. PMP / PgMP / SAFe / ITIL asks are read (`knockout.credentials_asked`).
+  Read instead (2026-10-28, 1,462 live US postings w/ requirements): an engineer's background - worked
+  as one, coding, "strong / deep technical depth" - TPM 36 of 413, technical project manager 21 of 395,
+  IT project manager 2 of 329, program manager 4 of 325. `rank.engineer_background: false` (a manager
+  who leads technical work at a high level) sorts those lower; degree, managing software projects and
+  "enough technical depth to follow" left out. "No coding required" said in 1 of 2,230 => no boost.
 - What the interviews test (2,858 postings' full descriptions, TPM / finance split): delivery,
   stakeholders, risk 86-94%; system design 46% of TPM; SOX / Basel / CCAR ~0 =>
   `app/docs/apply/interview.md` #Program managers.
