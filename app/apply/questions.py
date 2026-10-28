@@ -410,6 +410,12 @@ def work_permit(q: dict, config: dict):
         if wa.get("needs_sponsorship") or wa.get("student_visa"):
             return None
         return wa.get("authorized_us")
+    if WITHOUT_SPONSORSHIP.search(title) and us:
+        # "authorized ... without current or future sponsorship?" - Yes means no sponsorship needed, the
+        # opposite of "will you require sponsorship?"; a visa holder's answer is theirs (as above)
+        if wa.get("student_visa") or wa.get("authorized_us") is None or wa.get("needs_sponsorship") is None:
+            return None
+        return wa["authorized_us"] and not wa["needs_sponsorship"]
     if "sponsorship" in title and "future" in title and us:
         return wa.get("needs_sponsorship")
     # another country's "citizen or permanent resident" is a different question
@@ -423,6 +429,7 @@ def work_permit(q: dict, config: dict):
     return None
 
 
+WITHOUT_SPONSORSHIP = re.compile(r"\bwithout\b(?:\W+[\w-]+){0,5}?\W+sponsorship")
 CAN_GET_CLEARANCE = re.compile(r"eligib\w* (?:to obtain|for (?:a |an )?(?:u\.?s\.? |us )?(?:security |government )?clearance)|"
                                r"(?:able|ability) to obtain")
 HOLD_CLEARANCE = re.compile(r"\b(?:currently|current|active|do you (?:have|hold|possess)|what level|interim)\b")
