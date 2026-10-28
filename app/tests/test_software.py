@@ -86,3 +86,24 @@ def test_unknown_kind_refused(tmp_path):
                                     "rank": {"software_kinds": ["front-end"]}}))
     with pytest.raises(ValueError, match="software_kinds"):
         cfg.load(path)
+
+
+@pytest.mark.parametrize("title, kinds", [
+    ("Solutions Engineer - NYC", ["customer"]),
+    ("Sr. Sales Engineer, Performance", ["customer"]),
+    ("Principal Presales Engineer", ["customer"]),
+    ("Customer Support Engineer", ["customer"]),
+    ("Technical Account Manager", ["customer"]),
+    # the team a developer sits on, and Forward Deployed (builds software): not customer-facing
+    ("Software Engineer II, Solutions Engineering", []),
+    ("Forward Deployed Engineer", []),
+])
+def test_customer_facing_titles_named(title, kinds):
+    assert software.named(title) == kinds
+
+
+def test_customer_facing_title_sorts_lower_for_developer():
+    # tagged w/ the product's stack: read off the tags, it looked like front-end work
+    job = make_job("a", title="Solutions Engineer - NYC", skills=["react", "typescript"])
+    assert software.mismatch(job, FRONT) == ["title says customer-facing (sales, setup, support)"]
+    assert software.mismatch(job, ["customer"]) == []

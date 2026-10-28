@@ -136,7 +136,7 @@ Then narrowing what they picked:
   the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - Software engineering picked (or their words name it): which kinds of software work, `multiSelect`
   (`app/software.py` KINDS): front-end, full-stack, back-end, mobile apps, systems / embedded, DevOps
-  / cloud, data / AI, testing - each w/ its category count (`probe --facets category <their place
+  / cloud, data / AI, testing, customer-facing (sales, setup, support) - each w/ its category count (`probe --facets category <their place
   params>`). "Tick all you'd take - other kinds sort lower, never hidden. Tick all that fit, then
   Submit" -> `rank.software_kinds`. Their words already say it ("front-end, can do full stack") ->
   confirm in one line, no question. Why it matters: 58% of `software_engineering` jobs are titled
