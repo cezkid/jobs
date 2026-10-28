@@ -34,7 +34,9 @@ to gates.
    to each change and "Generated with Claude Code" to its description). Save w/
    `attribution off` / `attribution on` - their own Claude Code setting, every project; say so.
    Then `uv run app/jobs.py attribution hook` (commit-msg hook in `.data/upstream` strips the
-   lines while off). Off -> never type them yourself either.
+   lines while off, and stops a commit authored by Claude - a cloud session's own git name, which GitHub
+   turns into "Co-authored-by: Claude" on merge). Off -> never type them yourself either, and commit
+   under the user's own name: `git config user.name` / `user.email` from their GitHub account.
 
 ## Gate 0 - consent
 
