@@ -1,0 +1,215 @@
+{
+ "activeJobApplication": {
+  "basicQuestions": [
+   {
+    "oid": "first_name",
+    "fieldType": "SHORT_ANSWER",
+    "title": "First name",
+    "required": true
+   },
+   {
+    "oid": "last_name",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Last name",
+    "required": true
+   },
+   {
+    "oid": "email",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Email",
+    "required": true
+   },
+   {
+    "oid": "pronouns",
+    "fieldType": "PRONOUN",
+    "title": "Pronouns",
+    "required": false
+   },
+   {
+    "oid": "current_company",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Current company",
+    "required": false
+   },
+   {
+    "oid": "phone_number",
+    "fieldType": "PHONE_NUMBER",
+    "title": "Phone number",
+    "required": true
+   },
+   {
+    "oid": "location",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Location (city only)",
+    "required": true
+   },
+   {
+    "oid": "resume",
+    "fieldType": "FILE",
+    "title": "Resume",
+    "required": true
+   },
+   {
+    "oid": "cover_letter",
+    "fieldType": "FILE",
+    "title": "Cover letter",
+    "required": false
+   }
+  ],
+  "additionalQuestions": [
+   {
+    "name": "Group 1",
+    "id": "6ae0df4eb9ea6367bcbfb600",
+    "form": {
+     "questions": [
+      {
+       "uniqueKey": "213cf3b2-9260-4e35-b1ed-9533163fd4af",
+       "title": "Are you authorized to conduct work in the US on a permanent-hire basis (not as a contractor?)",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "ff05e34a-8f0f-40a8-a421-7ce1fa638596",
+       "title": "Do you now, or will you in the future, require Visa sponsorship?",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "3cdcdb0a-e60a-4020-99da-f33d674fc44c",
+       "title": "What is your desired OTE compensation (base salary + commission/bonus)? (Please share a numerical range.)",
+       "dataType": "Text",
+       "questionType": "SHORT_ANSWER",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "ae881a3f-904e-467c-854b-598982f3e1cc",
+       "title": "How did you hear about this opportunity?",
+       "dataType": "select",
+       "questionType": "MULTI_SELECT_CHECKBOX",
+       "isRequired": true,
+       "allowComments": true,
+       "strChoices": [
+        "LinkedIn",
+        "Indeed",
+        "Company Careers Page",
+        "Job Board / Online Posting",
+        "Recruiter Outreach",
+        "Referral (please specify below)",
+        "Professional Network or Community",
+        "Other (please specify below)"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      }
+     ],
+     "sections": [],
+     "skipLogic": []
+    }
+   },
+   {
+    "name": "Group 2",
+    "id": "6ae0df4eb9ea6367bcbfb601",
+    "form": {
+     "questions": [
+      {
+       "uniqueKey": "0e4c8300-8a74-4858-9a83-3e9566b708fb",
+       "title": "How many years of hands-on professional software development experience do you have building production applications?",
+       "dataType": "enum",
+       "questionType": "SINGLE_SELECT_RADIO",
+       "isRequired": true,
+       "allowComments": true,
+       "strChoices": [
+        "8+ years",
+        "5-7 years",
+        "3-4 years",
+        "Less than 3 years"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "126f9d13-f2d7-413a-a423-3fd4a31ee3d9",
+       "title": "Which of the following have you worked with hands-on in production? Select all that apply.",
+       "dataType": "select",
+       "questionType": "MULTI_SELECT_CHECKBOX",
+       "isRequired": true,
+       "allowComments": true,
+       "strChoices": [
+        "Java / Kotlin / C#",
+        "REST APIs / cloud-native microservices",
+        "Docker / Kubernetes",
+        "Azure / AWS",
+        "Relational databases (SQL Server, Postgres)",
+        "NoSQL / search databases (MongoDB, Elasticsearch)",
+        "Kafka / RabbitMQ or other event-driven systems",
+        "TypeScript",
+        "React",
+        "Multi-tenant SaaS platforms"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "6257e0f2-e84f-46fe-a73c-e918a42b6467",
+       "title": "Which statement best describes your experience with AI / LLM / agentic initiatives?",
+       "dataType": "enum",
+       "questionType": "SINGLE_SELECT_RADIO",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "I have personally built or integrated AI/LLM-powered features, services, or agentic workflows in production or prototyping.",
+        "I have used AI-assisted development tools (e.g., Copilot, code generation) but have not directly built AI/LLM-powered product features or workflows.",
+        "I have limited exposure to AI / LLM / agentic work.",
+        "I do not have AI / LLM / agentic experience yet"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "07843e81-2df7-495c-ad06-4131d4be6af1",
+       "title": "In 3–5 sentences, describe the most relevant backend, cloud-native, or SaaS platform you have personally built or owned. Please include the technologies you used and what you directly handled.",
+       "dataType": "Text",
+       "questionType": "LONG_ANSWER",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      }
+     ],
+     "sections": [],
+     "skipLogic": []
+    }
+   }
+  ]
+ },
+ "eeocQuestionnaireEnabledForJobPost": true
+}

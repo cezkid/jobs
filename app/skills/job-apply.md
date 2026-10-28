@@ -269,6 +269,11 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    "Apply and save" keeps their contact details on Gem for its next forms, "Apply without saving"
    doesn't: their click, say so. LinkedIn typed by hand: `https://www.linkedin.com/in/...` - Gem
    refuses `https://linkedin.com/...`. `app/docs/apply/gem.md`.
+   Rippling (`ats.rippling.com`): one page. The resume goes to the site when chosen and the page reads
+   it into name, email, phone and Location - `fill` waits for that, then puts the town they live in over
+   Location (`home_address` city; two US towns of that name -> ASK: write the place as offered). The
+   town's letters go to Google as typed - say so before `fill`. Text-message Yes / No and the check at
+   Apply are theirs. `app/docs/apply/rippling.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the

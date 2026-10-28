@@ -1,0 +1,273 @@
+{
+ "activeJobApplication": {
+  "basicQuestions": [
+   {
+    "oid": "first_name",
+    "fieldType": "SHORT_ANSWER",
+    "title": "First name",
+    "required": true
+   },
+   {
+    "oid": "last_name",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Last name",
+    "required": true
+   },
+   {
+    "oid": "email",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Email",
+    "required": true
+   },
+   {
+    "oid": "pronouns",
+    "fieldType": "PRONOUN",
+    "title": "Pronouns",
+    "required": false
+   },
+   {
+    "oid": "current_company",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Current company",
+    "required": false
+   },
+   {
+    "oid": "phone_number",
+    "fieldType": "PHONE_NUMBER",
+    "title": "Phone number",
+    "required": true
+   },
+   {
+    "oid": "location",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Location (city only)",
+    "required": true
+   },
+   {
+    "oid": "linkedin_link",
+    "fieldType": "SHORT_ANSWER",
+    "title": "LinkedIn link",
+    "required": false
+   },
+   {
+    "oid": "website_link",
+    "fieldType": "SHORT_ANSWER",
+    "title": "Website link",
+    "required": false
+   },
+   {
+    "oid": "resume",
+    "fieldType": "FILE",
+    "title": "Resume",
+    "required": true
+   }
+  ],
+  "additionalQuestions": [
+   {
+    "name": "Group 1",
+    "id": "6aac31c7a8edefd84b9292bc",
+    "form": {
+     "questions": [
+      {
+       "uniqueKey": "cfd7dfd9-f89b-4ddf-b2f9-a2d6a35ae056",
+       "title": "Are you willing to work from the Acme office 3 days/week?",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes, I'm already located in the office area",
+        "Yes, I'm planning on relocating to the office area",
+        "I'm open to relocation for the right role",
+        "No, I'm looking for fully remote roles"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "c3d8e374-4aff-441a-a3cf-8bbebd675882",
+       "title": "Are you authorized to work for any employer in Ruritania?",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "5d1d6be1-8927-4b93-84ea-33f2dadead33",
+       "title": "What is your target base salary expectation for this role? ",
+       "dataType": "Text",
+       "questionType": "SHORT_ANSWER",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "4e829ddf-b866-48b5-9b00-8673df05c2f4",
+       "title": "What is your target start date for a new position?",
+       "dataType": "Date",
+       "questionType": "DATE",
+       "isRequired": true,
+       "allowComments": true,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "4f81c621-dae6-473a-9f52-c1af40992358",
+       "title": "I certify that all information provided in this application (and any accompanying resume, cover letter, or supporting materials) is true, accurate, and complete to the best of my knowledge and ability. I understand that any false statement, omission, or misrepresentation — including regarding my work authorization or sponsorship requirements — may result in disqualification from consideration or, if discovered after hire, termination of employment.",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes, I certify this application to be true",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      }
+     ],
+     "sections": [],
+     "skipLogic": []
+    }
+   },
+   {
+    "name": "Group 2",
+    "id": "6aad73ac3805fae2edafd0a9",
+    "form": {
+     "questions": [
+      {
+       "uniqueKey": "bd862fd8-56f9-4955-b929-4ce1987948f9",
+       "title": "Please enter your desired pay range. (example: $xx - $xx)",
+       "dataType": "Text",
+       "questionType": "SHORT_ANSWER",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "1c36ddd9-5373-4de6-8887-275f156cf170",
+       "title": "Are you legally authorized to work in the United States?",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "dd129378-ba21-4564-8e11-ef534cadcec8",
+       "title": "Will you now, or in the future, require sponsorship for employment visa status to work legally in the United States??",
+       "dataType": "select",
+       "questionType": "KNOCKOUT",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": true,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "6b299eb8-81e9-4b88-bd23-7c5db7ac80a5",
+       "title": "Have you ever been employed by Acme?",
+       "dataType": "enum",
+       "questionType": "SINGLE_SELECT_RADIO",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "8d6c7422-91b2-4aed-9734-ea75e8d28e09",
+       "title": "Are you employed by an Acme client or partner?",
+       "dataType": "enum",
+       "questionType": "SINGLE_SELECT_RADIO",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Yes",
+        "No"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      },
+      {
+       "uniqueKey": "ae3792f4-a879-4597-afe3-10a7f48e88e0",
+       "title": "If you answered 'yes' to the previous question, please provide additional details regarding your relationship or position, including the name of the client or partner, or specific relationship.",
+       "dataType": "Text",
+       "questionType": "LONG_ANSWER",
+       "isRequired": false,
+       "allowComments": false,
+       "maxChars": 100,
+       "strChoices": [],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      }
+     ],
+     "sections": [],
+     "skipLogic": []
+    }
+   },
+   {
+    "name": "Group 3",
+    "id": "6ac57269c7c8fd18eabced6e",
+    "form": {
+     "questions": [
+      {
+       "uniqueKey": "69b3fe39-867f-462b-adbd-ddaac93d83c7",
+       "title": "How many years of relevant professional experience do you have?",
+       "dataType": "enum",
+       "questionType": "SINGLE_SELECT_DROPDOWN",
+       "isRequired": true,
+       "allowComments": false,
+       "strChoices": [
+        "Less than 1 year",
+        "1 to 2 years",
+        "3 to 5 years",
+        "6 to 9 years",
+        "10 or more years"
+       ],
+       "intChoices": [],
+       "isMultiSelectEnabled": false,
+       "isOtherEnabled": false
+      }
+     ],
+     "sections": [],
+     "skipLogic": []
+    }
+   }
+  ]
+ },
+ "eeocQuestionnaireEnabledForJobPost": false
+}

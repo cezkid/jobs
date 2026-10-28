@@ -806,9 +806,10 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
         # Greenhouse "Are you Hispanic/Latino?" Yes / No / Decline To Self Identify (2026-10-11)
         want = lambda o: says(o, said)
     elif key == "pronouns" and said:
-        # "He/Him" saved: "He/Him", "he / him", "He/Him/His" - never "He/They"
+        # "He/Him" saved: "He/Him", "he / him", "He/Him/His" - never "He/They", nor "He/him/his, they/them/theirs"
+        # (a second set after a comma: Rippling's list, 2026-10-27)
         bare = lambda o: re.sub(r"\s+", "", o.casefold())
-        want = lambda o: bare(o) == bare(str(said)) or bare(o).startswith(bare(str(said)) + "/")
+        want = lambda o: bare(o) == bare(str(said)) or (bare(o).startswith(bare(str(said)) + "/") and "," not in o)
     elif key == "hispanic_latino" and said is True:
         # "Hispanic or Latino" (EEOC), "Hispanic, Latinx, or Spanish Origin" (2026-10)
         want = lambda o: o.startswith("hispanic")
