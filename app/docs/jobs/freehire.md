@@ -87,6 +87,26 @@ returns fewer than `window.min_jobs` (30) rows (`app/defaults.yml`, counts measu
 reason "may be closed - not seen in Nd"; digest never announces them. Demoted, not hidden:
 hiding a still-open job costs a chance, showing a closed one costs a click.
 
+Rows the window no longer reaches are asked about one by one after each check
+(`freehire.recheck`): `GET /jobs/<slug>` (listing id only; privacy table row), `closed_at` set or
+404 -> closed here; open -> asked again in `RECHECK_DAYS` (2); no answer -> next check. Never asked
+first (most recently seen of them first), then longest since asked; 400 a check: the job search
+allows 600 asks a minute across search + company records (`x-ratelimit-reset` 50 s; 81 of 300
+detail asks at 8 at once answered 429, 2026-10-27), and a 429 stops the rest till next check. Measured 2026-10-27 on a real list (3,368 open):
+of 219 sampled open rows outside the window, 83 marked closed or gone - 11 of 45 last seen 5-7
+days ago, 15 of 52 at 8-14 days (not yet stale-demoted); 8 of the first 70 shown, links 404 or
+"Position Closed". `reality.age_days` is as of the fetch that stored it: `rank.age` adds the days
+since `fetched_at` (those rows read "first seen 1d ago" 12 days on).
+
+Same pass drops jobs closed 30+ days (`store.DROP_CLOSED_DAYS`) the user never acted on - no
+status, application step, interview ask or score kept (owner 2026-10-27: 1,444 of 1,462 closed
+rows). Their `numbers` + `seen` rows stay: a number is never given twice, and a job that reopens
+is not announced again. Removing rows never makes numbers smaller - they count up per job shown.
+
+The job search's own word lags the employer: same day, 4 of the first 70 shown it still called
+open had a dead employer page (Ashby 404, a careers page saying "Position Closed"). Not fetched here - the
+employer's page would be a new thing off the computer; `status open` + the Apply step catch it.
+
 Jobs in progress (`status open`, `status.still_open`) read the same signals: `closed_at` set ->
 "may be closed - gone from your job search since D"; unseen more than `rank.stale_days` ->
 "may be closed - not seen in N days", counted from the last check, not today, so a morning
@@ -128,6 +148,18 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   25 of their firms on record already, the other 7 staffing firms. Rejected: "our client" (consulting
   firms' own postings - Accenture Federal, DLR Group), "staffing" (equal-opportunity wording), plain
   "W2" (a contractor's "Full-Time, W2"), "recruiting partner" (AWS, Anduril name their own).
+- Employer left unnamed (2026-10-27, user: Founding Engineer results "mixed"): of 8 Founding
+  Engineer rows on a React list, 6 posted by a recruiter for a startup it won't name, 1 marked.
+  `rank.STAFFING_TEXT` also takes "Our client is a / an ...", "Our client, a ...", "about our client",
+  "on behalf of our client" and a rewrite opening "About the Role Join an early-stage ... team" (Clera,
+  True Talent): 97 of 2,509 stored rows, 71 on record already, the rest recruiters or outsourcers
+  (Luxoft, Software Mind) read by hand; 2,400 newest US rows (PM, consultant, analyst, software) 17,
+  every one placing at another company. Plain "our client" + "our client is the ..." (an agency)
+  stay out. One-word names (`recruitingfromscratch`, `decircletalentpartner`) have no word edge:
+  recruit / talent anywhere in a name without spaces (`rank.STAFFING_ONE_WORD`). React list: 21 of
+  143 shown named "staffing firm", 4 of 8 founding rows. Left: reposters under a name not theirs
+  (`urban-ridge-supplies` lists Auth0 + Noto jobs, `nsimechanical` an AI startup's) - `rank
+  --suspects` lists them for a blocklist.
 - 1,000 records in one check: 13.7 s at 8 at once, 0 failures; `x-ratelimit-limit: 600`, reset 1 s
   (`companies.BATCH`, `WORKERS`).
 - => "staffing firm" named on every such job, sorted lower (`rank.staffing: lower`, default) - a
@@ -175,6 +207,14 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   carries `states:` (local only, `cfg` checks the codes); `rank.far` drops a row whose `location`
   names only other states or `countries` lacks us. No state written / remote => kept (can't tell):
   0 wrong drops on 151 rows read by hand.
+- **Metro areas** (2026-10-26). `metros=` takes the job search's metro names, country in brackets
+  (`New York City (US)`; `probe --facets metros countries=us` lists them w/ counts) and matches each row's
+  own `metros` list - the city and its suburbs. React jobs, 7 days: `cities=New York City` 243,
+  `metros=New York City (US)` 288 - 56 new (Jersey City 36, Norwalk CT 3, Rutherford 2, Secaucus,
+  Hoboken, Parsippany, Woodbridge, Iselin, Yonkers, Stamford ...), 11 gone, every one w/o a real place
+  ("United States", "Remote", blank). A North Jersey user's city tier never saw Jersey City (its own
+  `cities=` value). Metro rows still carry loose tags (Saint Paul MN, Menlo Park CA 1 each) => keep
+  `states:`. Geography facet like the rest: alone in its pass.
 - **Reposter pollution** (2026-09-15). `jobgether` re-lists other employers' postings, held 4 of
   top 12 rows. Every profile blocklists it; `uv run app/jobs.py rank --suspects` lists companies spanning
   `rank.suspect_min_categories` enrichment categories.
@@ -246,6 +286,11 @@ Charlotte: program manager 101, TPM 3.
   name CS / engineering in a required line, nearly all a degree "or equivalent" or a "TPM or
   software engineering" menu; a hard "N years as a software engineer" w/o alternative 20 of 1,249
   PM postings. PMP / PgMP / SAFe / ITIL asks are read (`knockout.credentials_asked`).
+  Read instead (2026-10-28, 1,462 live US postings w/ requirements): an engineer's background - worked
+  as one, coding, "strong / deep technical depth" - TPM 36 of 413, technical project manager 21 of 395,
+  IT project manager 2 of 329, program manager 4 of 325. `rank.engineer_background: false` (a manager
+  who leads technical work at a high level) sorts those lower; degree, managing software projects and
+  "enough technical depth to follow" left out. "No coding required" said in 1 of 2,230 => no boost.
 - What the interviews test (2,858 postings' full descriptions, TPM / finance split): delivery,
   stakeholders, risk 86-94%; system design 46% of TPM; SOX / Basel / CCAR ~0 =>
   `app/docs/apply/interview.md` #Program managers.
@@ -417,6 +462,13 @@ in passing ("integrate backend services with frontend applications"). Sorted low
 A language they don't want ("no Java"): `rank.avoid_skills` reads the required lines, not the tags,
 when there are any - a front-end list, 2026-10-12: 31 of 161 open rows name Java in a required line or
 tag, 17 only as one choice of several ("Python, Node.js, or Java"), so 14 sort lower.
+Customer-facing titles (2026-10-28, `customer` kind): the job search tags pre-sales, setup + support
+jobs w/ the product's stack - "Solutions Engineer - NYC" carried react + typescript, read as
+front-end, #3 of a front-end user's nearby list. Category can't sort them: `solutions_engineering`
+held 54 open rows of a React search, 40 Forward Deployed (builds software). Title words do: of 2,558
+open rows, 44 named (sales / solutions / presales / customer / implementation / support engineer,
+technical consultant, technical account manager), 0 Forward Deployed, 0 "Software Engineer,
+Solutions Engineering" (the team, not the job). Sorted lower for any `rank.software_kinds` w/o it.
 
 ## Null facets outside tech (2026-09-19)
 

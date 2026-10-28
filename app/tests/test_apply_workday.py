@@ -425,3 +425,75 @@ def test_apply_link_that_ignores_the_click_opened(chrome, monkeypatch):
     assert workday.fill(pg, {"id": workday.START, "native": "start", "kind": "choice", "answer": "Apply Manually"}, None) == "ok"
     assert "/job/apply" in pg.url
     context.close()
+
+
+# --- a Workday tenant, 2026-10-26: sign-in email, a pay number box, a passed step's box, the date boxes ---
+
+SIGN_IN = ('<div data-automation-id="progressBarActiveStep">current step 1 of 7 Create Account/Sign In</div>'
+           '<input data-automation-id="email" type="text" aria-label="Email Address">'
+           '<input data-automation-id="password" type="password" aria-label="Password">')
+
+
+def test_sign_in_step_gets_their_email_never_the_password(page, monkeypatch):
+    from apply import dom
+    monkeypatch.setattr(dom, "account_email", lambda: "jane@example.com")
+    page.set_content(SIGN_IN)
+    with pytest.raises(SystemExit, match=r"their email \(jane@example.com\) typed in, the password box left for them"):
+        workday.read(page)
+    assert page.input_value('[data-automation-id="email"]') == "jane@example.com"
+    assert page.input_value('[data-automation-id="password"]') == ""
+    monkeypatch.setattr(dom, "account_email", lambda: None)  # before setup: nothing typed, the user types it
+    page.set_content(SIGN_IN)
+    with pytest.raises(SystemExit) as stop:
+        workday.read(page)
+    assert "typed in" not in str(stop.value) and page.input_value('[data-automation-id="email"]') == ""
+
+
+PAY_AND_DATE = """<div data-automation-id="progressBarActiveStep">current step 3 of 6 Application Questions</div>
+<div data-automation-id="formField-pay"><label for="q--pay">Desired Annual Pay:*</label><input id="q--pay" type="number"></div>
+<div data-automation-id="formField-payText"><label for="q--payText">Desired Pay (text)*</label>
+  <input id="q--payText" onblur="this.value = this.value.replace(/\\D/g, '')"></div>
+<div data-automation-id="formField-dateSignedOn"><label for="d--month">Date*</label>
+  <div style="display:flex">%s</div></div>
+<script>
+  // spin buttons drawn off screen under the digits shown (the live page's Self Identify date): a click on the
+  // shown digits focuses the box, typed digits fill it and move on, as Workday does
+  const boxes = [...document.querySelectorAll('input[role=spinbutton]')];
+  document.querySelectorAll('.seg').forEach((s, i) => s.addEventListener('click', () => boxes[i].focus()));
+  boxes.forEach((b, i) => b.addEventListener('keydown', (e) => {
+    if (!/^\\d$/.test(e.key)) return;
+    e.preventDefault();
+    const v = (b.getAttribute('aria-valuetext') || '').replace(/\\D/g, '') + e.key;
+    b.setAttribute('aria-valuetext', v);
+    if (v.length >= b.maxLength && boxes[i + 1]) boxes[i + 1].focus();
+  }));
+</script>""" % "".join(
+    f'<div class="seg" style="width:24px;height:28px"><input role="spinbutton" maxlength="{n}" id="d--{part}" '
+    f'data-automation-id="dateSection{part.title()}-input" aria-label="{part}" '
+    f'style="position:fixed;left:-500px;top:-500px"></div>' for part, n in (("month", 2), ("day", 2), ("year", 4)))
+
+
+def test_pay_typed_with_a_dollar_sign_kept_as_the_number_box_shows_it(page):
+    page.set_content(PAY_AND_DATE)
+    qs = {q["title"]: q for q in workday.read(page)}
+    assert qs["Date"]["kind"] == "date"
+    pay, text = qs["Desired Annual Pay:"], qs["Desired Pay (text)"]
+    assert workday.fill(page, {**pay, "answer": "$95,000"}, None) == "ok"
+    assert page.input_value("#q--pay") == "95000"
+    assert workday.fill(page, {**text, "answer": "$95,000"}, None) == "ok"  # the box keeps 95000 once left
+    assert page.input_value("#q--payText") == "95000"
+
+
+def test_date_typed_into_spin_boxes_drawn_off_screen(page):
+    page.set_content(PAY_AND_DATE)
+    date = next(q for q in workday.read(page) if q["kind"] == "date")
+    assert workday.fill(page, {**date, "answer": "10/26/2026"}, None) == "ok"
+    assert [page.get_attribute(f"#d--{p}", "aria-valuetext") for p in ("month", "day", "year")] == ["10", "26", "2026"]
+
+
+def test_a_passed_steps_box_is_later_never_filled_on_the_next_step(page):
+    page.set_content(PAY_AND_DATE)
+    passed = {"id": "formField-pay", "kind": "text", "native": "text", "answer": "He/Him", "page": "Voluntary Disclosures"}
+    workday.inject(page)
+    assert workday.fill(page, passed, None).startswith("LATER")
+    assert page.input_value("#q--pay") == ""

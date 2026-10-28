@@ -481,9 +481,31 @@ def test_nearby_office_in_their_area():
     assert at("United States", ["New York City", "San Francisco"]) == 0.5
 
 
+# a Stamford office 30+ miles off scored the same as one in Jersey City: "pay is important but so is distance"
+# (owner 2026-10-26, a New York City area search from North Jersey)
+def test_nearby_closer_office_scores_higher_and_says_how_far():
+    config = cfg.merge(CONFIG, {"home_address": {"city": "Montclair", "state": "New Jersey"},
+                                "passes": [{"tier": "local", "states": ["NJ", "NY", "CT"],
+                                            "params": {"metros": ["New York City (US)"]}}]})
+    local = dict(tier="local", work_mode="hybrid")
+    close, far = job("close", location="Jersey City, NJ", **local), job("far", location="Stamford, United States", **local)
+    abroad = job("abroad", location="Los Angeles, CA", cities=["New York City", "Los Angeles"], **local)
+    scored = {j["public_slug"]: j for j in best.lists([far, abroad, close], config, NOW, None)["nearby"]}
+    assert scored["close"]["best_parts"]["where"] == 1.0 > scored["far"]["best_parts"]["where"] > 0
+    assert scored["abroad"]["best_parts"]["where"] == 0.0
+    assert "Jersey City, 10 miles from home" in best.reasons(scored["close"], config, NOW)
+    assert [j["public_slug"] for j in best.lists([far, abroad, close], config, NOW, None)["nearby"]] == ["close", "far", "abroad"]
+    assert best.closeness(10, config["rank"]["best_next"]) == 1.0 and best.closeness(40, config["rank"]["best_next"]) == 0.0
+    # no home on file: the place reading by tier state, as before
+    assert best.near(close, config, {"NJ"}) == 1.0 and best.near(far, config, {"NJ"}) == 0.5
+
+
 def test_home_from_their_resume_else_their_city_tiers():
     assert best.home_states(CONFIG, {"location": "Hoboken, NJ"}) == {"NJ", "IL"}
     assert best.home_states(cfg.merge(CONFIG, {"passes": CONFIG["passes"][:1]}), {"location": "Hoboken, NJ"}) == {"NJ"}
+    # their saved home address counts too: a resume saying "NYC" from a New Jersey home
+    saved = cfg.merge(CONFIG, {"passes": CONFIG["passes"][:1], "home_address": {"city": "Montclair", "state": "New Jersey"}})
+    assert best.home_states(saved, {"location": "NYC"}) == {"NJ"}
 
 
 # a senior front-end engineer w/ plain past titles: their top 10 was all "Software Engineer" posts an AI

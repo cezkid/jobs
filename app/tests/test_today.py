@@ -324,7 +324,8 @@ def test_builds_under_a_second_on_a_full_list(conn, tmp_path):
     for i in range(8):
         make_folder(tmp_path, f"Co {i} - Engineer {i}", f"https://x.test/{i}", f"Co {i}", f"Engineer {i}", f"j{1000 + i}")
     start = time.perf_counter()
-    text = page(conn, tmp_path)
+    # every age kept: the full list is what's timed
+    text = today.build(conn, cfg.merge(CONFIG, {"rank": {"max_age_days": None}}), tmp_path, NOW, [], root=tmp_path)
     assert time.perf_counter() - start < 1
     assert "382 more - ask the chat" in text
 

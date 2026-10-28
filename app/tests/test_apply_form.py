@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, workday, zoho
+from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, loxo, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable, workday, zoho
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -84,7 +84,7 @@ def test_optional_members_take_what_the_shared_code_passes(system):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor, zoho]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor, zoho, loxo]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -114,6 +114,14 @@ def test_link_picks_its_system_or_says_where_else():
 
 
 # --- shared answers: work the same for every system ---
+
+@pytest.mark.parametrize("given", ["linkedin.com/in/ada", "www.linkedin.com/in/ada", "https://linkedin.com/in/ada",
+                                   "http://linkedin.com/in/ada", "https://www.linkedin.com/in/ada", "https://uk.linkedin.com/in/ada"])
+def test_linkedin_link_written_as_linkedin_writes_it(given):
+    # Gem refused "https://linkedin.com/in/..." on a user's form (2026-10-26): every spelling -> one
+    assert questions.link({"links": [given]}, "linkedin.") == "https://www.linkedin.com/in/ada"
+
+
 
 def test_resume_answers_only_what_it_states():
     qs = [q("Name", key="name"), q("First name", key="first_name"), q("Last name", key="last_name"),
@@ -234,6 +242,19 @@ def test_work_permit_only_for_the_same_us_question():
     assert [a["answer"] for a in questions.draft(other, CONTACT, config=config)] == [None, None]
     unset = questions.draft(same, CONTACT, config={"work_authorization": {"authorized_us": None}})
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
+
+
+# a Greenhouse form, 2026-10-27: filled "No" from needs_sponsorship: false - its Yes is the opposite
+def test_authorized_without_sponsorship_is_yes_when_none_needed():
+    title = ("Are you legally authorized to work in the United States for Acme on a full-time basis, without "
+             "current or future employer sponsorship (including H-1B, OPT, CPT, or STEM OPT)?")
+    ask = [q(title, "yesno"), q("Can you work in the US without visa sponsorship?", "yesno")]
+    free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
+    assert [a["answer"] for a in questions.draft(ask, CONTACT, config=free)] == ["Yes", "Yes"]
+    needs = {"work_authorization": {"authorized_us": True, "needs_sponsorship": True}}
+    assert [a["answer"] for a in questions.draft(ask, CONTACT, config=needs)] == ["No", "No"]
+    student = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False, "student_visa": True}}
+    assert questions.draft(ask[:1], CONTACT, config=student)[0]["answer"] is None
 
 
 def test_citizen_or_green_card_answered_only_for_the_us():
@@ -1678,6 +1699,13 @@ READ_BACK_FORMS = {
         answered("resumator-questionnaire-q1586173", "choice", "3-5") | {"native": "jazzhr:select"},
         answered("resumator-start-value", "date", "11/02/2026") | {"native": "jazzhr:date"},
         answered("resumator-questionnaire-q1474076", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}]),
+    "loxo": ("loxo-form.html", [
+        answered("name", "text", "Ada Lovelace") | {"native": "loxo:text"}, answered("email", "email", "ada@example.com"),
+        answered("phone", "phone", "555-0100"), answered("custom_question_868593", "text", "https://linkedin.com/in/ada"),
+        answered("custom_question_868594", "yesno", "Yes", ["Yes", "No"]) | {"native": "loxo:radio"},
+        answered("custom_question_868596", "multichoice", ["Indeed", "Other"]) | {"native": "loxo:checkbox"},
+        answered("custom_question_1935", "number", "5") | {"native": "loxo:number"},
+        answered("custom_question_1936", "longtext", "Their own words.") | {"native": "loxo:textarea"}]),
     "workable": ("workable-form.html", [
         answered("firstname", "text", "Ada"), answered("email", "email", "ada@example.com"),
         answered("phone", "phone", "555-0100"), answered("address", "location", "Boston, MA"),
@@ -2236,3 +2264,65 @@ def test_how_you_heard_defaults_to_the_employers_own_site():
     tenant_h = questions.question("h", title, "choice", False, ["External Career Site Sources > Job Board",
                                                                 "External Career Site Sources > LinkedIn"])
     assert questions.draft([tenant_h], {})[0]["answer"] is None
+
+
+# --- text-message opt-ins, optional boxes left blank on their word, pronouns, the employer's AI screening ---
+# (owner 2026-10-26, a Workday tenant's My Information "SMS Opt-in", Pronoun menu and AI opt-out question)
+
+def test_text_message_opt_in_left_unticked_once_they_said_never_and_the_page_goes_on():
+    sms, terms = q("SMS Opt-in", "yesno", required=False), q("I agree to the terms and conditions", "yesno", required=False)
+    asked = q("SMS Opt-in", "yesno", required=True)
+    for setting in (None, True):  # not asked yet, or they decide each time: theirs on the page, as before
+        (a,) = questions.draft([sms], CONTACT, config={"text_messages": setting})
+        assert questions.SIGN_ON_PAGE in a["source"] and form.for_the_user(a)
+    drafted = questions.draft([sms, terms, asked], CONTACT, config={"text_messages": False})
+    assert [a["answer"] for a in drafted] == [None, None, None]
+    assert drafted[0]["source"] == questions.TEXTS_OFF and not form.for_the_user(drafted[0])
+    assert questions.SIGN_ON_PAGE in drafted[1]["source"] and form.for_the_user(drafted[1])  # terms: theirs
+    assert questions.SIGN_ON_PAGE in drafted[2]["source"] and form.for_the_user(drafted[2])  # required texts: theirs
+    assert not questions.on_page(drafted) and not questions.missing(drafted[:2])
+    assert "text_messages: false" in form.texts_ask({}, [sms]) and form.texts_ask({"text_messages": False}, [sms]) == ""
+    assert form.texts_ask({}, [terms]) == ""
+
+
+def test_optional_box_left_blank_on_their_word_never_stops_the_page():
+    left = {**q("Phone Extension", required=False), "answer": None, "source": questions.USER_SAID}
+    assert not form.for_the_user(left)
+    assert form.for_the_user({**left, "required": True})
+
+
+PRONOUNS = ["He/Him", "She/Her", "They/Them", "He/they", "They/he", "All pronouns are used", "I prefer not to say"]
+
+
+def test_saved_pronouns_filled_after_the_users_yes():
+    menu = questions.question("p", "Pronoun", "choice", False, PRONOUNS)
+    saved = {"pronouns": "He/Him", "fill_on_forms": True}
+    (a,) = questions.draft([menu], {}, config={"self_identification": saved})
+    assert a["answer"] == "He/Him" and questions.VOLUNTARY_SAVED in a["source"]
+    longer = questions.question("p", "Pronouns", "choice", False, ["he / him / his", "she / her / hers"])
+    assert questions.draft([longer], {}, config={"self_identification": saved})[0]["answer"] == "he / him / his"
+    two_sets = questions.question("p", "Pronouns", "choice", False, ["He/him/his", "He/him/his, they/them/theirs"])
+    assert questions.draft([two_sets], {}, config={"self_identification": saved})[0]["answer"] == "He/him/his"
+    typed = questions.question("p", "Your pronouns", "text", False)
+    assert questions.draft([typed], {}, config={"self_identification": {"pronouns": "they/them", "fill_on_forms": True}}
+                           )[0]["answer"] == "they/them"
+    (a,) = questions.draft([menu], {}, config={"self_identification": {**saved, "fill_on_forms": None}})
+    assert a["answer"] is None and questions.YOURS in a["source"]  # not said yes yet: asked on the form
+    assert questions.draft([menu], {}, config={"self_identification": {"fill_on_forms": True}})[0]["answer"] is None
+
+
+# measured 2026-10-26, a Workday tenant's Application Questions, required
+AI_SCREENING = ("At Acme, we use an AI feature that helps compare the experience and skills in your application to the "
+                "minimum requirements in the job description, but it doesn't make any hiring decisions. A recruiter "
+                "will always review your application.Would you like to opt out of this feature?Your answer won't "
+                "affect your chances of being considered.")
+
+
+def test_employer_ai_screening_opt_out_asked_in_the_chat_not_ai_help():
+    asked = q(AI_SCREENING, "choice", options=["Yes, I want to opt out", "No, I do not want to opt out"])
+    (a,) = questions.draft([asked], CONTACT)
+    assert questions.never_draft(AI_SCREENING) == "opting out of the employer's AI screening"
+    assert not questions.signs(AI_SCREENING) and form.ai_note([a]) == ""
+    assert a["answer"] is None and questions.YOURS in a["source"]
+    said = {**a, "answer": "No, I do not want to opt out", "source": questions.USER_SAID}
+    form.refuse([said])  # their answer, typed by the filler

@@ -61,7 +61,8 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
 def ready_after_launch(tmp_path, monkeypatch, running=False, current=True, code=lambda args, quiet=False: 0) -> bool:
     """main() w/ every machine step stubbed; True = the launcher wrote the splash's ready signal."""
     for name in ("ensure_claude_trust", "ensure_chat_sidebar", "ensure_yaml_checker", "ensure_mac_icon",
-                 "ensure_folder_trusted", "ensure_sign_in_sites_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
+                 "ensure_folder_trusted", "ensure_sign_in_sites_trusted", "keep_out_of_sync", "ensure_quiet_vscode",
+                 "ensure_schedule"):
         monkeypatch.setattr(launch, name, lambda: None)
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
@@ -336,6 +337,13 @@ def test_workspace_never_sets_a_permission_mode_of_its_own():
     # mode named here is a mode that costs the user prompts
     settings = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
     assert "defaultMode" not in settings.get("permissions", {})
+
+
+def test_open_runs_outside_claudes_sandbox():
+    # macOS: Claude's command sandbox lets `open` / osascript exit 0 while no browser starts
+    # (measured 2026-10-26: Chrome not running, 3 opens, none showed) => "opened in your browser" lied
+    settings = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    assert "uv run app/jobs.py open *" in settings["sandbox"]["excludedCommands"]
 
 
 def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatch):

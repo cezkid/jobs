@@ -24,7 +24,10 @@ small plug-in.
 | Teamtailor | `<co>.na.teamtailor.com/jobs/<id>-<slug>` or the employer's own domain, same path (form `+ /applications/new`) | `apply-form`, Job Finder's own Chrome; questions from the form frame (plain HTTP); resume sent on choosing it, town letters to the employer's Teamtailor site as typed, the rest at Submit | `teamtailor.md` |
 | iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
 | Taleo | `<tenant>.taleo.net/careersection/<section>/jobdetail.ftl?job=<id>` or `jobapply.ftl?job=<id>`; an employer's careers-site posting whose Apply leads there (`careers_page.py`) | `apply-form`, Job Finder's own Chrome; user accepts the privacy agreement + signs in, then each step read off their tab and filled - resume attached + ticked, work history + education made to match the resume; they click Save and Continue | `taleo.md` |
+| Loxo | `app.loxo.co/job/<base64 id>` (also `<firm>.app.loxo.co`; form `+ /form?source_type=app`, `?utm_source=` tail) - a recruiting firm's own site | `apply-form`, Job Finder's own Chrome; questions read off the form page (plain HTTP); resume set inside the upload box's shadow root (its hidden twin outside shows nothing); everything, resume too, sent at Submit | `loxo.md` |
+| Gem | `jobs.gem.com/<board>/<id>` (id starts `am9icG9zdD`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the job board's own GraphQL read (plain HTTP); boxes found by their labels (no ids); everything, resume too, sent at Apply | `gem.md` |
 | Zoho Recruit | `<tenant>.zohorecruit.com/jobs/Careers/<id>` (a slug + `?source=` after it too) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP), form opened by the posting's own apply button; email checked as its box is left (forms with screening questions), zip / city / state / skills searched as typed, the rest - resume too - at Submit | `zoho.md` |
+| Rippling | `ats.rippling.com/<employer>/jobs/<uuid>` (form `+ /apply?step=application`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the form definition inside the posting page (plain HTTP); boxes found by their `data-testid` (the definition's ids); resume sent on choosing it and read back into the name / email / phone / Location boxes, town letters to Google as typed, the rest at Apply | `rippling.md` |
 | Dover | `app.dover.com/apply/<co>/<uuid>` (`?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); its "Autofill from resume" box never used; everything, resume too, sent at Apply (its Submit) | `dover.md` |
 
 Careers-site postings (freehire `source` radancy): the job list's link is the employer's own page;
@@ -36,7 +39,7 @@ signed-in users, so `prepare` finds the employer's own posting on the job search
 opening text, a link a system here fills (`apply/listing_copy.py`; 96 of 180 copies found one,
 2026-10-22) - and goes on with that link.
 
-Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
 plainly -> user gets tailored PDF + answers to paste.
@@ -115,7 +118,7 @@ A live form must never get an applicant record, anything typed, or the user's wi
   fetch, sendBeacon, native form POST, worker fetch, cross-site frame POST, WebSocket send (main
   page + frame). Any reaching the listener, or any not seen blocked -> run stops, nothing measured.
   Measured 2026-10-03, Chrome attached over its debugging port + headless: all 9 blocked.
-- **No allow-lists, ever** - one named exception below. A page that won't render or advance
+- **No allow-lists, ever** - the named exceptions below. A page that won't render or advance
   while blocked = "not measurable while blocked", recorded as a fact. Never loosen the block to
   get further.
 - **The one exception (owner OK 2026-10-05)**: Ashby's page reads its questions by POST; blocked,
@@ -125,6 +128,13 @@ A live form must never get an applicant record, anything typed, or the user's wi
   (org + posting id), no other key - the same read `prepare` already sends. Anything else w/ that
   name is blocked (tests). Each one passed is listed in measure's `named_reads` + try's last line.
   Another entry = owner's OK first, never added to get a page further.
+- **The second (owner OK 2026-10-26)**: Gem's job board, the same way - blocked, its posting page says
+  "Job not found", then (posting read let through) draws no form. Its reads go batched (one JSON list,
+  `lab.BATCHED`, at most 4) to `jobs.gem.com/api/public/graphql/batch`: `ExternalJobPosting` (board +
+  posting id - the read `prepare` sends), `JobBoardTheme` (board), then `OneClickApplyEnabled`,
+  `OatsTeamSettingExternalPublic`, `OatsIsJobBoardSeoStructuredDataEnabled` (board) and
+  `FormAutofillData` (no variables: the applicant's saved Gem details by cookie, empty in the fresh
+  profile). Each operation in a batch checked alone, same rules; one that fails blocks the whole batch.
 - **Clicks**: `--click` takes exact visible text; refused if it says submit / send / save /
   finish / complete / sign. No account, password, captcha, terms / consent / SMS box, signature.
 - **Synthetic only**: "Test Applicant", `test@example.com`, 555-0100, a generated test PDF.

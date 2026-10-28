@@ -25,7 +25,7 @@ TITLE_ONLY = "title"
 # shortest wait before a follow-up is suggested: always holds two working days
 MIN_FOLLOW_UP_DAYS = 5
 # API ORs these together => two in one pass widen, never narrow
-GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
+GEOGRAPHY_PARAMS = {"regions", "countries", "cities", "metros"}
 
 
 def config_path() -> Path:
@@ -70,6 +70,8 @@ def load(path: Path | None = None) -> dict:
             raise ValueError(f"software_kinds {bad} - any of {', '.join(software.KINDS)} (app/software.py)")
     if bad := [s for s in config["rank"].get("avoid_skills") or [] if not (isinstance(s, str) and s.strip())]:
         raise ValueError(f"rank.avoid_skills {bad} - skill names as words, e.g. [Java]")
+    if config["rank"].get("engineer_background") not in (None, True, False):
+        raise ValueError(f"rank.engineer_background: {config['rank']['engineer_background']!r} - true, false or null")
     if config["rank"].get("staffing", "lower") not in ("lower", "keep"):
         raise ValueError(f"rank.staffing: {config['rank']['staffing']!r} - lower or keep (blocklist.staffing: true hides them)")
     for stage, days in (config.get("follow_up") or {}).items():

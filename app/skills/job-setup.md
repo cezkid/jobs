@@ -136,21 +136,22 @@ Then narrowing what they picked:
   the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - Software engineering picked (or their words name it): which kinds of software work, `multiSelect`
   (`app/software.py` KINDS): front-end, full-stack, back-end, mobile apps, systems / embedded, DevOps
-  / cloud, data / AI, testing - each w/ its category count (`probe --facets category <their place
+  / cloud, data / AI, testing, customer-facing (sales, setup, support) - each w/ its category count (`probe --facets category <their place
   params>`). "Tick all you'd take - other kinds sort lower, never hidden. Tick all that fit, then
   Submit" -> `rank.software_kinds`. Their words already say it ("front-end, can do full stack") ->
   confirm in one line, no question. Why it matters: 58% of `software_engineering` jobs are titled
   plainly ("Senior Software Engineer") - back-end, embedded and front-end alike (`freehire.md`
   #Software engineering kinds).
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
-  the `cities` facet; "Other" covers the rest
+  the `metros` facet (`probe --facets metros countries=us`); "Other" covers the rest
 - Student (entry level or internship picked) whose school isn't in their hometown: ask once
   "Look near home too, for summer?" (Yes - name it / No). Yes -> a second city tier, school first
   (they're there most of the year) unless they say summer is what they're after; live counts for each.
   A hometown next to a big city (North Jersey -> New York City): offer that city in the same tier, w/
   its count - measured 2026-10-08: 3 of 54 home-tier internships were in North Jersey itself, 49 NYC.
 - career level (entry - "student, new graduate or first job" / mid / senior / leader) -
-  `rank.career_level`: titles clearly above or below it sort lower, never hidden; entry also sorts
+  `rank.career_level`: titles clearly above or below it sort lower, never hidden (mid: Senior, Sr,
+  Lead, Principal, Staff, Director titles above; numbered II / III never); entry also sorts
   lower a job whose required line asks 3+ years (the posting's own words, not the job search's
   years tag - it read 10 on "Software Engineer - New Grad"). Never a `seniority` filter for
   everyone (facet null on 30-45% of rows, junior lives in title string) - internship passes only (#2)
@@ -210,12 +211,15 @@ showing jobs from <company>" any time.
   `uv run app/jobs.py probe --facets category countries=us` lists every valid value w/ live count
   (unknown slug answers 0, not error - a guess loop is silent and slow).
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
-  `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
-  Each city tier also gets `states:` - the state codes it spans (DC area [DC, MD, VA]; North
-  Jersey + NYC [NJ, NY]): city names match in any state ("Washington" brought Seattle into a DC
-  search, 29 of 78 rows; `freehire.md`). Pick cities from the area's own suburbs, check each
-  `probe --city` value is that town, not a namesake.
-  Exact city values: `uv run app/jobs.py probe --city <text>`.
+  `countries=us`; city tier `metros=` ALONE - the job search's metro area, e.g. `[New York City (US)]`
+  (geography facets OR together, `cfg` rejects mix). One city's `cities=` misses its suburbs: a North
+  Jersey user's `cities: [New York City]` never saw 36 Jersey City jobs a week (`freehire.md` #Metro
+  areas). `cities=` only for a town no metro covers, or a list of the area's own suburbs - check each
+  `probe --city` value is that town, not a namesake. Each city tier also gets `states:` - the state
+  codes it spans (DC area [DC, MD, VA]; New York City area [NJ, NY, CT]): a row naming only other
+  states is dropped ("Washington" brought Seattle into a DC search, 29 of 78 rows). Nearby jobs sort
+  by miles from their home address (`home_address`, else resume town; `best-next.md` #Distance).
+  Exact values: `probe --facets metros countries=us`, `probe --city <text>`.
 - `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
   role its category is too wide for (RN inside healthcare). The job search has no OR: one form
   per pass, the one w/ most postings; say which other forms it leaves out.
@@ -245,9 +249,12 @@ showing jobs from <company>" any time.
   construction / facilities). ONE clickable question with counts: technical program + project
   roles only (TPM, technical / IT project manager passes) / any program manager role (the broad
   pass) / project manager roles too. Background they didn't come from ("not an engineer",
-  "never coded") -> nothing to filter: 1 in 3 TPM postings name computer science or engineering in a
-  required line, almost always a degree "or equivalent experience"; a hard "N years as a software engineer" is about 2 in 100 -
-  say that once, no setting. PMP / PgMP / SAFe asks are read: a job asking one their resume lacks
+  "never coded", "technical at a high level") -> `rank.engineer_background: false`, no question: a job
+  whose required lines ask an engineer's background (worked as one, coding, "strong technical depth")
+  sorts lower, says "asks an engineer's background", never hidden - TPM 36 of 413, technical project
+  manager 21 of 395, IT project manager 2 of 329 (2026-10-28). A CS degree "or equivalent" never counts
+  (1 in 3 TPM postings ask one) - say that once. Their pick of passes matters more: technical / IT
+  project manager + program manager ask it least. PMP / PgMP / SAFe asks are read: a job asking one their resume lacks
   sorts lower ("asks PMP, not in your resume"). After the first job check, kinds they don't do,
   counted w/ `rank --would-hide`: hardware / manufacturing / defense / space (about 1 in 9 TPM
   titles: silicon, vehicle, mission systems), construction / facilities (project manager passes),
@@ -493,8 +500,9 @@ write `.data/email.env` if they said yes -> `email --dry-run` (real preview + si
 Tail says notifications switched off -> their own Windows setting: walk them through Settings >
 System > Notifications on, rerun `daily` (nothing marked seen while it failed).
 
-Tell them: each morning computer checks for jobs, pops up a notification when new ones arrive;
+Tell them: computer checks for jobs each morning, pops up a notification when new ones arrive;
 clicking it opens CEZ Job Finder. First one covers every current match, later ones only new jobs.
+It checks again every 2 hours until 10 pm: Today stays current, no more pop-ups (`autorun.times`).
 Computer must be on; missed run happens when it next starts (Windows) or wakes (Mac).
 - Different time -> `schedule.local_daily: "HH:MM"` in search settings, `autorun on` again.
 

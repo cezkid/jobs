@@ -1,0 +1,273 @@
+<form
+    action="/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/finish?source_type=app"
+    autocomplete='off'
+    enctype='multipart/form-data'
+    method='POST'
+    onsubmit="document.querySelector('.job-apply-button').disabled = true;"
+  >
+    <div style='display: flex; flex-direction: column; gap: 0.5rem;'>
+      
+      <input type="hidden" name="utf8" value="&#x2713;" autocomplete="off" />
+      <input type='hidden' name='authenticity_token' value=TESTTOKEN/>
+      <input type='hidden' name='source_type_id' value=100001/>
+      <input class='form-control input-lg' type='text' name='name' placeholder='Your Full Name' title='Your Full Name' value=""/>
+      <input class='form-control input-lg' type='text' name='email' placeholder='Your Email Address' title='Your Email Address' value=""/>
+      <input class='form-control input-lg' type='text' name='phone' placeholder='Your Phone Number' title='Your Phone Number' value=""/>
+
+      <better-file-input name='resume_uploaded_file[]' required>
+        <input class='btn btn-file-upload btn-success' type='button' value='Upload Resume/CV'/>
+        <input class='hidden' name='resume_uploaded_file[]' type='file' multiple=true/>
+        <input class='hidden' name='resume_source_type_id' type='hidden' value=100001 />
+      </better-file-input>
+    </div>
+
+
+      <div class=custom-questions>
+  <input type=hidden name=form_template_id value=100>
+      <div>
+  <label>
+    Are you currently based in the Springfield area?
+  </label>
+    <span style="color:#333333">*</span>
+  <div class='options'>
+      <input
+        required
+        type=radio
+        name=custom_question_1932
+        id=custom_question_1932_option_2388
+        value=2388
+        
+      >
+        Yes
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1932
+        id=custom_question_1932_option_2389
+        value=2389
+        
+      >
+        No - Open to Relocate
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1932
+        id=custom_question_1932_option_2390
+        value=2390
+        
+      >
+        No
+      <br>
+  </div>
+</div>
+
+    <br>
+      <div>
+  <label>
+    Can you work on-site in Springfield 4 to 5 days a week?
+  </label>
+    <span style="color:#333333">*</span>
+  <div class='options'>
+      <input
+        required
+        type=radio
+        name=custom_question_1933
+        id=custom_question_1933_option_2391
+        value=2391
+        
+      >
+        Yes
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1933
+        id=custom_question_1933_option_2392
+        value=2392
+        
+      >
+        No
+      <br>
+  </div>
+</div>
+
+    <br>
+      <div>
+  <label>
+    Are you legally authorized to work in the US?
+  </label>
+    <span style="color:#333333">*</span>
+  <div class='options'>
+      <input
+        required
+        type=radio
+        name=custom_question_1934
+        id=custom_question_1934_option_2393
+        value=2393
+        
+      >
+        Yes - No Sponsorship Needed
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1934
+        id=custom_question_1934_option_2394
+        value=2394
+        
+      >
+        Yes - Visa Transfer Needed
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1934
+        id=custom_question_1934_option_2395
+        value=2395
+        
+      >
+        No
+      <br>
+  </div>
+</div>
+
+    <br>
+      <div>
+  <label>
+    How many years have you worked with React and Typescript?
+      <span style="color:#333333">*</span>
+    <br>
+    <input
+      required
+      type=number
+      name=custom_question_1935
+      value=
+    >
+  </label>
+</div>
+
+    <br>
+      <div>
+  <label for=custom_question_1936 >
+    Link to a consumer web product you shipped, and describe your role in one or two sentences.
+  </label>
+    <span style="color:#333333">*</span>
+  <textarea required name=custom_question_1936 id=custom_question_1936 rows=4 ></textarea>
+</div>
+
+    <br>
+      <div>
+  <label>
+    Have you built anything with real-time data, live charts, or trading, fintech, or crypto flows?
+  </label>
+    <span style="color:#333333">*</span>
+  <div class='options'>
+      <input
+        required
+        type=radio
+        name=custom_question_1937
+        id=custom_question_1937_option_2396
+        value=2396
+        
+      >
+        Yes - Professionally
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1937
+        id=custom_question_1937_option_2397
+        value=2397
+        
+      >
+        Yes - Side Project
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1937
+        id=custom_question_1937_option_2398
+        value=2398
+        
+      >
+        No
+      <br>
+  </div>
+</div>
+
+    <br>
+      <div>
+  <label>
+    Have you worked at an early-stage startup (under 20 people) or been a first or early engineering hire?
+  </label>
+    <span style="color:#333333">*</span>
+  <div class='options'>
+      <input
+        required
+        type=radio
+        name=custom_question_1938
+        id=custom_question_1938_option_2399
+        value=2399
+        
+      >
+        Yes
+      <br>
+      <input
+        required
+        type=radio
+        name=custom_question_1938
+        id=custom_question_1938_option_2400
+        value=2400
+        
+      >
+        No
+      <br>
+  </div>
+</div>
+
+    <br>
+      <div>
+  <label for=custom_question_1939 >
+    Why does a founding role at an early-stage startup interest you right now?
+  </label>
+  <textarea  name=custom_question_1939 id=custom_question_1939 rows=4 ></textarea>
+</div>
+
+    <br>
+</div>
+
+
+    <div style='position: relative;'>
+  <div style='background-color: #333333; position: absolute; width: 100%; height: 100%; opacity: 0.1; border-radius: 0.5rem;'></div>
+  <div style='display: flex; flex-direction: column; padding: 0.75rem; position: relative;'>
+    <div style='display: flex; align-items: center; gap: 0.5rem;'>
+      <input  type='checkbox' name='contact_consent' id='contact-consent-box' />
+      <label for='contact-consent-box' id='contact-consent-label'>
+        <span style='display: flex; align-items: center;'>
+            Yes, Acme Recruiting can contact me about job opportunities.
+        </span>
+      </label>
+    </div>
+    <div style='font-size: 0.75rem; opacity: 50%;'>
+      I may receive phone/text communications about career opportunities, interviews, job offers, and other related information from Acme Recruiting (+1 (555) 010-0100) (Message and data rates may apply, message frequency varies).  I may receive emails from acme.example.  I can opt-out at any time by unsubscribing or texting STOP.
+      My data will be handled in accordance with
+      <a href=https://loxo.co/privacy-policy target='_blank' style='color: #333333'>the privacy policy</a>
+      and
+      <a href='https://loxo.co/terms-of-service' target='_blank' style='color: #333333'>Terms of Service</a>.
+      To exercise your privacy rights, visit
+      <a href='https://pod7.app.loxo.co/privacy-rights' target='_blank' style='color: #333333'>Privacy Rights &amp; Opt-Out</a>.
+      For help, email
+      <a href='mailto:support@loxo.co' style='color: #333333'>support@loxo.co</a>.
+    </div>
+  </div>
+</div>
+
+    <input
+      type='submit'
+      value='Apply'
+      style='color: #333333; background-color: #333333; border-radius: 0.5rem;'
+      class='job-apply-button'
+    />
+  </form>

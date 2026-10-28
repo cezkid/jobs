@@ -824,6 +824,14 @@ def ensure_mac_icon(old: Path | None = None, app: Path | None = None) -> None:
                        env={**os.environ, "HOME": str(paths.home)})
 
 
+def ensure_schedule() -> None:
+    """The daily check runs at the settings' times (autorun.ensure_current); never stops the window opening."""
+    try:
+        autorun.ensure_current()
+    except (Exception, SystemExit):
+        pass
+
+
 def windows_shortcut_script(launcher: Path = WINDOWS_LAUNCHER, icon: Path = WINDOWS_ICON) -> str:
     launcher, icon = (str(v).replace("'", "''") for v in (launcher, icon))
     # missing shortcut stays missing; one aimed elsewhere (another copy) is not ours
@@ -1205,6 +1213,8 @@ def open_window() -> None:
     keep_out_of_sync()
     # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
     ensure_quiet_vscode()
+    # installs from before the day's later checks get them
+    ensure_schedule()
     # before VS Code opens => Red Hat's telemetry popup never asks mid job search
     ensure_yaml_checker()
     # before VS Code opens => the window comes up with this user's chat (Copilot's built-in one

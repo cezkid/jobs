@@ -175,7 +175,16 @@ def test_staffing_firm_named_sorted_lower_kept_or_hidden():
     ("Sapear Inc", "Rate-$60/per hr. on C2C all inclusive", True), ("ASK Consulting", "Pay rate: $75/hr. On W2", True),
     ("ektello", "<p>W2 contract, 4 months</p>", True), ("Silicon Beach Solutions", "structured as a Corp-to-Corp engagement", True),
     ("Acme", "Full-time role. No C2C or third parties.", False), ("Satsyil", "Employment: Full-Time, W2", False),
-    ("AmazonWebServices", "please contact your Recruiting Partner", False), ("Vanguard", "We value talent.", False)])
+    ("AmazonWebServices", "please contact your Recruiting Partner", False), ("Vanguard", "We value talent.", False),
+    # one word, no edge to find (2026-10-27); founding-engineer posts for a startup the poster won't name
+    ("recruitingfromscratch", "", True), ("decircletalentpartner", "", True),
+    ("mlabs", "<p>Our client, an innovative venture-backed fintech start-up, is building</p>", True),
+    ("David Joseph & Company", "<h2>About the Company</h2><p>Our client is a seed-stage AI company</p>", True),
+    ("Raydar", "Raydar is recruiting for this role on behalf of our client.", True),
+    ("Clera", "<h3>About the Role</h3><p>Join an early-stage financial technology team building AI", True),
+    ("Accenture Federal", "We help our clients modernize. Our client is the Department of Veterans Affairs.", False),
+    ("CalCPA", "strengthen our client, employer, public and government trust", False),
+    ("Scope Labs", "<h3>About the Role</h3><p>You will join our team", False)])
 def test_staffing_firm_by_name_or_terms(company, text, expected):
     assert rank.staffing_firm(make_job("j", company=company, description=text)) is expected
 
@@ -282,7 +291,7 @@ def test_blocklist_hides_by_type_and_clearance_never_untagged():
 
 
 def test_max_age_days_hides_older_first_seen_keeps_unknown():
-    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 7}})
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 7, "age_min_jobs": 0}})
     jobs = [
         make_job("fresh", reality={"age_days": 7}),
         make_job("old", reality={"age_days": 8}),
@@ -290,7 +299,29 @@ def test_max_age_days_hides_older_first_seen_keeps_unknown():
         make_job("unknown", posted_at=None),
     ]
     assert sorted(slugs(rank.rank(jobs, config, NOW))) == ["fresh", "unknown"]
-    assert len(rank.rank(jobs, CONFIG, NOW)) == 4
+    assert len(rank.rank(jobs, cfg.merge(CONFIG, {"rank": {"max_age_days": None}}), NOW)) == 4
+
+
+def test_age_limit_widens_per_list_only_when_thin():
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 3, "age_min_jobs": 3, "age_widen_to": [5, 14]}})
+    remote = [make_job(f"r{d}", work_mode="remote", reality={"age_days": d}) for d in (1, 2, 3, 4, 6)]
+    near = [make_job(f"n{d}", company=f"C{d}", work_mode="onsite", reality={"age_days": d}) for d in (1, 4, 10, 20)]
+    shown = set(slugs(rank.rank(remote + near, config, NOW)))
+    # remote holds 3 at 3 days => stays; nearby holds 1, 2 at 5, 3 at 14 => widens to 14, not past
+    assert shown == {"r1", "r2", "r3", "n1", "n4", "n10"}
+    assert rank.age_limits(rank.collapse(rank.unaged(remote + near, config, NOW)), config["rank"], NOW) \
+        == {"remote": 3, "nearby": 14}
+    # too few even at the last step => no age limit
+    assert rank.age_limits(rank.collapse(rank.unaged(near[:2], config, NOW)), config["rank"], NOW)["nearby"] is None
+
+
+def test_age_limit_counts_only_live_jobs_the_pay_filter_keeps():
+    config = cfg.merge(pay_config(relax_under_new_per_week=0),
+                       {"rank": {"max_age_days": 3, "age_min_jobs": 2, "age_widen_to": [7]}})
+    jobs = [make_job("ok", work_mode="remote", reality={"age_days": 1}, **usd(120000, 130000)),
+            make_job("low", work_mode="remote", reality={"age_days": 2}, **usd(50000, 60000)),
+            make_job("older", work_mode="remote", reality={"age_days": 6}, **usd(120000, 130000))]
+    assert set(slugs(rank.rank(jobs, config, NOW))) == {"ok", "older"}
 
 
 def test_rank_hidden_counts_per_rule_with_samples_in_window():
@@ -489,7 +520,7 @@ def test_entry_level_sorts_a_3_plus_years_ask_lower_never_hides_it():
     assert slugs(ranked) == ["lead", "fits", "asks"]
     assert "asks 5+ years" in rank.reasons(ranked[2], config, NOW)
     mid = cfg.merge(CONFIG, {"rank": {"career_level": "mid"}})
-    assert slugs(rank.rank(jobs, mid, NOW))[0] == "asks"
+    assert slugs(rank.rank(jobs[:2], mid, NOW))[0] == "asks"
 
 
 def test_graduation_window_their_date_misses_sorts_lower_and_says_both(monkeypatch):
@@ -612,6 +643,18 @@ def test_first_rung_titles_below_senior(title, below):
     assert "title below your level" not in rank.mismatches(job, {"career_level": "mid"})
 
 
+# "senior jobs are hard to get ... software engineer 1, 2, 3 preferred" (owner 2026-10-26): a mid-level list was
+# topped by Senior titles. Level words that name no level stay put
+@pytest.mark.parametrize("title, above", [
+    ("Senior Software Engineer", True), ("Sr. Frontend Engineer", True), ("Lead Software Engineer", True),
+    ("Staff Engineer", True), ("Principal Engineer", True), ("Director of Engineering", True),
+    ("Software Engineer II", False), ("Software Engineer III", False), ("Software Engineer I", False),
+    ("Frontend Engineer", False), ("Member of Technical Staff", False), ("Staff Accountant", False),
+    ("Senior Living Coordinator", False), ("Shift Lead", False), ("Lead Generation Specialist", False)])
+def test_mid_level_sorts_senior_titles_lower(title, above):
+    assert ("title above your level" in rank.mismatches(make_job("j", title=title), {"career_level": "mid"})) is above
+
+
 def reqs(*lines):
     return {"requirements": [{"text": t, "priority": "required"} for t in lines]}
 
@@ -689,6 +732,41 @@ def test_avoided_skill_ranks_below_and_says_why():
     ranked = rank.rank([java, _asking("react", "Strong React")], config)
     assert [j["public_slug"] for j in ranked] == ["react", "java"]
     assert "asks Java" in rank.reasons(ranked[1], config)
+
+
+@pytest.mark.parametrize("line, flagged", [
+    # worked as an engineer, codes, or engineering depth - 2026-10-28, live TPM / technical PM postings
+    ("2+ years of experience as a software engineer or comparable technical role", True),
+    ("Engineering degree or equivalent; started career as an engineer and transitioned into program management", True),
+    ("5+ years of software development experience", True),
+    ("Hands-on software development background, or enough time embedded with engineering teams to read a codebase", True),
+    ("Strong technical depth: Kubernetes orchestration, storage engines, ML serving infrastructure", True),
+    ("Strong technical background with familiarity in systems engineering and/or software development", True),
+    # leading the work, a degree "or equivalent", or the bar a high-level manager meets: not asked
+    ("5+ years managing software development projects or major technical workstreams", False),
+    ("5+ years of software development lifecycle experience in an Agile environment", False),
+    ("Bachelor's degree in Computer Science, Engineering, or equivalent practical experience", False),
+    ("Strong understanding of the software development lifecycle", False),
+    ("Enough technical depth to understand security concepts and engage in design conversations", False),
+    ("Strong grasp of system design, with the ability to follow engineering conversations (no coding required)", False),
+    ("Strong technical background or proven ability to engage in technical discussions (APIs, CI/CD)", False),
+    ("Prior hands-on software development experience (C++, Python) is a plus", False),
+])
+def test_engineer_background_asked(line, flagged):
+    job = _asking("a", line)
+    assert rank.engineer_asked(job, False) == (["asks an engineer's background"] if flagged else [])
+    # only when they said they never worked as one
+    assert rank.engineer_asked(job, None) == rank.engineer_asked(job, True) == []
+
+
+def test_engineer_background_ranks_below_and_says_why():
+    config = cfg.load(cfg.PROFILES / "program-manager.yml")
+    config["rank"]["engineer_background"] = False
+    eng = _asking("eng", "3-5+ years of experience as a software engineer")
+    eng.update(salary_min=300000, salary_currency="USD", salary_period="year")
+    ranked = rank.rank([eng, _asking("pm", "8+ years leading cross-functional programs")], config)
+    assert [j["public_slug"] for j in ranked] == ["pm", "eng"]
+    assert "asks an engineer's background" in rank.reasons(ranked[1], config)
 
 
 def gap_facts(**over):
@@ -778,3 +856,10 @@ def test_hidden_board_hides_its_country_editions():
             make_job("near-name", source="whatjobsplus"), make_job("other")]
     hide = cfg.merge(CONFIG, {"blocklist": {"sources": ["WhatJobs"]}})
     assert slugs(rank.rank(jobs, hide, NOW)) == ["near-name", "other"]
+
+
+def test_age_counts_on_from_the_fetch_that_stored_it():
+    """age_days is the job search's as of that fetch; 12 days later it read "first seen 1d ago"."""
+    job = make_job("j", reality={"age_days": 1}, fetched_at="2026-09-03T12:00:00Z")
+    assert rank.age(job, NOW) == 13
+    assert rank.age(make_job("unfetched", reality={"age_days": 1}), NOW) == 1

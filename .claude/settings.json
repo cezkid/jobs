@@ -1,4 +1,9 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
   "autoMemoryEnabled": false,
   "permissions": {
     "allow": [
@@ -26,6 +31,11 @@
       "Read(~/Downloads/**)",
       "Read(~/Desktop/**)",
       "Read(~/Documents/**)"
+    ]
+  },
+  "sandbox": {
+    "excludedCommands": [
+      "uv run app/jobs.py open *"
     ]
   },
   "hooks": {

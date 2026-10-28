@@ -13,7 +13,7 @@ from pathlib import Path
 
 import httpx
 
-from apply import browser
+from apply import browser, dom
 from apply.questions import asks_complete_history, form_roles, major_option, question
 from resume import schema
 
@@ -166,7 +166,8 @@ def read(page) -> list[dict]:
     snap = page.evaluate(SNAPSHOT)
     if snap["signin"]:
         raise SystemExit("UKG shows the form only after sign-in: Job Finder's Chrome is open on the sign-in page - "
-                         "the user signs in or creates an account there (never typed for them), then run prepare again")
+                         f"{dom.sign_in_email(page)}the user types the password and signs in or creates an account "
+                         "there (a password is never typed for them), then run prepare again")
     return from_snapshot(snap)
 
 

@@ -1,0 +1,454 @@
+{
+ "oatsExternalJobPosting": {
+  "id": "T2F0c0pvYlBvc3Q6ODIzMDgzMQ==",
+  "title": "Software Engineer",
+  "isApplicationFormHidden": false,
+  "applicationFormTemplate": {
+   "includeEeoc": false,
+   "eeocConfig": {
+    "includeRaceXGender": true,
+    "includeVeteranStatus": true,
+    "includeDisabilityStatus": false
+   }
+  }
+ },
+ "oatsJobPostFieldsAndQuestions": {
+  "fields": [
+   {
+    "fieldType": "FIRST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LAST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "EMAIL",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LINKEDIN_URL",
+    "isRequired": true
+   },
+   {
+    "fieldType": "PHONE",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LOCATION",
+    "isRequired": true
+   },
+   {
+    "fieldType": "RESUME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "COVER_LETTER",
+    "isRequired": false
+   }
+  ],
+  "questions": [
+   {
+    "extId": "cXVlczr7CWAijs7cqT6dX-SLnKl6",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "How did you hear about this job?",
+    "description": "",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDqldceRId5LKhQYM0iw_D1j",
+      "value": "Company Website"
+     },
+     {
+      "extId": "cXVlc29wdDryf2Ki9PgNN3Vf2mx2RHY6",
+      "value": "LinkedIn"
+     },
+     {
+      "extId": "cXVlc29wdDo_Oc0SU6tBUl74mSkxql2x",
+      "value": "Glassdoor  "
+     },
+     {
+      "extId": "cXVlc29wdDocjHyLhyLSSsbM3HQizvMb",
+      "value": "Indeed"
+     },
+     {
+      "extId": "cXVlc29wdDqEESS9dSn6cpCEkj-zBTIo",
+      "value": "Employee Referral"
+     },
+     {
+      "extId": "cXVlc29wdDqyXDiXZMD-VZishKRAKMUK",
+      "value": "Other"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpvdws7Rkl4OjRT_sb_0Bx2",
+    "answerType": "SHORT_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "If you selected 'Other,' please specify where you heard about us. If you selected 'Employee Referral,' please provide the referring person's full name.",
+    "description": "",
+    "isRequired": false,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpGSAFpERi674eiwNKwobNX",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "Which state are you currently based in?",
+    "description": "",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDpwPuFS-2ZCkkQ4SuLXXB6g",
+      "value": "None of the Below"
+     },
+     {
+      "extId": "cXVlc29wdDrmJj0KJpm8jqqNUiAkdrtw",
+      "value": "Alabama"
+     },
+     {
+      "extId": "cXVlc29wdDp16yGkqaXfWOSFnamjfQE-",
+      "value": "Alaska"
+     },
+     {
+      "extId": "cXVlc29wdDp0ric9pCTzxCaJsZiqjRUE",
+      "value": "Arizona"
+     },
+     {
+      "extId": "cXVlc29wdDqxbYuJcrXtxreI1-5_qg3t",
+      "value": "Arkansas"
+     },
+     {
+      "extId": "cXVlc29wdDpF9-xD4XnI7t5yjIv81GRT",
+      "value": "California"
+     },
+     {
+      "extId": "cXVlc29wdDpx3if-fQEzVG1fdvDmCJD6",
+      "value": "Colorado"
+     },
+     {
+      "extId": "cXVlc29wdDq4gSreF7rGA7FkvtFlqzN4",
+      "value": "Connecticut"
+     },
+     {
+      "extId": "cXVlc29wdDqnsj5zN3zxCdN6aTW5asdp",
+      "value": "Delaware"
+     },
+     {
+      "extId": "cXVlc29wdDrqfyz5mCxv621rxRq1wR1u",
+      "value": "Florida"
+     },
+     {
+      "extId": "cXVlc29wdDp2VsoTyvquSRk8k_Xg2ZmM",
+      "value": "Georgia"
+     },
+     {
+      "extId": "cXVlc29wdDrExElz5WSkwxEcVR4ZTwhw",
+      "value": "Hawaii"
+     },
+     {
+      "extId": "cXVlc29wdDo0D49_XmHdtOVN0Aj1eq4l",
+      "value": "Idaho"
+     },
+     {
+      "extId": "cXVlc29wdDrSYtb_1IDiMx4IuCFkQvaL",
+      "value": "Illinois"
+     },
+     {
+      "extId": "cXVlc29wdDoy-Sne75vf1wju-vZ2oT1k",
+      "value": "Indiana"
+     },
+     {
+      "extId": "cXVlc29wdDrd-YhNzlkZqOoW7WQiEuRR",
+      "value": "Iowa"
+     },
+     {
+      "extId": "cXVlc29wdDrd5D2-2jR2Rqg-nVmhV1OR",
+      "value": "Kansas"
+     },
+     {
+      "extId": "cXVlc29wdDqFsBBzyJN1nUkrESw-0aKG",
+      "value": "Kentucky"
+     },
+     {
+      "extId": "cXVlc29wdDrb43qbgLlow-8ZSZ8eBxGq",
+      "value": "Louisiana"
+     },
+     {
+      "extId": "cXVlc29wdDrrvMRy4Ge-vyHFgArn3OjF",
+      "value": "Maine"
+     },
+     {
+      "extId": "cXVlc29wdDpAZefp0IdbNdbfMnOg3CPh",
+      "value": "Maryland"
+     },
+     {
+      "extId": "cXVlc29wdDpSanwMcRTWmXzu60EQb5bT",
+      "value": "Massachusetts"
+     },
+     {
+      "extId": "cXVlc29wdDpKvsUMIXZIzGxk7dvzjAtt",
+      "value": "Michigan"
+     },
+     {
+      "extId": "cXVlc29wdDqEjgc4G8ZpNkqB4v2D4Iqa",
+      "value": "Minnesota"
+     },
+     {
+      "extId": "cXVlc29wdDrtULSTw5Ar_pr-L03ezNO3",
+      "value": "Mississippi"
+     },
+     {
+      "extId": "cXVlc29wdDpMnMksq3_wfxdeLBKzp1Sf",
+      "value": "Missouri"
+     },
+     {
+      "extId": "cXVlc29wdDo0mazRA737KDo7OYj8m2b4",
+      "value": "Montana"
+     },
+     {
+      "extId": "cXVlc29wdDqo1V6_j2YIxCzLQqQj4iLw",
+      "value": "Nebraska"
+     },
+     {
+      "extId": "cXVlc29wdDq38uV2JRAKtaTABF5tXU-0",
+      "value": "Nevada"
+     },
+     {
+      "extId": "cXVlc29wdDqQ9GpSf5JeRZyNjFV3OMhQ",
+      "value": "New Hampshire"
+     },
+     {
+      "extId": "cXVlc29wdDqMRKTlBcLsqPpNW57wr_bb",
+      "value": "New Jersey"
+     },
+     {
+      "extId": "cXVlc29wdDrCbgCfFeLR-cR8OpBH4Xb5",
+      "value": "New Mexico"
+     },
+     {
+      "extId": "cXVlc29wdDpUm9XkmAFsEt91O_JFzgIX",
+      "value": "New York"
+     },
+     {
+      "extId": "cXVlc29wdDri_qYutNLHEY0G8x310BCe",
+      "value": "North Carolina"
+     },
+     {
+      "extId": "cXVlc29wdDo4_bPelZnv7JOrlNhTrD_Q",
+      "value": "North Dakota"
+     },
+     {
+      "extId": "cXVlc29wdDrFLNQ3aFSnaJlYUwRS0p8h",
+      "value": "Ohio"
+     },
+     {
+      "extId": "cXVlc29wdDphlpmE7-xFdMYp1t2rt8hj",
+      "value": "Oklahoma"
+     },
+     {
+      "extId": "cXVlc29wdDpnNe8-uAb7QPTdlaj1Ckne",
+      "value": "Oregon"
+     },
+     {
+      "extId": "cXVlc29wdDpHvi38YfKicusyftKPHqqZ",
+      "value": "Pennsylvania"
+     },
+     {
+      "extId": "cXVlc29wdDpml4FHzDpNqADfnEz86JEp",
+      "value": "Rhode Island"
+     },
+     {
+      "extId": "cXVlc29wdDo4dbGPuzPN-Wv2nFd43ZJL",
+      "value": "South Carolina"
+     },
+     {
+      "extId": "cXVlc29wdDp9zafm3xp8XfoqajawawAy",
+      "value": "South Dakota"
+     },
+     {
+      "extId": "cXVlc29wdDpCeH-Mhe2Yf3cdkubS5Exl",
+      "value": "Tennessee"
+     },
+     {
+      "extId": "cXVlc29wdDqJCHQ4p6pEojxa3VZtLgXs",
+      "value": "Texas"
+     },
+     {
+      "extId": "cXVlc29wdDqqfe4yiyhOI7oaHTRMlAOR",
+      "value": "Utah"
+     },
+     {
+      "extId": "cXVlc29wdDpjYTGYZ6Kfj1zE7H7QcTIM",
+      "value": "Vermont"
+     },
+     {
+      "extId": "cXVlc29wdDoOmwDZuj5TlRKTzJD9DPgU",
+      "value": "Virginia"
+     },
+     {
+      "extId": "cXVlc29wdDr8tg_AdxJ-EnhibEK52qEQ",
+      "value": "Washington"
+     },
+     {
+      "extId": "cXVlc29wdDpcziToqmqT0MlJTBUG2yQd",
+      "value": "Washington D.C"
+     },
+     {
+      "extId": "cXVlc29wdDqP62cYhJXwmmTEl2KC8TfW",
+      "value": "West Virginia"
+     },
+     {
+      "extId": "cXVlc29wdDqiFQq9jo3G56ygR0kKblQV",
+      "value": "Wisconsin"
+     },
+     {
+      "extId": "cXVlc29wdDoM-SxAK8nh3HzBAX771Xn3",
+      "value": "Wyoming"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczq76zXJYYa2Ah6gpaYaSIQv",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "Are you authorized to work in The United States for any employer?",
+    "description": "<div><em style=\"color: rgb(230, 0, 0);\">Applicants must be currently authorized to work in the United States without the need for current or future visa sponsorship.</em></div>",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDrjVzOcru_Q8o3PdQ6OVYby",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDoCdJXB0N8gQH1V_uI0nSKZ",
+      "value": "No"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczq9ECecfiYAJFur0iyhyAJZ",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "Do you now or will you in the future require employer-sponsored visa authorization to work in the United States?",
+    "description": "<div><em style=\"color: rgb(230, 0, 0);\">This includes but not limited to the following: H-1B, TN, etc., including after the expiration of a student visa's work authorization.</em></div>",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDqzk4lrvCp2qV7HBrl2Qubl",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDqg00OkB72ECAhu7dY6xtRr",
+      "value": "No"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczo6TB-MLXaPQ_-ZiO9BTyAh",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "DROPDOWN",
+    "fileType": null,
+    "text": "We do not currently offer, and will not provide, H-1B or any other employment-based visa sponsorship to work in the United States, now or in the future.",
+    "description": "<div><em style=\"color: rgb(230, 0, 0);\">This includes candidates on F-1 OPT or STEM OPT. Your legal right to work must be </em><strong style=\"color: rgb(230, 0, 0);\"><u>PERMANENT</u></strong><em style=\"color: rgb(230, 0, 0);\"><u> </u></em><strong style=\"color: rgb(230, 0, 0);\"><u>AND</u></strong><em style=\"color: rgb(230, 0, 0);\"><u> </u></em><strong style=\"color: rgb(230, 0, 0);\"><u>UNRESTRICTED</u></strong><em style=\"color: rgb(230, 0, 0);\">.</em></div>",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDrGI-lbDz2zt-CeYzTNqojb",
+      "value": "I am not permanently authorized to work in the U.S., and I currently require or will in the future require employment-based visa sponsorship from Acme."
+     },
+     {
+      "extId": "cXVlc29wdDrF9oE3bedmi_NOxt24qhVc",
+      "value": "I am on F-1 OPT or STEM OPT and will require sponsorship in the future."
+     },
+     {
+      "extId": "cXVlc29wdDpbUU_qxeEysFgQbnQYu9J2",
+      "value": "I am a U.S. Citizen, Permanent Resident, Asylee, or Refugee, and I possess permanent, unrestricted work authorization and will never require company visa sponsorship."
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczrAotSICvXjHniQizKHtgyq",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "Which AI tools have you used in a professional setting?",
+    "description": "<div><em style=\"color: rgb(230, 0, 0);\">Please note: Applications with incomplete / blank responses to this question will not be considered.</em></div>",
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczqpvUCWRyf-CZ3IQorTJBel",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "Pick one of those tools and tell us about a specific task you used it for: what the agent got wrong or missed, what you changed, and how the final result turned out.",
+    "description": "<div><em style=\"color: rgb(230, 0, 0);\">Please note: Applications with incomplete / blank responses to this question will not be considered.</em></div>",
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpuq5khkwFPSn2VA_GnNEnS",
+    "answerType": "SHORT_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "What is your expected base salary range?",
+    "description": "<div><br></div>",
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpAwHLxCbuLTpd54XjImM6a",
+    "answerType": "MULTI_SELECT",
+    "displayType": null,
+    "fileType": null,
+    "text": "By checking this box, you agree to receive text messages from Acme at the mobile number you provide. Message frequency may vary. Message and data rates may apply. Reply STOP to cancel, HELP for help. Consent to receive texts is not a condition of employment or of any application. ",
+    "description": "<div><a href=\"https://www.Acmehealth.com/applicant-candidate-privacy-notice\" rel=\"noopener noreferrer\" target=\"_blank\" style=\"background-color: rgb(255, 255, 255);\">View our Privacy Policy</a></div>",
+    "isRequired": false,
+    "options": [
+     {
+      "extId": "cXVlc29wdDrsLDYnYzWda2JliWfed1pc",
+      "value": "I Acknowledge and Opt-In"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczrL_HHQ4kDRunpRwnGAMK0u",
+    "answerType": "MULTI_SELECT",
+    "displayType": null,
+    "fileType": null,
+    "text": "Applicant & Candidate Privacy Notice                                     ",
+    "description": "<div><a href=\"https://www.Acmehealth.com/applicant-candidate-privacy-notice\" rel=\"noopener noreferrer\" target=\"_blank\">Acme Applicant &amp; Candidate Privacy Notice</a></div>",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDpndWfhXxirikcv8uLuj6Bk",
+      "value": " I have read and acknowledge Acme's Applicant & Candidate Privacy Notice"
+     }
+    ],
+    "numericRatingRange": null
+   }
+  ],
+  "demographicSurvey": {
+   "extId": "Y3N1cnY6Zdqi38nKww3DRB4wFdgTpw",
+   "surveyType": "EEOV",
+   "questions": []
+  }
+ }
+}

@@ -70,6 +70,14 @@ def no_real_vscode(request, monkeypatch, tmp_path_factory):
     monkeypatch.setattr(subprocess.Popen, "__init__", popen_init)
 
 
+@pytest.fixture(autouse=True)
+def no_real_schedule(monkeypatch, tmp_path):
+    # a launch in a test re-installs the daily check when its stamp is missing (autorun.ensure_current):
+    # the stamp lives in the checkout's .data, never written from a test
+    import autorun
+    monkeypatch.setattr(autorun, "STAMP", tmp_path / ".schedule-stamp")
+
+
 def pytest_configure(config):
     config.addinivalue_line("markers", "real_vscode: test may find the real code command (still only w/ --user-data-dir)")
 

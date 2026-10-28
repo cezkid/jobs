@@ -1,8 +1,10 @@
 import argparse
 import re
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
+from urllib.parse import quote
 
 import httpx
 
@@ -18,6 +20,16 @@ API_OFFSET_CEILING = 10000
 SEARCH = "/agent/jobs/search"
 # posted_at compared against local clock; margin keeps window-edge rows from false close
 WINDOW_EDGE_MARGIN = timedelta(hours=1)
+# Listed jobs this check didn't return, asked about one by one (recheck): close_missing only sees
+# rows posted inside the fetch window, so a job filled after it aged out stayed on the list looking
+# open until rank.stale_days. 2026-10-27, real list: 83 of 219 open rows outside the window marked
+# closed or gone by the job search; 8 of the first 70 shown, their links 404 or "position closed".
+# Asked again every RECHECK_DAYS. The job search allows 600 asks a minute, search + company records
+# included (x-ratelimit-reset 50 s; 81 of 300 detail asks at 8 at once answered 429, 2026-10-27):
+# RECHECK_BATCH leaves room for the rest, a 429 leaves what's left for the next check
+RECHECK_DAYS = 2
+RECHECK_BATCH = 400
+RECHECK_WORKERS = 8
 
 
 def query_params(params: dict) -> dict:
@@ -191,6 +203,65 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
     return summary
 
 
+def recheck_due(conn, since: str, now: datetime, limit: int = RECHECK_BATCH) -> list[str]:
+    """Open rows no fetch since `since` returned, not asked in RECHECK_DAYS: never asked first,
+    most recently seen of them first (still near the top of the list), then longest since asked."""
+    asked = (now - timedelta(days=RECHECK_DAYS)).strftime(store.ISO)
+    return [r[0] for r in conn.execute(
+        "SELECT public_slug FROM jobs WHERE closed_at IS NULL AND fetched_at < ?"
+        " AND (checked_at IS NULL OR checked_at < ?)"
+        " ORDER BY COALESCE(checked_at, ''), fetched_at DESC LIMIT ?", (since, asked, limit))]
+
+
+def listed_open(client: httpx.Client, base: str, slug: str, limited: threading.Event) -> bool | None:
+    """The job search's word on one listed job, by its listing id - nothing about the user, never
+    the employer's page (as status.ask_job_search). False = marked closed, or gone (404); True =
+    open; None = no answer, asked again next check."""
+    if limited.is_set():
+        return None
+    try:
+        resp = client.get(f"{base}/jobs/{quote(slug, safe='')}")
+        if resp.status_code == 429:
+            limited.set()
+            return None
+        if resp.status_code == 404:
+            return False
+        resp.raise_for_status()
+        data = resp.json().get("data")
+    except (httpx.HTTPError, ValueError, AttributeError):
+        return None
+    return not data.get("closed_at") if isinstance(data, dict) else None
+
+
+def recheck(conn, client: httpx.Client, base: str, since: str, now: datetime | None = None) -> tuple[int, int]:
+    """Closes listed jobs the job search says are closed or gone. (asked, closed)."""
+    now = now or datetime.now(timezone.utc)
+    stamp = now.strftime(store.ISO)
+    slugs, limited = recheck_due(conn, since, now), threading.Event()
+    with ThreadPoolExecutor(RECHECK_WORKERS) as pool:
+        answers = list(pool.map(lambda slug: listed_open(client, base, slug, limited), slugs))
+    asked = [(stamp, s) for s, ok in zip(slugs, answers) if ok is not None]
+    gone = [(stamp, s) for s, ok in zip(slugs, answers) if ok is False]
+    with conn:
+        conn.executemany("UPDATE jobs SET checked_at = ? WHERE public_slug = ?", asked)
+        conn.executemany("UPDATE jobs SET closed_at = ? WHERE public_slug = ? AND closed_at IS NULL", gone)
+    return len(asked), len(gone)
+
+
+def recheck_quietly(conn, client: httpx.Client, base: str, since: str) -> None:
+    """At the job check: jobs were found either way, so a failure here is logged, never raised.
+    Then drops jobs closed DROP_CLOSED_DAYS ago the user never acted on (store.drop_closed)."""
+    try:
+        asked, closed = recheck(conn, client, base, since)
+        before = (datetime.now(timezone.utc) - timedelta(days=store.DROP_CLOSED_DAYS)).strftime(store.ISO)
+        with conn:
+            removed = store.drop_closed(conn, before)
+        if asked or removed:
+            print(f"older jobs: {asked} asked, {closed} closed, {removed} long closed removed")
+    except Exception as exc:  # noqa: BLE001 - never stops the job check
+        print(f"older jobs: skipped ({exc})", file=sys.stderr)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Poll freehire API into SQLite")
     ap.add_argument("--db", help="override config db path")
@@ -198,7 +269,9 @@ def main() -> None:
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
+        started = store.utc_now()
         summary = run(config, conn, client)
+        recheck_quietly(conn, client, config["api"]["base"], started)
         companies.refresh_quietly(conn, client, config["api"]["base"])
     for tier, s in summary.items():
         print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}")

@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- A Rippling application form cut down to one of each widget, markup as measured 2026-10-27 (rippling.md
+     "Widgets"); class names, styles and icons left out. The small script stands in for the page's React:
+     a dropdown opens a role=option list, a tick block flips aria-checked on a click, the place search lists
+     towns, the resume box shows "Preview file". -->
+<html><body>
+<form>
+<div data-testid="field"><span id="field-4-label">Résumé</span>
+ <label data-testid="resume" type="DEFAULT"><input accept=".doc,.docx,.pdf" data-testid="input-resume" type="File">
+  <button type="button"><span>Drop or select (.doc / .docx / .pdf)</span></button></label></div>
+<div data-testid="field"><span id="field-59-label">Cover letter</span>
+ <label data-testid="cover_letter" type="DEFAULT"><input accept=".doc,.docx,.pdf" data-testid="input-cover_letter" type="File">
+  <button type="button"><span>Drop or select (.doc / .docx / .pdf)</span></button></label></div>
+<div data-testid="field"><span id="field-8-label">First name</span>
+ <div data-testid="first_name"><input data-testid="input-first_name" id="field-8" name="NxL2FqeHjo"></div></div>
+<div data-testid="field"><span id="field-20-label">Pronouns</span>
+ <div data-testid="pronouns_strategy"><div data-testid="select-controller">
+  <input data-testid="input-select-search-input" id="field-20" role="combobox" aria-haspopup="listbox" value=""
+         data-options="She/her/hers|He/him/his|They/them/theirs|He/him/his, they/them/theirs|Just use my name"></div></div></div>
+<div data-testid="field"><span id="field-31-label">Phone number</span>
+ <div data-testid="phone_number-code"><input data-testid="input-select-search-input" role="combobox" value="+1 US" data-options="+1 US - United States"></div>
+ <div data-testid="phone_number"><input data-testid="input-phone_number" id="field-31" inputmode="tel"></div></div>
+<div data-testid="field"><span id="field-42-label">Location</span>
+ <div data-testid="location"><input data-testid="input-undefined" id="field-42" aria-haspopup="listbox" value=""></div></div>
+<div><p>Are you authorized to work in the United States?</p>
+ <div data-testid="customQuestions.g1.213cf3b2-9260-4e35-b1ed-9533163fd4af"><div data-testid="select-controller">
+  <div id="field-63" role="combobox" aria-haspopup="listbox" tabindex="0" data-options="Yes|No"><p>Select</p></div></div></div></div>
+<div><p>How did you hear about this opportunity?</p>
+ <div data-testid="customQuestions.g1.ae881a3f-904e-467c-854b-598982f3e1cc" role="group">
+  <div data-value="LinkedIn" role="checkbox" aria-checked="false"><input type="checkbox" value="LinkedIn"><div><p>LinkedIn</p></div></div>
+  <div data-value="Company Careers Page" role="checkbox" aria-checked="false"><input type="checkbox" value="Company Careers Page"><div><p>Company Careers Page</p></div></div>
+  <div data-value="Indeed" role="checkbox" aria-checked="false"><input type="checkbox" value="Indeed"><div><p>Indeed</p></div></div></div></div>
+<div><p>How many years?</p>
+ <div data-testid="customQuestions.g2.0e4c8300-8a74-4858-9a83-3e9566b708fb" role="radiogroup">
+  <div data-value="8+ years" role="radio" aria-checked="false"><input type="radio" value="8+ years"><div><p>8+ years</p></div></div>
+  <div data-value="5-7 years" role="radio" aria-checked="false"><input type="radio" value="5-7 years"><div><p>5-7 years</p></div></div></div></div>
+<div><p>Are you located near our office?</p>
+ <div data-testid="customQuestions.g3.8e07d6a6-cab9-45f0-bea7-8b3efbeda46e" role="radiogroup">
+  <div data-value="1" role="radio" aria-label="Strong No" aria-checked="false"><p>Strong No</p></div>
+  <div data-value="2" role="radio" aria-label="No" aria-checked="false"><p>No</p></div>
+  <div data-value="3" role="radio" aria-label="Yes" aria-checked="false"><p>Yes</p></div>
+  <div data-value="4" role="radio" aria-label="Strong Yes" aria-checked="false"><p>Strong Yes</p></div></div></div>
+<div><p>Describe a platform you built.</p>
+ <div data-testid="customQuestions.g2.07843e81-2df7-495c-ad06-4131d4be6af1"><textarea id="field-80" maxlength="2000"></textarea></div></div>
+<div><p>What is your target start date?</p>
+ <div data-testid="customQuestions.g4.4e829ddf-b866-48b5-9b00-8673df05c2f4"><div data-title="Date">
+  <input data-testid="input-month" maxlength="2"><p>/</p><input data-testid="input-day" maxlength="2"><p>/</p><input data-testid="input-year" maxlength="4"></div></div></div>
+<div data-testid="field"><span id="field-84-label">Gender</span>
+ <div data-testid="eeoc.gender"><div data-testid="select-controller">
+  <div id="field-84" role="combobox" tabindex="0" data-options="Male|Female|Non-binary|Choose not to disclose"><p>Select...</p></div></div></div></div>
+<div><p>Check Yes or No to indicate your agreement to receive text message updates.</p>
+ <div data-testid="sms_opt_in" role="radiogroup">
+  <div data-value="true" role="radio" aria-checked="false"><input type="radio" name="sms_opt_in" value="true"><p>Yes - I consent to receiving text messages</p></div>
+  <div data-value="false" role="radio" aria-checked="false"><input type="radio" name="sms_opt_in" value="false"><p>No - I do not consent to receiving text messages</p></div></div></div>
+<button type="submit">Apply</button>
+</form>
+<div id="menu"></div>
+<script>
+const menu = document.getElementById('menu');
+const close = () => { menu.innerHTML = ''; };
+function open(names, pick) {
+  close();
+  for (const n of names) {
+    const o = document.createElement('div');
+    o.setAttribute('role', 'option');
+    o.textContent = n;
+    o.addEventListener('click', () => { pick(n); close(); });
+    menu.appendChild(o);
+  }
+}
+document.querySelectorAll('[role=combobox][data-options]').forEach(c => c.addEventListener('click', () =>
+  open(c.dataset.options.split('|'), n => { if (c.tagName === 'INPUT') c.value = n; else c.querySelector('p').textContent = n; })));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+// the hidden input inside a tick block does nothing on its own: the block takes the click (2026-10-27)
+document.querySelectorAll('[role=checkbox]').forEach(b => b.addEventListener('click', () =>
+  b.setAttribute('aria-checked', b.getAttribute('aria-checked') === 'true' ? 'false' : 'true')));
+document.querySelectorAll('[role=radiogroup]').forEach(g => g.querySelectorAll('[role=radio]').forEach(r =>
+  r.addEventListener('click', () => g.querySelectorAll('[role=radio]').forEach(x =>
+    x.setAttribute('aria-checked', x === r ? 'true' : 'false')))));
+const place = document.getElementById('field-42');
+place.addEventListener('input', () => {
+  const t = place.value.trim();
+  if (t.length < 3) return close();
+  open([`${t}, NJ, USA`, `${t}, Uckfield, UK`, `${t}, Basingstoke, UK`, `${t} Township, SD, USA`], n => { place.value = n; });
+});
+const resume = document.querySelector('[data-testid=input-resume]');
+resume.addEventListener('change', () => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-label', 'Preview file : ' + resume.files[0].name);
+  b.textContent = resume.files[0].name;
+  document.querySelector('[data-testid=resume]').appendChild(b);
+});
+</script>
+</body></html>

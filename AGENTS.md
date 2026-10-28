@@ -64,6 +64,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Jobs under their lowest pay are hidden on every list unless few came in that week (then the
   closest come back, marked); no-pay-listed stays unless they choose. Changing it = narrowing:
   `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
+- Jobs first seen over 3 days ago are hidden (`rank.max_age_days`) unless a list (remote / nearby)
+  holds under 10 - then that list alone widens to 5, 7, 14, 30 days, then all (`age_min_jobs`,
+  `age_widen_to`). "Show older jobs" / "only today's" -> set `max_age_days` in their search settings.
 - Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
   (`rank --staffing`), then `blocklist.staffing: true` (`job-find`).
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
@@ -296,16 +299,23 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
 | Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
+| Email typed into a sign-in or new-account page (`account_email`, else your resume's; password always yours) | that employer's Workday, Taleo or UKG site | That employer, when you click Sign In / Create Account |
 | Resume you apply with | that employer's Taleo site | That employer, as soon as it's chosen and attached (only after you say yes) - before Submit; kept on your account there |
 | Contact details, work history, education, answers you apply with | that employer's Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |
 | Email you apply with | that employer's Zoho Recruit site | That employer, as you leave its box - before Submit (a form with screening questions checks it) |
 | Zip code, city, state, skills you type | that employer's Zoho Recruit site (each box searches Zoho Recruit's own list) | That employer, letter by letter as it's typed - before Submit |
 | Contact details, work history, education, answers, resume you apply with | that employer's Zoho Recruit site | That employer, once you click Submit |
+| Contact details, answers, resume you apply with | that employer's Loxo site | That recruiting firm (a Loxo site is a recruiter's; the posting may name the hiring company), once you click Submit |
+| Contact details, answers, resume you apply with | that employer's Gem site | That employer, once you click Apply |
+| Resume (and cover letter) you apply with | that employer's Rippling site | That employer, as soon as the file is chosen - before Apply (Rippling reads it to fill the form) |
+| Town you type in the location box | that employer's Rippling site (the box asks Google for place suggestions) | Google, letter by letter as it's typed - before Apply |
+| Contact details, answers you apply with | that employer's Rippling site | That employer, once you click Apply |
+| Name, email, phone, LinkedIn, town you apply with, if you click "Apply and save" | Gem (the hiring system behind that employer's site) | Gem, kept to fill its next forms for you |
 | Contact details, answers, resume you apply with | that employer's Dover site | That employer, once you click Apply (Dover's Submit) |
 | Everything you type on a Dover application (name, email, phone, answers) + your resume's file name | PostHog, Dover's analytics company (its session recording on the employer's Dover page) | PostHog, as you type - before Apply (every visit recorded, typed boxes not masked - Dover's own setting, measured) |
 | Each page's answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer's site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |
 | Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
-| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website and whether it's a staffing firm |
+| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each job check (morning, then every 2 hours until 22:00), to find each company's website and whether it's a staffing firm, and whether each job the newest search no longer returns is still open |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user's own GitHub account name |
 
@@ -330,7 +340,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   Claude's new chats get the same line (`today --brief`).
 - `Today.md` - generated (`today`): waiting on you, follow up, best to apply next - two lists, remote + near them, each its own order (`app/docs/jobs/best-next.md`;
   same lists in the brief; email one order), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
-  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
+  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each job check (every 2 hours, 08:00-22:00 by default; only the day's first sends the email / pop-up).
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.
@@ -355,7 +365,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
+  `rank.py`, `places.py` (miles from home to a job's office; town list `us-places.tsv`, GeoNames CC BY 4.0), `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `about.py` (About me notes + What Job Finder knows page), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `doctor.py` (read-only self-check), `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
@@ -480,7 +490,8 @@ On finding one:
    search details."
 3. Yes -> `report-defect` skill. No -> leave fix local, say so.
 
-Never push, fork or open PR/issue w/o that yes. PR mechanics: `.github/CONTRIBUTING.md`.
+Never push, fork or open PR/issue w/o that yes. No Claude credit in commits or PR text (no Co-Authored-By, Claude-Session,
+"Generated with Claude Code" lines): repo policy, `attribution` off in `.claude/settings.json`. PR mechanics: `.github/CONTRIBUTING.md`.
 Application filled through the Chrome extension because Job Finder has no filler for that system
 + a GitHub account attached -> after "Did you send it?", ask once to teach Job Finder that form
 (`job-apply` #Teach Job Finder this form); its yes is this consent.

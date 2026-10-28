@@ -24,7 +24,15 @@ form over, fix the program after.
 
 ## Hard limits (safety rules - never relax)
 
-- User signs in / creates the account themselves. Never type a password.
+- User signs in / creates the account themselves. Never type a password. Their email goes in for them
+  (Workday, Taleo, UKG: `prepare` types `account_email` from search settings, else the resume's, into the
+  page's email box and says so; owner 2026-10-26) - tell them to type the password and click Sign In /
+  Create Account, then `prepare` again.
+- Text-message opt-ins ("SMS Opt-in", "receive text updates"): `prepare` prints "ask once" at the first
+  one -> ONE clickable question: "Text messages from employers: leave those boxes unticked on every form?"
+  - Yes, never opt in (Recommended) -> `text_messages: false` (optional ones left unticked, the page goes
+  on) / No, I'll decide on each -> true (theirs on the page). A required one is theirs either way.
+- An optional box they said to leave blank: source "you said", answer blank - `fill` goes on past it.
 - Never click **Submit**, or anything irreversible. **Save and Continue** / **Next** / **Continue**
   only through `fill` with `continue_on_apply: true` in search settings (owner 2026-10-22): `prepare`
   prints "ask once" on the first form over pages whose system names its button (Workday) -> ONE clickable
@@ -64,7 +72,7 @@ form over, fix the program after.
   `self_identification` in search settings: `gender`, `sexual_orientation` (their word), and
   true / false for `hispanic_latino`, `protected_veteran`, `armed_forces` (served or serving at
   all - a separate question from protected veteran), `veteran_spouse` (spouse or partner of a
-  veteran), `transgender`, `disability`
+  veteran), `transgender`, `disability`, `pronouns` (their words, "He/Him")
   (`app/docs/apply/answers.md` #Saved voluntary answers). Filled on forms only after ONE clickable yes:
   `prepare` prints "ask once: fill the user's saved voluntary answers" -> Yes / No, saved as
   `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way -
@@ -252,6 +260,20 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    dates, the tailored lines) - ask. Current Job Title: the employer's own list - none fits ->
    leave it, never a title they don't hold. The cookie notice and the CAPTCHA are theirs on the
    page. `app/docs/apply/zoho.md`.
+   Loxo: a recruiting firm's own site - the posting may name the hiring company; say the
+   application goes to the firm. Everything, resume too, goes at Submit. Its "can contact me"
+   box (texts, Terms of Service) is theirs to tick. Resume by hand: in the Upload File box only -
+   a file set on the hidden input outside it shows nothing (and goes twice if added in the box
+   too). `app/docs/apply/loxo.md`.
+   Gem (`jobs.gem.com`): one page; everything, resume too, goes at Apply. Two buttons may show -
+   "Apply and save" keeps their contact details on Gem for its next forms, "Apply without saving"
+   doesn't: their click, say so. LinkedIn typed by hand: `https://www.linkedin.com/in/...` - Gem
+   refuses `https://linkedin.com/...`. `app/docs/apply/gem.md`.
+   Rippling (`ats.rippling.com`): one page. The resume goes to the site when chosen and the page reads
+   it into name, email, phone and Location - `fill` waits for that, then puts the town they live in over
+   Location (`home_address` city; two US towns of that name -> ASK: write the place as offered). The
+   town's letters go to Google as typed - say so before `fill`. Text-message Yes / No and the check at
+   Apply are theirs. `app/docs/apply/rippling.md`.
    Dover: its button "Apply" is the Submit - theirs. Never use its "Autofill from resume" box (it
    sends the resume's text to Dover to be read); `fill` puts the resume in the Resume box below,
    which sends nothing until Apply. Its page records the visit for PostHog, Dover's analytics company:
@@ -306,7 +328,8 @@ they answer after. `apply` / `fill` record the fill, so a next chat asks again i
 
 They answer while the tab is still open -> look first (`app/docs/apply/sent.md`): Greenhouse address
 ends `/confirmation`; Workday lands on Candidate Home (`/jobTasks/completed/application`); UKG -> My
-Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so). "Not yet" but the sent page shows -> say so, `status set 12
+Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so); Gem, same address: "Your application for
+<title> has been received!". "Not yet" but the sent page shows -> say so, `status set 12
 applied`. Ashby + any page showing nothing -> their answer stands.
 
 One question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):

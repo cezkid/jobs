@@ -29,10 +29,13 @@ alert:
   smtp_port: 465
   timeout_s: 30
 
-# local_daily: autorun.py on this computer's clock, poll + notify/email once
+# local_daily: autorun.py on this computer's clock, poll + notify/email once; then a quiet check
+# every every_hours until last_check (Today + the job list, no message; 0 = morning only)
 # poll + digest: systemd calendars for VPS (deploy/render_units.py)
 schedule:
   local_daily: "08:00"
+  every_hours: 2
+  last_check: "22:00"
   poll: "*:0/30"
   digest: "08:00 America/New_York"
 
@@ -98,6 +101,15 @@ upload_on_apply: null
 # Asked once at the first such form (null); false = the user clicks each one (owner 2026-10-22).
 continue_on_apply: null
 
+# An optional "get text messages" box (SMS opt-in) on an application: false = left unticked on every
+# form, never stopping the page for it; true = the user decides each one on the page. Asked once at the
+# first form showing one (null). A required one stays theirs either way (owner 2026-10-26).
+text_messages: null
+
+# The email typed into an employer's sign-in or new-account page (Workday, Taleo, UKG); null = the one on
+# the resume. The password is never typed - the user types it and clicks Sign In / Create Account.
+account_email: null
+
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
 home_address:
@@ -110,7 +122,7 @@ home_address:
 
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
 # hours / sponsorship mismatch / required licence not on the resume > pay floor > pay > employer lists > first seen. Only max_age_days
-# and pay_filter hide a job.
+# (widened per list when thin) and pay_filter hide a job.
 rank:
   # open job no check has returned in more than this many days sorts to the bottom of its tier
   # ("may be closed") and is never announced as new: filled jobs outside a pass's
@@ -123,9 +135,16 @@ rank:
   # WhatJobs' home page, 3 of 7 at 4 days; live ones hop on to another board (docs/jobs/freehire.md)
   link_days:
     whatjobs: 6
-  # user's own cutoff: hide jobs freehire first saw more than this many days ago (see rank.age;
-  # posted_at is restamped on recrawl, so a 7-day fetch window still returns older jobs). null = keep all
-  max_age_days: null
+  # hide jobs freehire first saw more than this many days ago (see rank.age; posted_at is restamped
+  # on recrawl, so a 7-day fetch window still returns older jobs). null = keep all. Owner 2026-10-27:
+  # "I don't want to see jobs older than 3 days ... if not enough jobs expand"
+  max_age_days: 3
+  # a list (remote, nearby - best.lists) holding fewer than age_min_jobs live jobs that pass every other
+  # filter at that age => its own limit widens to the next of age_widen_to, then no limit. 10 = one
+  # Today list. 0 = never widen. Owner's list 2026-10-27, remote / nearby at 1, 3, 7 days: 25/15,
+  # 45/34, 94/51 => a busy search stays at 3; a small one fills up from older jobs
+  age_min_jobs: 10
+  age_widen_to: [5, 7, 14, 30]
   # freehire `reality`: relisted this often (earlier copies that closed = repost_count less
   # mass_posting_count; copies open at once are one role in several places), or listed this many
   # days, or class likely-evergreen => one doubt, sorted below fresh jobs in its tier.
@@ -134,7 +153,8 @@ rank:
   repost_demote: 3
   old_days: 90
   # setup answers; a title/type that clearly contradicts them sorts lower, never hidden.
-  # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched;
+  # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched; entry + mid
+  # sort Senior / Sr / Lead / Principal (mid: Staff too) + director-level titles lower;
   # leader also sorts lower individual-contributor + support titles (coordinator, generalist,
   # specialist, assistant ...) unless the title names a role that leads (rank.below_leader);
   # senior + leader sort numbered first rungs lower ("Analyst I", "Tier 1" - rank.first_rung).
@@ -153,6 +173,13 @@ rank:
   # a wish ("Java a plus") don't count; a posting listing no requirements counts on the job search's own
   # skill tags ("lists Java"). Whole names: Java never inside JavaScript. [] = none (rank.avoided)
   avoid_skills: []
+  # false = they never worked as an engineer or coder - a project / program manager who leads technical
+  # work at a high level: a job whose required lines ask that background (worked as an engineer, coding,
+  # "strong technical depth") sorts lower w/ "asks an engineer's background", never hidden. A CS degree
+  # "or equivalent", managing software projects, "enough technical depth to follow" never count.
+  # 2026-10-28, 1,462 live US postings w/ requirements: TPM 36 of 413, technical project manager 21 of 395,
+  # IT project manager 2 of 329, program manager 4 of 325 (rank.engineer_asked). null / true = not read
+  engineer_background: null
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0
@@ -228,6 +255,12 @@ rank:
     # Jersey / NYC), 2 resumes, every job rated by an AI for fit + "can they work it from home": top-10
     # nDCG junior 0.606 / 0.571 => 0.662 / 0.649 (remote / nearby) at 0.3; 0.15 / 0.5 / 0.8 lower; senior unmoved
     place: 0.3
+    # a nearby job's office this many miles from home or closer scores full place, none at far_miles, straight
+    # between (app/places.py: straight line from their saved home address, else their resume's town). Owner
+    # 2026-10-26: "pay is important but so is distance". 40 miles straight ~ an hour or more by road or rail
+    # around a big city - convention, not a study. Office unknown => the old place reading (tier city / state)
+    near_miles: 10
+    far_miles: 40
     # newer posting first: 1 posted today, 0 at fresh_days
     fresh: 0.15
     fresh_days: 21

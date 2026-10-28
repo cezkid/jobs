@@ -37,7 +37,9 @@ DOD_LEVEL_IN_TITLE = re.compile(r"(?i)\b(?:IAT|IAM|IASAE)[\s-]*(?:Level[\s-]*)?(
 # level -> (words above it, words below it)
 LEVEL_MISMATCH = {
     "entry": (rf"senior|sr|principal|lead|{_TOP}", None),
-    "mid": (_TOP, r"interns?|internships?|co-?op|trainee|apprentice"),
+    # owner 2026-10-26: "senior jobs are hard to get ... software engineer 1, 2, 3 preferred" - a mid-level
+    # user's list was topped by Senior titles; mid now reads senior / lead / principal / staff as above too
+    "mid": (rf"senior|sr|principal|staff|lead|{_TOP}", r"interns?|internships?|co-?op|trainee|apprentice"),
     "senior": (None, _JUNIOR),
     "leader": (None, _JUNIOR),
 }
@@ -46,8 +48,13 @@ LEVEL_MISMATCH = {
 # a title naming an early-career job: where the job search's experience_years_min tag misreads
 # most (10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 2026-10-07)
 EARLY_CAREER = rf"{_JUNIOR}|new (?:college )?grad(?:uate)?s?|early career|graduate program|university grad(?:uate)?"
-# a shop's shift lead is an hourly floor role, not a level above entry
-ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b", re.I)
+# level words that name no level: a shop's shift lead (an hourly floor role), lead generation (sales), senior
+# living / care (who's served), member of technical staff (a general AI-lab title), staff accountant / nurse /
+# auditor (a first job in the field). Read out before entry + mid look for a title above theirs
+ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b|\blead[- ]gen(?:eration)?\b|"
+                              r"\bsenior (?:living|care|services|center|citizens?|housing|community|communities)\b|"
+                              r"\bmember of (?:the )?technical staff\b|"
+                              r"\bstaff (?:accountant|auditor|nurse|rn|attorney|writer|pharmacist|member|assistant|accounting)s?\b", re.I)
 # the job search tags 87 of 300 real internships full time (summer hours) and 17 part time
 # (2026-10-07, newest intern-titled US rows): the title says what the job is. One way only - a
 # title can keep a job its tag would hide or sort lower, never hide one ("Intern Program Manager")
@@ -338,7 +345,7 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     level = rc.get("career_level") or ""
     above, below = LEVEL_MISMATCH.get(level, (None, None))
     title = job.get("title") or ""
-    if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level == "entry" else title):
+    if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level in ("entry", "mid") else title):
         out.append("title above your level")
     if below and words(below).search(title) or level == "leader" and below_leader(title) \
             or level in ("senior", "leader") and first_rung(title):
@@ -355,7 +362,8 @@ def mismatches(job: dict, rc: dict) -> list[str]:
             and not title_type(job) and not words(rf"{EARLY_CAREER}|{STUDENT_PROGRAM}").search(title):
         out.append("title doesn't say internship")
     # another kind of software work than theirs (front-end user, back-end title): one reason, sorted lower
-    return out + software.mismatch(job, rc.get("software_kinds")) + avoided(job, rc.get("avoid_skills"))
+    return (out + software.mismatch(job, rc.get("software_kinds")) + avoided(job, rc.get("avoid_skills"))
+            + engineer_asked(job, rc.get("engineer_background")))
 
 
 # a name another one starts with, written apart: "Java Script" is JavaScript
@@ -391,6 +399,43 @@ def avoided(job: dict, skills: list[str] | None) -> list[str]:
         elif s.lower() in tags:
             return [f"lists {s}"]
     return []
+
+
+# a required line asking for the background of someone who built the systems, not led them: worked as an
+# engineer, codes, or deep technical / engineering depth. For rank.engineer_background false - a project /
+# program manager who leads technical work at a high level. Managing software development ("5+ years
+# managing software development projects") never counts; a line saying no code is needed never does.
+ENGINEER_ASK = re.compile(
+    r"(?i)\b(?:experience|years|background|career|time)\s+(?:working\s+)?as\s+an?\s+(?:[\w/-]+\s+){0,3}?"
+    r"(?:engineers?|developers?|programmers?|data scientists?|software architects?)\b"
+    r"|\b(?:software|hands[- ]on|technical) (?:engineering|development|developer) (?:background|experience)\b"
+    r"|\b(?:prior|previous|hands[- ]on) (?:software |firmware |technical )?(?:engineering|development)(?: or test)?"
+    r" (?:experience|background|role)"
+    r"|\b\d+\+?\s*(?:-\s*\d+\+?\s*)?years? (?:of )?(?:professional |hands[- ]on )?(?:software|firmware) (?:development|engineering)"
+    r"(?! (?:projects?|programs?|teams?|lifecycle|life cycle|methodolog\w*|processe?s?))\b"
+    r"|\b(?:coding|programming|scripting) (?:skills?|experience|ability|background|proficiency)\b"
+    r"|\b(?:write|read|reading|writing) (?:production |a )?code(?:base)?\b|\bhands[- ]on (?:coding|programming)\b"
+    r"|\bproficien\w* (?:in|with) (?:\w+ ){0,2}(?:python|java|c\+\+|golang|javascript|typescript|scala|rust)\b"
+    r"|\b(?:deep|strong|solid|significant) (?:technical|engineering) (?:background|depth|expertise|foundation|acumen)\b"
+    r"|\bengineering background\b|(?<!enough )(?<!sufficient )\btechnical depth\b"
+    r"|\bbackground in (?:software|computer|electrical|mechanical|systems|network) engineering\b")
+NO_CODE = re.compile(r"(?i)\bno (?:coding|programming)\b|\bwithout (?:writing|write) code|"
+                     r"\b(?:do not|don't|won't|will not|doesn't|does not) (?:need|have|require) (?:you )?to (?:write )?code|"
+                     r"\b(?:coding|programming) (?:is )?not required|"
+                     # a door a high-level manager can walk through: "Strong technical background or proven
+                     # ability to engage in technical discussions"
+                     r"\bor (?:a )?(?:proven |demonstrated )?(?:ability|experience) (?:to )?(?:engage|work|partner)")
+
+
+def engineer_asked(job: dict, background: bool | None) -> list[str]:
+    """One reason when they said they never worked as an engineer (rank.engineer_background false) and a
+    required line asks that background - wishes cut ("C++ a plus" asks nothing). Sorted lower, never hidden:
+    most TPM postings ask a CS degree "or equivalent", which this never reads (docs/jobs/freehire.md)."""
+    if background is not False:
+        return []
+    import best  # imports this module
+    lines = [a for t in required_lines(job) if (a := best.asked(t)) and not NO_CODE.search(a)]
+    return ["asks an engineer's background"] if any(ENGINEER_ASK.search(t) for t in lines) else []
 
 
 def required_lines(job: dict) -> list[str]:
@@ -651,17 +696,32 @@ def posting_says(job: dict, rc: dict) -> list[str]:
 # the job search's company record (companies.staffing - most of them), a name saying so, contract
 # terms only a third party writes. Docs: app/docs/jobs/freehire.md #Staffing firms
 STAFFING_NAME = re.compile(r"staffing|recruit(?:ing|ment|ments|ers)?\b|personnel|placements?\b|manpower|\btalent", re.I)
+# a name written as one word (recruitingfromscratch, decircletalentpartner): no word edge to find,
+# 3 of 3 such names in a React search staffing firms, 2026-10-27
+STAFFING_ONE_WORD = re.compile(r"recruit|talent", re.I)
 # a hiring system's host in the name (murphysfamilystaffing.zohorecruit.com): its word is no sign
 ATS_HOST = re.compile(r"\.(?:zohorecruit|recruitee|smartrecruiters)\.\w+.*$", re.I)
 # C2C / corp-to-corp / "on W2" / "W2 contract": 32 of 1,502 rows above, 25 of their firms already on
 # record, the other 7 staffing firms read by hand. "No C2C" is an employer turning third parties away
+# One employer the poster won't name - "Our client is a seed-stage AI company", "on behalf of our
+# client", a rewrite opening "About the Role Join an early-stage ... team" (Clera, True Talent): 2026-10-27,
+# 2,509 rows of a React search 97 hits, 71 firms on record, the rest recruiters or outsourcers read by
+# hand; 2,400 newest US rows (PM, consultant, analyst, software) 17, all placing at another company.
+# Plain "our client" stays out (a contractor's own "our clients", Accenture Federal) and so does
+# "our client is the ..." (a government agency).
 STAFFING_TEXT = re.compile(r"(?<!\bno )(?<!\bnot )(?<!\bnot a )\b(?:C2C|corp[- ]to[- ]corp)\b"
-                           r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b", re.I)
+                           r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b"
+                           r"|\bour\s+(?:[\w-]+\s+){0,2}client,?\s+(?:is\s+)?(?:an?|looking|seeking|hiring|searching|building)\b"
+                           r"|\babout\s+(?:our|the)\s+client\b|\bon\s+behalf\s+of\s+(?:our|a|one\s+of\s+our)\s+(?:[\w-]+\s+)?clients?\b"
+                           r"|^\s*About the Role\s+Join\s+an?\s+(?:[\w-]+\s+){0,5}(?:team|company|startup)\b", re.I)
 
 
 def staffing_firm(job: dict) -> bool:
-    """Posted by a staffing firm: its company record says so, its name does, or its contract terms."""
-    return bool(job.get("company_staffing")) or bool(STAFFING_NAME.search(ATS_HOST.sub("", job.get("company") or ""))) \
+    """Posted by a staffing firm: its company record says so, its name does, its contract terms, or
+    an employer it won't name."""
+    name = ATS_HOST.sub("", job.get("company") or "").strip()
+    return bool(job.get("company_staffing")) or bool(STAFFING_NAME.search(name)) \
+        or (" " not in name and bool(STAFFING_ONE_WORD.search(name))) \
         or bool(STAFFING_TEXT.search(TAG.sub(" ", job.get("description") or "")))
 
 
@@ -720,18 +780,24 @@ def collapse(jobs: list[dict]) -> list[dict]:
     return kept
 
 
-def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[dict]:
+def unaged(jobs: list[dict], config: dict, now: datetime) -> list[dict]:
+    """Rows past the blocklist + cities, marked stale / link dead: what the age cutoff reads."""
     rc = config["rank"]
-    tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
-    now = now or datetime.now(timezone.utc)
 
     def marked(j: dict) -> dict:
         dead = link_dead(j, rc, now)
         return dict(j, stale=stale_for(j, rc, now) or dead, link_dead=dead)
 
-    kept = pay_filter(collapse([marked(j) for j in jobs
-                                if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)
-                                and not far(j, config)]), rc, now)
+    return [marked(j) for j in jobs if not blocked(j, config["blocklist"]) and not far(j, config)]
+
+
+def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[dict]:
+    rc = config["rank"]
+    tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
+    now = now or datetime.now(timezone.utc)
+    base = unaged(jobs, config, now)
+    limits = age_limits(collapse(base), rc, now)
+    kept = pay_filter(collapse([j for j in base if not too_old(j, limits.get(list_of(j)), now)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
     graduation, credentials = student_graduation(config, now.date()), resume_credentials(config)
     kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date(), credentials)) for j in kept]
@@ -778,10 +844,31 @@ def flags(job: dict, config: dict) -> list[str]:
             + clearance(job) + named)
 
 
-def too_old(job: dict, rc: dict, now: datetime) -> bool:
-    """User's own cutoff (rank.max_age_days): first seen longer ago hides. Age unknown stays."""
-    limit, days = rc.get("max_age_days"), age(job, now)
+def too_old(job: dict, limit: int | None, now: datetime) -> bool:
+    """Age cutoff (age_limits): first seen more than limit days ago hides. Age unknown stays."""
+    days = age(job, now)
     return limit is not None and days is not None and days > limit
+
+
+def list_of(job: dict) -> str:
+    """Which of Today's two lists: a remote job, else one near them (hybrid, on-site, not tagged)."""
+    return "remote" if job.get("work_mode") == "remote" else "nearby"
+
+
+def age_limits(jobs: list[dict], rc: dict, now: datetime) -> dict[str, int | None]:
+    """Each list's age cutoff: rank.max_age_days, widened through age_widen_to (then none) while the
+    list holds fewer than age_min_jobs live jobs the pay filter keeps - a thin search still fills
+    up, a busy one stays fresh (owner 2026-10-27). jobs = rows past every other filter, collapsed."""
+    limit, want = rc.get("max_age_days"), rc.get("age_min_jobs") or 0
+    if limit is None:
+        return {}
+    steps = [limit, *[d for d in rc.get("age_widen_to") or [] if d > limit], None] if want else [limit]
+    ages = defaultdict(list)
+    for j in jobs:
+        if not j["stale"] and not pay_hidden(j, rc):
+            ages[list_of(j)].append(age(j, now))
+    return {k: next((s for s in steps if s is None or sum(d is None or d <= s for d in v) >= want), steps[-1])
+            for k, v in {"remote": ages["remote"], "nearby": ages["nearby"]}.items()}
 
 
 US_STATES = {
@@ -831,8 +918,13 @@ def far(job: dict, config: dict) -> bool:
 
 def age(job: dict, now: datetime) -> int | None:
     """Days since freehire first saw it: reality.age_days, else posted_at - which is restamped
-    on recrawl (reality.fake_freshness), so only a fallback."""
+    on recrawl (reality.fake_freshness), so only a fallback. age_days is as of the fetch that
+    stored it: a row no fetch returned since read "first seen 1d ago" 12 days on (2026-10-27,
+    real list - mostly jobs the job search had closed), so the days since that fetch are added."""
     days = (job.get("reality") or {}).get("age_days")
+    if days is not None and job.get("fetched_at"):
+        fetched = datetime.strptime(job["fetched_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        days += max(0, (now - fetched).days)
     if days is None and job.get("posted_at"):
         days = (now - datetime.strptime(job["posted_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)).days
     return days
@@ -886,9 +978,10 @@ def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
-def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
+def hidden_rule(job: dict, config: dict, now: datetime, limits: dict[str, int | None] | None = None) -> str | None:
     """The first setting that hides a row, in plain words; None = shown. Same tests as blocked(),
-    too_old, far and pay_filter, one rule per row (first match)."""
+    too_old, far and pay_filter, one rule per row (first match). limits = age_limits of the list;
+    None = max_age_days unwidened."""
     bl, rc = config["blocklist"], config["rank"]
     if norm_company(job.get("company")) in {norm_company(c) for c in bl.get("companies") or []} \
             or (job.get("company_slug") or "").lower() in {v.lower() for v in bl.get("companies") or []}:
@@ -907,7 +1000,7 @@ def hidden_rule(job: dict, config: dict, now: datetime) -> str | None:
         return "kind of software work hidden"
     if title_blocked(job.get("title") or "", bl):
         return "title phrase hidden"
-    if too_old(job, rc, now):
+    if too_old(job, rc.get("max_age_days") if limits is None else limits.get(list_of(job)), now):
         return "older than your age limit"
     if far(job, config):
         return "too far from your cities"
@@ -919,9 +1012,10 @@ def hidden_report(jobs: list[dict], config: dict, now: datetime, days: int = 7, 
     """What the settings hid among jobs first listed in the last `days` days: count per rule +
     up to `samples` titles. Pay-floor rows the thin-week relax brought back are not counted."""
     recent = [j for j in jobs if (d := listed_days(j, now)) is not None and d < days]
+    limits = age_limits(collapse(unaged(jobs, config, now)), config["rank"], now)
     by_rule = defaultdict(list)
     for j in recent:
-        if rule := hidden_rule(j, config, now):
+        if rule := hidden_rule(j, config, now, limits):
             by_rule[rule].append(j)
     total = sum(len(v) for v in by_rule.values())
     out = [f"settings hid {total} of {len(recent)} jobs listed in the last {days} days"

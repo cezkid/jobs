@@ -8,11 +8,11 @@
 # Fails => the app changed: fix the page sentence first, then `text` + the fact here.
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Dover Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Gem Rippling Dover Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Breezy, Dover, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
+    filled: [Ashby, BambooHR, Breezy, Dover, Gem, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, Rippling, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -26,7 +26,7 @@ today-page:
     contains: Today page buttons put their words in the chat, never send them
 home-freehire:
   page: index.html
-  text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume. When: To find jobs, each company’s website and whether it’s a staffing firm, get the whole posting, or see if it’s still open.'
+  text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it and which jobs are on it. Never your resume. When: To find jobs, each company’s website and whether it’s a staffing firm, get the whole posting, or see if it’s still open.'
   why: 'privacy table: what freehire gets'
   rests_on:
   - file: AGENTS.md
@@ -34,7 +34,7 @@ home-freehire:
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
     - '| Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting''s title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board''s copy of it (to find the employer''s own posting), or ask if it''s still open |'
-    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
+    - '| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each job check (morning, then every 2 hours until 22:00), to find each company''s website and whether it''s a staffing firm, and whether each job the newest search no longer returns is still open |'
 home-ai:
   page: index.html
   text: 'Your own AI account What they get: Your resume, the postings you work on and what you tell it, in Claude, ChatGPT or GitHub Copilot. When: While you chat. Personal plans may train on chats unless you switch it off.'
@@ -48,7 +48,7 @@ home-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-freehire:
   page: privacy.html
-  text: freehire.meYour search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website and whether it’s a staffing firm.
+  text: freehire.meYour search words; the company names on your job list and which jobs are on it; which job from your list you make a resume for or ask about. Not your resume.To find jobs, get the whole posting, or see if it’s still open. At each job check (every 2 hours through the day), to find each listed company’s website and whether it’s a staffing firm, and whether each older job on your list is still open.
   why: 'privacy table: what freehire gets'
   rests_on:
   - file: AGENTS.md
@@ -56,7 +56,7 @@ privacy-freehire:
     are:
     - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
     - '| Which listed job you make a resume for, apply to or check on (its listing id, or a copied posting''s title - nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions), apply to a job board''s copy of it (to find the employer''s own posting), or ask if it''s still open |'
-    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website and whether it''s a staffing firm |'
+    - '| Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each job check (morning, then every 2 hours until 22:00), to find each company''s website and whether it''s a staffing firm, and whether each job the newest search no longer returns is still open |'
 privacy-ai:
   page: privacy.html
   text: Your AI (Claude, ChatGPT or GitHub Copilot)Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application, plus the titles and addresses of your open Chrome tabs. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it. When you ask which jobs you sent, your AI gets what your browser history on this computer shows for those jobs. If you turn on email alerts, the app password you type goes through the chat too.While you chat. Personal plans may train on chats unless you switch it off.
@@ -70,7 +70,7 @@ privacy-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed; Zoho Recruit: your email as you leave its box when the form has screening questions, a zip code, city, state or skill letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. If you let the app go on for you (Workday), each page’s answers as it clicks Save and Continue – never Submit. Taleo keeps what you apply with on your account there for next time. When the app starts from an employer’s careers page, it reads that posting page once to find where Apply leads. The AI tells you first.'
+  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Rippling: the town you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed; Zoho Recruit: your email as you leave its box when the form has screening questions, a zip code, city, state or skill letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. At a sign-in or new-account page (Workday, Taleo, UKG) the app types your email for you – never your password – and it goes when you click Sign In or Create Account. If you let the app go on for you (Workday), each page’s answers as it clicks Save and Continue – never Submit. Taleo keeps what you apply with on your account there for next time. When the app starts from an employer’s careers page, it reads that posting page once to find where Apply leads. The AI tells you first.'
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
@@ -108,11 +108,17 @@ privacy-employers:
     - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
     - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'
     - '| Email you start with | that employer''s iCIMS site | That employer, when you click Next on its start box - before the form |'
+    - '| Email typed into a sign-in or new-account page (`account_email`, else your resume''s; password always yours) | that employer''s Workday, Taleo or UKG site | That employer, when you click Sign In / Create Account |'
     - '| Resume you apply with | that employer''s Taleo site | That employer, as soon as it''s chosen and attached (only after you say yes) - before Submit; kept on your account there |'
     - '| Contact details, work history, education, answers you apply with | that employer''s Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |'
     - '| Email you apply with | that employer''s Zoho Recruit site | That employer, as you leave its box - before Submit (a form with screening questions checks it) |'
     - '| Zip code, city, state, skills you type | that employer''s Zoho Recruit site (each box searches Zoho Recruit''s own list) | That employer, letter by letter as it''s typed - before Submit |'
     - '| Contact details, work history, education, answers, resume you apply with | that employer''s Zoho Recruit site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Loxo site | That recruiting firm (a Loxo site is a recruiter''s; the posting may name the hiring company), once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Gem site | That employer, once you click Apply |'
+    - '| Resume (and cover letter) you apply with | that employer''s Rippling site | That employer, as soon as the file is chosen - before Apply (Rippling reads it to fill the form) |'
+    - '| Town you type in the location box | that employer''s Rippling site (the box asks Google for place suggestions) | Google, letter by letter as it''s typed - before Apply |'
+    - '| Contact details, answers you apply with | that employer''s Rippling site | That employer, once you click Apply |'
     - '| Contact details, answers, resume you apply with | that employer''s Dover site | That employer, once you click Apply (Dover''s Submit) |'
     - '| Each page''s answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer''s site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |'
     - '| Which posting you''re applying to (its public page read once, nothing about you) | that employer''s careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |'
@@ -350,3 +356,10 @@ next-time:
     contains: Next time, double-click "CEZ Job Finder" on your Desktop.
   - file: app/install/install-windows.ps1
     contains: Next time, double-click "CEZ Job Finder" on your Desktop.
+home-need:
+  page: index.html
+  text: 'You need a Windows 10 or 11 PC or a Mac – it’s not a website or a phone app – and a paid AI plan: Claude Pro, ChatGPT Plus ($20 a month) or Copilot Pro ($10).'
+  why: 'the app runs on the user''s own paid AI, installed on Windows or Mac'
+  rests_on:
+  - file: AGENTS.md
+    contains: 'can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan'

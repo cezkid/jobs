@@ -33,12 +33,19 @@ def senders(config: dict) -> list[Sender]:
     return out + [(notify.sender(), "notified")]
 
 
-def check(config: dict, send: Sender) -> None:
+def check(config: dict, send: Sender | None) -> None:
+    """send None = a later check of the day: the job list + Today catch up, nothing is sent - the
+    next day's first check tells them about these jobs too (still unseen)."""
     conn = store.connect(cfg.db_path(config))
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
+        started = store.utc_now()
         for tier, s in freehire.run(config, conn, client).items():
             print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}" + (" (cut at ceiling)" if s["truncated"] else ""))
+        freehire.recheck_quietly(conn, client, config["api"]["base"], started)
         companies.refresh_quietly(conn, client, config["api"]["base"])
+    if send is None:
+        print("later check, nothing sent")
+        return
     with alert.lock(cfg.db_path(config)):
         new = alert.run(conn, config, send[0])
     print(f"{new} new, {send[1]}" if new else "0 new, nothing sent")
@@ -131,9 +138,28 @@ def last_ok(data_dir: Path) -> datetime | None:
         return None
 
 
+def ran_today(data_dir: Path, word: str, now: datetime | None = None) -> bool:
+    """A log line "<word> <local time>" from today: "ok" = a check worked, "failed" = one didn't."""
+    day = (now or datetime.now()).date()
+    try:
+        lines = (data_dir / "daily.log").read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return False
+    for line in lines:
+        parts = line.split()
+        if len(parts) >= 2 and parts[0] == word:
+            try:
+                if datetime.fromisoformat(parts[1]).date() == day:
+                    return True
+            except ValueError:
+                continue
+    return False
+
+
 def work() -> None:
     config = cfg.load()
-    check(config, senders(config)[0])
+    # several checks a day (autorun.times), one message: the day's first that works sends it
+    check(config, None if ran_today(cfg.DATA, "ok") else senders(config)[0])
     refresh_today(config)
     # the count is decoration: it must never fail a finished check
     try:
@@ -152,7 +178,12 @@ def main() -> None:
     print(f"== {datetime.now().isoformat(timespec='seconds')}")
     load_dotenv(cfg.EMAIL_ENV)
 
+    # one failure report a day at most, none once a check worked: offline all day = 1, not 8
+    told = ran_today(cfg.DATA, "ok") or ran_today(cfg.DATA, "failed")
+
     def ways() -> list[Sender]:
+        if told:
+            return []
         # broken settings must not stop the failure report
         try:
             return senders(cfg.load())

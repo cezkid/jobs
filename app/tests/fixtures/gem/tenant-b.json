@@ -1,0 +1,113 @@
+{
+ "oatsExternalJobPosting": {
+  "id": "T2F0c0pvYlBvc3Q6ODQzMzU2Mw==",
+  "title": "Software Engineer",
+  "isApplicationFormHidden": false,
+  "applicationFormTemplate": null
+ },
+ "oatsJobPostFieldsAndQuestions": {
+  "fields": [
+   {
+    "fieldType": "FIRST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LAST_NAME",
+    "isRequired": true
+   },
+   {
+    "fieldType": "EMAIL",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LINKEDIN_URL",
+    "isRequired": false
+   },
+   {
+    "fieldType": "PHONE",
+    "isRequired": true
+   },
+   {
+    "fieldType": "LOCATION",
+    "isRequired": true
+   },
+   {
+    "fieldType": "RESUME",
+    "isRequired": true
+   }
+  ],
+  "questions": [
+   {
+    "extId": "cXVlczq7gn4Kd4YfwxdupgsA59UG",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "Will you now or in the future require employment sponsorship to work in the United States?",
+    "description": "",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDrr5mKGZUQerecRAI5vTF7D",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDqrw77Ckvz9tz6HRFP9bh9d",
+      "value": "No"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpZ8PTK3OIdLMmsjY-Ogusr",
+    "answerType": "SINGLE_SELECT",
+    "displayType": "RADIO_BUTTON",
+    "fileType": null,
+    "text": "Are you currently bound by any agreement with a current or former employer, or any other party, that may restrict your ability to work for Acme or perform this role? Examples include a non-compete, non-solicitation (customers, prospects, or employees), confidentiality, garden leave, notice period, or similar agreement.",
+    "description": "<div><br></div>",
+    "isRequired": true,
+    "options": [
+     {
+      "extId": "cXVlc29wdDoQiyiR77UUpMiVY6BvMLZx",
+      "value": "Yes"
+     },
+     {
+      "extId": "cXVlc29wdDq5PsOf0Mm94ddPSupGW63Q",
+      "value": "No"
+     },
+     {
+      "extId": "cXVlc29wdDozc76l4wlgoudoTjy8i-tS",
+      "value": "Not Sure"
+     }
+    ],
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczr9RdkeYlsF23qxMP13QGU6",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "If you answered ’Yes’  or ‘Not sure,’ please briefly describe (e.g., type of restriction, employer, and end date). ",
+    "description": "",
+    "isRequired": false,
+    "options": null,
+    "numericRatingRange": null
+   },
+   {
+    "extId": "cXVlczpA1KXFT8Pkv3Pm8bXd0niK",
+    "answerType": "LONG_TEXT",
+    "displayType": null,
+    "fileType": null,
+    "text": "In 1–2 sentences, what professional accomplishment are you most proud of, and why?",
+    "description": "",
+    "isRequired": true,
+    "options": null,
+    "numericRatingRange": null
+   }
+  ],
+  "demographicSurvey": {
+   "extId": "Y3N1cnY6QBHbQYz15_TbUfgFMis_EQ",
+   "surveyType": "EEOV",
+   "questions": []
+  }
+ }
+}
