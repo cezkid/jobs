@@ -40,7 +40,7 @@ Job numbers stay the same everywhere: the chat, the Today page and the morning e
 ## Where the jobs come from
 
 **freehire.me** - a free public list of job postings, gathered from companies' own hiring pages
-and job boards. Each job links to the real posting. New ones checked every morning.
+and job boards. Each job links to the real posting. New ones checked every 2 hours through the day; you hear about them once, each morning.
 
 ## Your resume
 

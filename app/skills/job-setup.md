@@ -497,8 +497,9 @@ write `.data/email.env` if they said yes -> `email --dry-run` (real preview + si
 Tail says notifications switched off -> their own Windows setting: walk them through Settings >
 System > Notifications on, rerun `daily` (nothing marked seen while it failed).
 
-Tell them: each morning computer checks for jobs, pops up a notification when new ones arrive;
+Tell them: computer checks for jobs each morning, pops up a notification when new ones arrive;
 clicking it opens CEZ Job Finder. First one covers every current match, later ones only new jobs.
+It checks again every 2 hours until 10 pm: Today stays current, no more pop-ups (`autorun.times`).
 Computer must be on; missed run happens when it next starts (Windows) or wakes (Mac).
 - Different time -> `schedule.local_daily: "HH:MM"` in search settings, `autorun on` again.
 

@@ -108,3 +108,64 @@ def test_daily_last_ok_store_fallback_with_z(tmp_path):
     assert got.isoformat() == "2026-02-02T08:00:00+00:00"
     (tmp_path / "daily.log").write_text("ok 2026-02-03T07:00:00 1 jobs\n")
     assert daily.last_ok(tmp_path) > got  # log and store compare like with like
+
+
+def log(tmp_path, *lines: str):
+    (tmp_path / "daily.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def test_ran_today_reads_only_todays_lines(tmp_path):
+    from datetime import datetime
+    now = datetime(2026, 10, 27, 14, 0)
+    assert not daily.ran_today(tmp_path, "ok", now)
+    log(tmp_path, "ok 2026-10-26T08:00:05 3269 jobs", "failed 2026-10-27T08:00:05 offline")
+    assert not daily.ran_today(tmp_path, "ok", now)
+    assert daily.ran_today(tmp_path, "failed", now)
+    log(tmp_path, "ok 2026-10-27T08:00:05 3368 jobs")
+    assert daily.ran_today(tmp_path, "ok", now)
+
+
+def test_only_the_days_first_check_sends(tmp_path, monkeypatch):
+    # every 2 hours, one message a day: later checks fill the list + Today, the jobs stay unseen
+    sent = []
+    monkeypatch.setattr(daily.cfg, "DATA", tmp_path)
+    monkeypatch.setattr(daily.cfg, "load", lambda: {})
+    monkeypatch.setattr(daily, "senders", lambda config: [("email", "emailed")])
+    monkeypatch.setattr(daily, "check", lambda config, send: sent.append(send))
+    monkeypatch.setattr(daily, "refresh_today", lambda config: None)
+    daily.work()
+    log(tmp_path, f"ok {daily.stamp()} 10 jobs")
+    daily.work()
+    assert sent == [("email", "emailed"), None]
+
+
+def test_later_check_fetches_but_sends_nothing(monkeypatch, capsys):
+    import httpx
+    monkeypatch.setattr(daily.store, "connect", lambda path: None)
+    monkeypatch.setattr(daily.cfg, "db_path", lambda config: "x.db")
+    monkeypatch.setattr(daily.freehire, "run", lambda config, conn, client: {})
+    monkeypatch.setattr(daily.freehire, "recheck_quietly", lambda *a: None)
+    monkeypatch.setattr(daily.companies, "refresh_quietly", lambda *a: None)
+    monkeypatch.setattr(daily.alert, "run", lambda *a: (_ for _ in ()).throw(AssertionError("sent")))
+    daily.check({"api": {"timeout_s": 5, "base": "x"}}, None)
+    assert capsys.readouterr().out.strip() == "later check, nothing sent"
+
+
+def test_failure_reported_once_a_day(tmp_path, monkeypatch):
+    # offline all day = one "couldn't check" message, not one per check
+    got = []
+    monkeypatch.setattr(daily.cfg, "DATA", tmp_path)
+    monkeypatch.setattr(daily.cfg, "DAILY_LOG", tmp_path / "daily.log")
+    monkeypatch.setattr(daily, "load_dotenv", lambda path: None)
+    monkeypatch.setattr(daily, "senders", lambda config: [(got.append, "notified")])
+    monkeypatch.setattr(daily, "work", lambda: (_ for _ in ()).throw(RuntimeError("offline")))
+    # main() points stdout at the log, as the scheduled run does
+    monkeypatch.setattr(daily.sys, "stdout", daily.sys.stdout)
+    monkeypatch.setattr(daily.sys, "stderr", daily.sys.stderr)
+    for _ in range(2):
+        try:
+            daily.main()
+        except SystemExit:
+            pass
+        daily.sys.stdout.close()
+    assert len(got) == 1

@@ -61,7 +61,8 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
 def ready_after_launch(tmp_path, monkeypatch, running=False, current=True, code=lambda args, quiet=False: 0) -> bool:
     """main() w/ every machine step stubbed; True = the launcher wrote the splash's ready signal."""
     for name in ("ensure_claude_trust", "ensure_chat_sidebar", "ensure_yaml_checker", "ensure_mac_icon",
-                 "ensure_folder_trusted", "ensure_sign_in_sites_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
+                 "ensure_folder_trusted", "ensure_sign_in_sites_trusted", "keep_out_of_sync", "ensure_quiet_vscode",
+                 "ensure_schedule"):
         monkeypatch.setattr(launch, name, lambda: None)
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
