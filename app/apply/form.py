@@ -163,6 +163,15 @@ def typed_note(system, answers: list[dict]) -> str:
     return ""
 
 
+def recorded_note(system) -> str:
+    """A system whose page records the visit for an analytics company, typed boxes unmasked (measured): what's
+    typed leaves as it is typed, whoever the form is for."""
+    if who := getattr(system, "RECORDED_BY", ""):
+        return (f"{system.NAME}: the page records the visit for {who} - every box as it is typed (name, email, phone, "
+                "answers) and the resume's file name reach them during the fill, before Submit; say so before fill")
+    return ""
+
+
 def ai_note(answers: list[dict]) -> str:
     """A form asking the applicant to say whether AI helped: the AI names it and how the resume was made."""
     if any(questions.never_draft(a["title"]) == questions.AI_USE for a in answers):
@@ -247,6 +256,8 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     if note := upload_note(system, answers):
         print(note)
     if note := typed_note(system, answers):
+        print(note)
+    if note := recorded_note(system):
         print(note)
     if note := ai_note(answers):
         print(note)

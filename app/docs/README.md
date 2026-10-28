@@ -60,6 +60,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/zoho.md](apply/zoho.md) | Zoho Recruit forms (`zohorecruit.com`): form definition by plain GET, Lyte widgets, cookie layer, tables from the resume, what leaves as typed, read back |
 | Applying | [apply/loxo.md](apply/loxo.md) | Loxo forms (`app.loxo.co`, recruiting firms): form page by plain GET, widgets, the resume box's shadow root (set there or the box shows nothing), read back, resume only at Submit |
 | Applying | [apply/gem.md](apply/gem.md) | Gem forms (`jobs.gem.com`): the job board's GraphQL read, boxes found by label, dropdown lists in a floating layer, LinkedIn check, resume only at Apply |
+| Applying | [apply/dover.md](apply/dover.md) | Dover forms (`app.dover.com/apply/<co>/<uuid>`): form definition over HTTP, MUI widgets, the autofill box left alone, read back, everything at Apply |
 | Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |

@@ -8,11 +8,11 @@
 # Fails => the app changed: fix the page sentence first, then `text` + the fact here.
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Gem Rippling Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Gem Rippling Dover Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Breezy, Gem, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, Rippling, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
+    filled: [Ashby, BambooHR, Breezy, Dover, Gem, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, Rippling, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -119,6 +119,7 @@ privacy-employers:
     - '| Resume (and cover letter) you apply with | that employer''s Rippling site | That employer, as soon as the file is chosen - before Apply (Rippling reads it to fill the form) |'
     - '| Town you type in the location box | that employer''s Rippling site (the box asks Google for place suggestions) | Google, letter by letter as it''s typed - before Apply |'
     - '| Contact details, answers you apply with | that employer''s Rippling site | That employer, once you click Apply |'
+    - '| Contact details, answers, resume you apply with | that employer''s Dover site | That employer, once you click Apply (Dover''s Submit) |'
     - '| Each page''s answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer''s site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |'
     - '| Which posting you''re applying to (its public page read once, nothing about you) | that employer''s careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |'
 privacy-email:
@@ -143,13 +144,17 @@ privacy-maintainer:
     - '| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user''s own GitHub account name |'
 privacy-hiring-analytics:
   page: privacy.html
-  text: 'Employers’ hiring sites run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants, as we read JazzHR’s page script (not measured live).'
-  why: 'privacy table: JazzHR page script identifies a sampled share of applicants to Gainsight at Submit'
+  text: 'Employers’ hiring sites run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants, as we read JazzHR’s page script (not measured live). Dover’s page records every visit for its analytics company, PostHog: what you type in its boxes and your resume’s file name go as you type, before you click Apply.'
+  why: 'privacy table: JazzHR page script identifies a sampled share of applicants to Gainsight at Submit; Dover''s page records what is typed for PostHog'
   rests_on:
   - file: AGENTS.md
     rows: ^\| .* \| Gainsight, JazzHR's analytics company
     are:
     - '| Email, name, phone, city / state / country you apply with | Gainsight, JazzHR''s analytics company (its script on the employer''s JazzHR page) | Gainsight, when you click Submit - about 1 in 100 applicants, a sample the page draws (read in JazzHR''s script, unmeasured live) |'
+  - file: AGENTS.md
+    rows: ^\| .* \| PostHog, Dover's analytics company
+    are:
+    - '| Everything you type on a Dover application (name, email, phone, answers) + your resume''s file name | PostHog, Dover''s analytics company (its session recording on the employer''s Dover page) | PostHog, as you type - before Apply (every visit recorded, typed boxes not masked - Dover''s own setting, measured) |'
 vscode-usage-data:
   page: privacy.html
   text: 'VS Code (Microsoft) sends usage data by default. If the installer put VS Code on your computer, the app turns that off. On a VS Code you already had: Settings, search “telemetry”.'

@@ -1,0 +1,58 @@
+<!doctype html>
+<!-- Dover's apply form as its React page renders it (InboundApplication page script + measured markup, 2026-10-26),
+     cut to the widgets the filler meets: the autofill upload box (never ours), MUI text boxes named by field
+     (employer ones by question id) with no label tied (its words a plain div above), a long box with MUI's unnamed hidden copy, radios valued by
+     option, a tick-box list with no name under its question's words, the resume box that turns into
+     "Resume: <name>" once a file is chosen. -->
+<html><head><meta charset="utf-8"><title>Apply</title></head>
+<body>
+<form noValidate onsubmit="window.submitted = true; return false">
+  <div class="MuiBox-root"><div role="button" tabindex="0">
+    <input accept=".pdf" multiple type="file" autocomplete="off" tabindex="-1" style="display: none"
+           onchange="window.autofillChosen = (window.autofillChosen || 0) + 1">
+    <div><div>Autofill from resume</div><div>Drag &amp; drop or upload to autofill your application.</div></div>
+    <button type="button">Upload file</button>
+  </div></div>
+  <div><div class="FormLabel">First Name *</div><div class="MuiFormControl-root"><input id=":r2:" name="firstName" required type="text" value=""></div></div>
+  <div><div class="FormLabel">Last Name *</div><div class="MuiFormControl-root"><input id=":r3:" name="lastName" required type="text" value=""></div></div>
+  <div><div class="FormLabel">Email *</div><div class="MuiFormControl-root"><input id=":r4:" name="email" required type="email" value=""></div></div>
+  <div><div class="FormLabel">LinkedIn Profile URL *</div><div class="MuiFormControl-root"><input id=":r5:" name="linkedinUrl" required type="text" value=""></div></div>
+  <div><div class="FormLabel">Phone Number</div><div class="MuiFormControl-root"><input id=":r6:" name="phoneNumber" type="text" value=""></div></div>
+  <div><div class="FormLabel">Describe the most recent work you've done that best prepared you for this role. *</div>
+    <div class="MuiFormControl-root"><textarea id=":r7:" name="00000000-0000-4000-a000-000000000003" required></textarea>
+      <textarea aria-hidden="true" readonly tabindex="-1" style="visibility: hidden; position: absolute">x</textarea></div></div>
+  <div><div class="FormLabel">How did you hear about this role? *</div>
+    <div role="radiogroup">
+      <label><span><input type="radio" name="00000000-0000-4000-a000-000000000006" value="Recruiter"></span><span>Recruiter</span></label>
+      <label><span><input type="radio" name="00000000-0000-4000-a000-000000000006" value="LinkedIn"></span><span>LinkedIn</span></label>
+      <label><span><input type="radio" name="00000000-0000-4000-a000-000000000006" value="Other"></span><span>Other</span></label>
+    </div></div>
+  <div><div class="FormLabel">Which layers of the stack have you personally shipped working code in? Select all that apply. *</div>
+    <div>
+      <label><span><input type="checkbox"></span><span>Flutter / mobile app</span></label>
+      <label><span><input type="checkbox"></span><span>Web frontend</span></label>
+      <label><span><input type="checkbox"></span><span>Backend / API</span></label>
+      <label><span><input type="checkbox"></span><span>None yet</span></label>
+    </div></div>
+  <div><div class="FormLabel">Resume *</div>
+    <div class="MuiBox-root" id="resume-block"><div role="button" tabindex="0">
+      <input accept=".pdf" multiple type="file" autocomplete="off" tabindex="-1" style="display: none" onchange="chosen(this)">
+      <div><p>Drag and drop file or <span>browse computer</span></p><p>(PDF, 5 MB maximum)</p></div>
+    </div></div></div>
+  <div><div class="cf-turnstile"><input type="hidden" name="cf-turnstile-response" value=""></div></div>
+  <div><label><input type="checkbox" name="notifyOnView"> Notify me by email when my application is viewed</label></div>
+  <button type="submit">Apply</button>
+</form>
+<script>
+  // the page keeps the file in the form (nothing sent) and shows "Resume: <name>" in place of the drop box
+  function chosen(input) {
+    const name = input.files[0].name;
+    const shown = name.length <= 35 ? name : name.slice(0, 35) + '...' + name.split('.').pop();
+    const block = document.getElementById('resume-block');
+    window.dropBox = window.dropBox || block.innerHTML;
+    block.innerHTML = '<div><div><svg></svg><div>Resume: <b>' + shown + '</b></div></div>' +
+      '<button tabindex="0" type="button" aria-label="Remove"><svg></svg></button></div>';
+    block.querySelector('button').onclick = () => { block.innerHTML = window.dropBox; };
+  }
+</script>
+</body></html>

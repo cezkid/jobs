@@ -274,6 +274,11 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Location (`home_address` city; two US towns of that name -> ASK: write the place as offered). The
    town's letters go to Google as typed - say so before `fill`. Text-message Yes / No and the check at
    Apply are theirs. `app/docs/apply/rippling.md`.
+   Dover: its button "Apply" is the Submit - theirs. Never use its "Autofill from resume" box (it
+   sends the resume's text to Dover to be read); `fill` puts the resume in the Resume box below,
+   which sends nothing until Apply. Its page records the visit for PostHog, Dover's analytics company:
+   every box as typed and the resume's file name go there during the fill, before Apply - say so before
+   `fill` (prepare prints it). The Cloudflare check above Apply is theirs. `app/docs/apply/dover.md`.
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the

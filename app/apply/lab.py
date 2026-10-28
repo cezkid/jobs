@@ -91,7 +91,7 @@ TEXT_KEEP = 4096
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday", "workday",
-           "ultipro", "manatal", "careers-page", "rippling", "rippling recruiting", "breezy", "breezy hr", "teamtailor", "taleo", "zohorecruit", "zoho", "zoho recruit", "loxo", "people", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
+           "ultipro", "manatal", "careers-page", "rippling", "rippling recruiting", "breezy", "breezy hr", "teamtailor", "taleo", "zohorecruit", "zoho", "zoho recruit", "loxo", "dover", "people", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 # page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)
 # - in tenants.txt they hit every "next" in the code
@@ -458,6 +458,8 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     keyed = [path[i + 1] for i, p in enumerate(path[:-1]) if p in ("company", "publication")]
     if path[:1] == ["oneclick-ui"]:
         parts += keyed
+    elif path[:1] == ["apply"]:  # Dover: app.dover.com/apply/<tenant>/<job uuid> (2026-10-26)
+        parts += path[1:2]
     else:
         parts += path[1:3] if path and re.fullmatch(r"[a-z]{2}-[A-Za-z]{2}", path[0]) else path[:1]
     # og:site_name is the platform's own name on some systems ("BambooHR", 2026-10-03): it would

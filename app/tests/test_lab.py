@@ -281,3 +281,6 @@ def test_canary_still_blocks_every_kind_with_named_reads(page):
                        {"controls": []}) == ["Acme Recruiting"]
     assert lab.tenants("https://acmetest.app.loxo.co/job/MTIzNDUtYWJjZGVmZ2hpamtsbW5vcA==/form", ["Loxo"],
                        {"controls": []}) == ["acmetest"]
+    # Dover: one host, the tenant after /apply/ - the platform's name and "app" are none (2026-10-26)
+    assert lab.tenants("https://app.dover.com/apply/acmetest/00000000-0000-4000-8000-000000000001", ["Dover"],
+                       {"controls": []}) == ["acmetest"]
