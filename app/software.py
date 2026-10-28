@@ -50,6 +50,14 @@ KINDS = {
              ("data_engineering", "ml_ai", "ai_engineering", "data_science")),
     "qa": ("testing", r"qa|sdet|test|testing|quality (?:assurance|engineer(?:ing)?)|automation engineer", None, set(),
            ("qa",)),
+    # pre-sales, setup + support for customers: the job search tags them w/ the product's stack (react ...),
+    # so a plain read took "Solutions Engineer" for theirs. "Solutions Engineering" (the team a developer
+    # sits on) and Forward Deployed (builds software, filed under solutions_engineering too) stay unnamed
+    "customer": ("customer-facing (sales, setup, support)",
+                 r"solutions? engineers?|sales engineers?|pre[- ]?sales|solutions? consultants?|"
+                 r"technical consultants?|customer engineers?|implementation (?:engineer|consultant|specialist)s?|"
+                 r"technical account managers?|support engineers?",
+                 None, set(), ("solutions_engineering", "support")),
 }
 # full-stack work is front-end work plus a back end: a plain title listing only back-end tags isn't it
 STACK = {k: (KINDS["frontend"][3] if k == "fullstack" else v[3]) for k, v in KINDS.items()}
