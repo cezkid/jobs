@@ -11,6 +11,13 @@ boards copying the same posting - Workday + a board, two Workday copies of one j
 61 none (the title alone matched other employers' jobs, overlap 0.0-0.35). Of the 96: Workday 53,
 Greenhouse 17, Ashby 14, Lever 3, Rippling 3, others 1 each. The board's company name can carry a
 slogan ("<Brand>: <tagline>") that never matches the employer's own slug, so the company is not used.
+
+Built In (freehire `source` builtin, `builtin.com/job/...`): the row keeps the employer's own title, the
+description has no <h1> - same search by the row's title, the whole description as the text. Measured
+2026-10-29 on 41 US Built In rows: 19 resolved to a system here (Workday 8, Ashby 2, Gem 2,
+SmartRecruiters 2, Greenhouse, Zoho Recruit, JazzHR, Workable, Oracle 1 each), the rest none (best
+overlap 0.0-0.52, or a system not here: Dayforce). One with none ran Apply on Built In itself (`isApplyFormEnabled` in its page): a
+Built In account's form, filled by the user.
 """
 import html
 import re
@@ -19,8 +26,9 @@ import httpx
 
 from apply import systems
 
-LINK = re.compile(r"https?://(?:www\.)?echojobs\.io/job/", re.I)
-SOURCES = ("echojobs",)
+LINK = re.compile(r"https?://(?:www\.)?(?:echojobs\.io|builtin\.com)/job/", re.I)
+SOURCES = ("echojobs", "builtin")
+TITLED = ("builtin",)  # boards whose row title is the employer's own (no <h1> in the description)
 TITLE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.I | re.S)
 TAG = re.compile(r"<[^>]+>")
 SAME = 0.6
@@ -54,11 +62,11 @@ def plain_link(url: str) -> str:
     return url.split("?utm_source=")[0].split("&utm_source=")[0]
 
 
-def apply_link(description: str | None, base: str, get=httpx.get) -> str | None:
+def apply_link(description: str | None, base: str, get=httpx.get, title: str | None = None) -> str | None:
     """The employer's own posting link for a copied posting: the job search's row of another source with
     the same title and the same opening text whose link a system here fills (or Workday's), the closest
-    first -> that link; none -> None."""
-    found = original(description)
+    first -> that link; none -> None. `title`: the row's own, for a board that keeps it (TITLED)."""
+    found = (" ".join(title.split()), description or "") if title and title.strip() else original(description)
     if not found:
         return None
     title, text = found
