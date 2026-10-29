@@ -765,7 +765,7 @@ def test_open_chrome_found_by_its_command_line_when_the_port_file_is_gone(tmp_pa
     from apply import browser
     monkeypatch.setattr(browser, "PROFILE", tmp_path)
     monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "job-finder-port")
-    line = f"/Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path} --no-first-run\n"
+    line = f"  4331 /Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path} --no-first-run\n"
     monkeypatch.setattr(browser.subprocess, "run", lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line, ""))
     monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
     assert browser.live_port() == 55211
@@ -778,11 +778,45 @@ def test_port_file_naming_a_closed_chrome_falls_back_to_the_open_one(tmp_path, m
     monkeypatch.setattr(browser, "PROFILE", tmp_path)
     monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "job-finder-port")
     (tmp_path / "job-finder-port").write_text("40001")
-    line = f"/Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path}\n"
+    line = f"  4331 /Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path}\n"
     monkeypatch.setattr(browser.subprocess, "run", lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line, ""))
     monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
     assert browser.live_port() == 55211
     assert (tmp_path / "job-finder-port").read_text() == "55211"
+
+
+def test_chrome_refusing_the_attach_is_closed_so_a_fresh_one_starts(tmp_path, monkeypatch):
+    # 2026-10-29: a Job Finder Chrome open ~6 h answered its port but refused Playwright's attach -
+    # every fill failed until the user closed it by hand
+    from apply import browser
+    monkeypatch.setattr(browser, "PROFILE", tmp_path)
+    monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "job-finder-port")
+    (tmp_path / "job-finder-port").write_text("55211")
+    alive = [True]
+    line = f"  4331 /Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path}\n"
+    monkeypatch.setattr(browser.subprocess, "run",
+                        lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line if alive[0] else "", ""))
+    killed = []
+
+    def kill(pid, sig):
+        killed.append((pid, sig))
+        alive[0] = False
+    monkeypatch.setattr(browser.os, "kill", kill)
+    assert browser.running() == (4331, 55211)
+    browser.restart()
+    assert killed == [(4331, browser.signal.SIGTERM)]
+    assert not (tmp_path / "job-finder-port").exists()
+    assert browser.refuses_attach(Exception("Protocol error (Browser.setDownloadBehavior): Browser context management is not supported."))
+    assert not browser.refuses_attach(Exception("Target page, context or browser has been closed"))
+
+
+def test_another_profiles_chrome_is_never_closed(tmp_path, monkeypatch):
+    from apply import browser
+    monkeypatch.setattr(browser, "PROFILE", tmp_path / "apply-browser")
+    line = "  77 /Applications/Google Chrome --remote-debugging-port=9222 --user-data-dir=/Users/x/Chrome\n"
+    monkeypatch.setattr(browser.subprocess, "run", lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line, ""))
+    monkeypatch.setattr(browser.os, "kill", lambda *a: pytest.fail("closed another Chrome"))
+    browser.restart()
 
 
 def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch):
