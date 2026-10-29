@@ -43,6 +43,18 @@ LEVEL_MISMATCH = {
     "senior": (None, _JUNIOR),
     "leader": (None, _JUNIOR),
 }
+# blocklist.max_level -> title words above it, hidden (career_level only sorts them lower). Senior keeps Lead
+# ("Lead Frontend Engineer" is senior work at many employers) and Manager (a field's own senior rung: "HR Manager")
+_ABOVE_SENIOR = rf"principal|staff|distinguished|{_TOP}|svp|evp"
+ABOVE_LEVEL = {"entry": rf"senior|sr|lead|{_ABOVE_SENIOR}", "mid": rf"senior|sr|lead|{_ABOVE_SENIOR}",
+               "senior": _ABOVE_SENIOR}
+# banks rank individual contributors AVP / VP / SVP: "Senior Lead Full Stack Software Developer, VP", "VP, Senior
+# Salesforce Engineer" (12 of 23 open VP titles, one install 2026-10-29) - a rank, not an executive, when the
+# title also names the work. "VP of Engineering", "VP, Engineering - HR Technology" stay executives
+BANK_RANK = re.compile(r"(?<!\w)(?:(?:senior |executive )?vice[- ]presidents?|s?vp|evp)(?!\w)", re.I)
+BANK_RANK_BELOW = re.compile(r"(?<!\w)(?:assistant vice[- ]presidents?|avp)(?!\w)", re.I)
+BANK_RANK_WORK = re.compile(r"(?<!\w)(?:engineers?|developers?|programmers?|analysts?|designers?|scientists?|sdets?|"
+                            r"software engineering)(?!\w)", re.I)
 
 
 # a title naming an early-career job: where the job search's experience_years_min tag misreads
@@ -124,7 +136,7 @@ def blocked(job: dict, blocklist: dict) -> bool:
     # kinds of software work they chose to hide, by title only: "Java Full Stack" stays when only back-end is
     if software.hidden(job, blocklist.get("software_kinds")):
         return True
-    return title_blocked(job.get("title") or "", blocklist)
+    return above_max_level(job.get("title") or "", blocklist) or title_blocked(job.get("title") or "", blocklist)
 
 
 def slashes(text: str) -> str:
@@ -132,13 +144,32 @@ def slashes(text: str) -> str:
     return re.sub(r"\s*/\s*", "/", text)
 
 
-def title_blocked(title: str, blocklist: dict) -> bool:
-    """title_phrases match whole words, never inside a title_keep phrase: keep "member of
-    technical staff" + phrase "staff" hides "Staff Engineer", not "Member of Technical Staff"."""
+def kept_out(title: str, blocklist: dict) -> str:
+    """The title w/ its title_keep phrases read out."""
     title = slashes(title)
     for keep in blocklist.get("title_keep") or []:
         title = words(re.escape(slashes(keep))).sub(" ", title)
+    return title
+
+
+def title_blocked(title: str, blocklist: dict) -> bool:
+    """title_phrases match whole words, never inside a title_keep phrase: keep "member of
+    technical staff" + phrase "staff" hides "Staff Engineer", not "Member of Technical Staff"."""
+    title = kept_out(title, blocklist)
     return any(words(re.escape(p)).search(title) for p in blocklist.get("title_phrases") or [])
+
+
+def above_max_level(title: str, blocklist: dict) -> bool:
+    """Title names a level above blocklist.max_level: "Principal Engineer", "VP of Engineering" past
+    senior - never "Member of Technical Staff", "Staff Accountant", a title_keep phrase ("Senior/Staff") or a
+    bank's rank ("Full Stack Software Engineer, VP")."""
+    above = ABOVE_LEVEL.get(blocklist.get("max_level") or "")
+    if not above:
+        return False
+    title = BANK_RANK_BELOW.sub(" ", ENTRY_TITLE_KEEP.sub(" ", kept_out(title, blocklist)))
+    if BANK_RANK_WORK.search(title):
+        title = BANK_RANK.sub(" ", title)
+    return bool(words(above).search(title))
 
 
 def pay(job: dict) -> tuple[float, float, str] | None:
@@ -978,6 +1009,12 @@ def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
+def would_hide_level(jobs: list[dict], level: str, blocklist: dict) -> list[dict]:
+    """Rows a blocklist.max_level would hide that nothing hides today."""
+    probe = {"max_level": level, "title_keep": blocklist.get("title_keep")}
+    return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
+
+
 def hidden_rule(job: dict, config: dict, now: datetime, limits: dict[str, int | None] | None = None) -> str | None:
     """The first setting that hides a row, in plain words; None = shown. Same tests as blocked(),
     too_old, far and pay_filter, one rule per row (first match). limits = age_limits of the list;
@@ -998,6 +1035,8 @@ def hidden_rule(job: dict, config: dict, now: datetime, limits: dict[str, int | 
         return "staffing firms hidden"
     if blocked(job, {"software_kinds": bl.get("software_kinds")}):
         return "kind of software work hidden"
+    if above_max_level(job.get("title") or "", bl):
+        return "title above your highest level"
     if title_blocked(job.get("title") or "", bl):
         return "title phrase hidden"
     if too_old(job, rc.get("max_age_days") if limits is None else limits.get(list_of(job)), now):
@@ -1050,6 +1089,8 @@ def main() -> None:
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
     ap.add_argument("--would-hide-kind", metavar="KIND", choices=list(software.KINDS),
                     help="count + sample titles hiding one kind of software work would hide (software.KINDS)")
+    ap.add_argument("--would-hide-level", metavar="LEVEL", choices=list(ABOVE_LEVEL),
+                    help="count + sample titles above a highest level would hide (blocklist.max_level)")
     ap.add_argument("--staffing", action="store_true", help="count + sample open jobs posted by staffing firms")
     ap.add_argument("--pay-floor", metavar="PAY", help="count what a pay floor would hide - yearly (45000) or"
                     " hourly (22/hr) - all open + last 7 days, before the thin-week relax, to say before saving it")
@@ -1085,6 +1126,12 @@ def main() -> None:
     if args.would_hide_kind:
         hidden = would_hide_kind(jobs, args.would_hide_kind, config["blocklist"])
         print(f'{software.label(args.would_hide_kind)} titles would hide {len(hidden)} of {len(jobs)} open jobs')
+        for j in hidden[:10]:
+            print(f"  {j['title']} | {j['company']}")
+        return
+    if args.would_hide_level:
+        hidden = would_hide_level(jobs, args.would_hide_level, config["blocklist"])
+        print(f"titles above {args.would_hide_level} would hide {len(hidden)} of {len(jobs)} open jobs")
         for j in hidden[:10]:
             print(f"  {j['title']} | {j['company']}")
         return

@@ -102,6 +102,24 @@ def test_customer_facing_titles_named(title, kinds):
     assert software.named(title) == kinds
 
 
+@pytest.mark.parametrize("title, kinds", [
+    ("Solutions Architect", ["architect"]),
+    ("Sr Architect - Emerging Technologies", ["architect"]),
+    ("Frontend Architect", ["frontend", "architect"]),
+    # the system's architecture is a developer's subject, not an architect's title
+    ("Senior Staff Software Engineer, Client Architecture", []),
+])
+def test_architect_titles_named(title, kinds):
+    assert software.named(title) == kinds
+
+
+def test_architect_hidden_only_when_every_kind_is():
+    hide = ["architect"]
+    assert software.hidden(make_job("a", title="Solutions Architect", skills=["react"]), hide)
+    assert not software.hidden(make_job("b", title="Frontend Architect"), hide)
+    assert software.mismatch(make_job("c", title="Solutions Architect", skills=["react"]), FRONT) == ["title says architect"]
+
+
 def test_customer_facing_title_sorts_lower_for_developer():
     # tagged w/ the product's stack: read off the tags, it looked like front-end work
     job = make_job("a", title="Solutions Engineer - NYC", skills=["react", "typescript"])

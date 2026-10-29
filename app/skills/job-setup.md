@@ -151,7 +151,8 @@ Then narrowing what they picked:
   its count - measured 2026-10-08: 3 of 54 home-tier internships were in North Jersey itself, 49 NYC.
 - career level (entry - "student, new graduate or first job" / mid / senior / leader) -
   `rank.career_level`: titles clearly above or below it sort lower, never hidden (mid: Senior, Sr,
-  Lead, Principal, Staff, Director titles above; numbered II / III never); entry also sorts
+  Lead, Principal, Staff, Director titles above; numbered II / III never; want them hidden ->
+  `blocklist.max_level`, `job-find`); entry also sorts
   lower a job whose required line asks 3+ years (the posting's own words, not the job search's
   years tag - it read 10 on "Software Engineer - New Grad"). Never a `seniority` filter for
   everyone (facet null on 30-45% of rows, junior lives in title string) - internship passes only (#2)

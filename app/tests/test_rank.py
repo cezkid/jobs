@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 import pytest
+import yaml
 
 import cfg
 import rank
@@ -249,6 +250,34 @@ def test_title_keep_spares_phrase_inside_wider_title():
     assert slugs(rank.rank(jobs, config, NOW)) == ["mts", "either", "paren"]
     hidden = rank.would_hide(jobs, "staff", {"title_keep": blocklist["title_keep"]})
     assert slugs(hidden) == ["staff", "above", "mts-staff"]
+
+
+def test_max_level_senior_hides_titles_above_it():
+    blocklist = {"max_level": "senior", "title_keep": ["senior/staff"]}
+    config = cfg.merge(CONFIG, {"blocklist": blocklist})
+    jobs = [make_job("principal", title="Principal Software Engineer"),
+            make_job("vp", title="Vice President of Engineering"),
+            make_job("staff", title="Staff Frontend Engineer"),
+            make_job("head", title="Head of Engineering"),
+            make_job("senior", title="Senior Frontend Engineer"),
+            make_job("lead", title="Lead Frontend Engineer"),
+            make_job("mts", title="Member of Technical Staff"),
+            make_job("either", title="Senior / Staff Frontend Engineer"),
+            make_job("bank-vp", title="Senior Lead Full Stack Software Developer, VP"),
+            make_job("bank-avp", title="Assistant Vice President, UX/UI Developer"),
+            make_job("vp-eng", title="VP, Engineering - HR Technology")]
+    assert slugs(rank.rank(jobs, config, NOW)) == ["senior", "lead", "mts", "either", "bank-vp", "bank-avp"]
+    assert rank.hidden_rule(jobs[0], config, NOW) == "title above your highest level"
+    assert slugs(rank.would_hide_level(jobs, "mid", {})) == ["principal", "vp", "staff", "head", "senior", "lead",
+                                                              "either", "bank-vp", "vp-eng"]
+
+
+def test_max_level_unknown_refused(tmp_path):
+    path = tmp_path / "s.yml"
+    path.write_text(yaml.safe_dump({**yaml.safe_load((cfg.PROFILES / "frontend.yml").read_text()),
+                                    "blocklist": {"max_level": "staff"}}))
+    with pytest.raises(ValueError, match="max_level"):
+        cfg.load(path)
 
 
 def test_company_blocklist_matches_name_as_well_as_slug():
