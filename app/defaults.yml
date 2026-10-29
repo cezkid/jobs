@@ -209,8 +209,8 @@ rank:
   posting_says: []
   # a job a staffing firm posted (rank.staffing_firm: its company record, name or C2C / W2 terms) says
   # "staffing firm" on every list. lower = it sorts lower too; keep = named only (a user who wants
-  # contract work through them). blocklist.staffing: true hides them - their choice, counted first
-  # (rank --staffing). 2026-10-13: IT project manager 95 of 300 newest rows from one job board, nearly
+  # contract work through them). one not naming the employer ("Our client is a ...") says so + sorts
+  # lower still. blocklist.staffing: true hides them - their choice, counted first (rank --staffing). 2026-10-13: IT project manager 95 of 300 newest rows from one job board, nearly
   # all staffing firms (app/docs/jobs/freehire.md #Staffing firms)
   staffing: lower
   # company spanning this many enrichment categories -> printed by `rank --suspects`

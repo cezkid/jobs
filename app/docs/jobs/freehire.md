@@ -164,7 +164,24 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   (`companies.BATCH`, `WORKERS`).
 - => "staffing firm" named on every such job, sorted lower (`rank.staffing: lower`, default) - a
   demerit like a level mismatch, never hidden unasked: some contract work only comes through them.
-  `keep` = named only; `blocklist.staffing: true` hides (`job-setup` #4 asks when 1 in 10+).
+  `keep` = named only; `blocklist.staffing: true` hides (`job-setup` #4 asks when 1 in 10+);
+  a firm's posting not naming the employer says "employer not named" + sorts lower still
+  (`rank.unnamed_employer`), never hidden unasked.
+- Unnamed employer (2026-10-29, user: "keep legit ones, only way is through them"): React list, 114
+  staffing rows, 51 matched the wording above; read by hand, 7 more said it another way ("one of our
+  clients", "join our client", "Our client is revolutionizing", "About the Company Our client",
+  "Join a small, early-stage ... team") -> 61 of 116 after. Left out: a firm's own "our clients",
+  "on behalf of its client, Altimetrik" (named). Unnamed is no sign of a fake - a firm keeps its
+  client back for its fee or the client's wish; many of the rest are just as vague ("a high-growth
+  NYC startup"). User then: sort lower, never hide unasked => "employer not named", one demerit more.
+- Misses + false marks, same list (2026-10-29): unflagged rows scanned for recruiter wording ("the
+  client", "direct hire", "contract-to-hire", "our recruiters", "hiring partner", "Paraform") - every
+  hit a direct employer (consultancies' "the client's environment", "Our recruiters will answer").
+  False marks all from the record: SAIC (`outsource` + `outstaff`, no `government`), Appnovation
+  (`agency`, `outsource`, `outstaff`, `product`); Blend 360 lost `outstaff` since its 30-day cache.
+  Mixed types don't separate them - Raydar (`inhouse`, `product`, `outstaff`) and Syndesus recruit for
+  unnamed clients - so no rule yet. A row filed under a staffing association's name is a reposter
+  (posting is Trio WFS's) - `rank --suspects`.
   Example PM search, live: 5 of 179 open, all hourly pay that had sorted them near the top.
 
 ## Defects handled in code
