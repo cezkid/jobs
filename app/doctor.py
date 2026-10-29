@@ -145,6 +145,18 @@ def window_extension(env: Env) -> Result:
     return Result(name, True, "The window is up to date.")
 
 
+def updates(env: Env) -> Result:
+    """app/update.py skips an update that would wipe program files edited on this computer."""
+    name = "Program updates"
+    try:
+        files = [f for f in (env.data / "update-skipped").read_text(encoding="utf-8").splitlines() if f]
+    except OSError:
+        return Result(name, True, "Nothing held back.")
+    return Result(name, False, "Updates are paused: program files were changed on this computer and an update would replace them.",
+                  "Send the fix to the maintainer (Framework defects), or with the user's yes undo the change; the next start then updates.",
+                  ", ".join(files))
+
+
 def chosen_ai(env: Env) -> Result:
     import ai
     name = "Your AI"
@@ -211,7 +223,7 @@ def email(env: Env) -> Result:
     return Result(name, True, "Email settings are filled in (not signed in - this check stays offline).")
 
 
-CHECKS = (morning_check, schedule_program, window_extension, chosen_ai, search_settings, resume_details, fonts, email)
+CHECKS = (morning_check, schedule_program, window_extension, updates, chosen_ai, search_settings, resume_details, fonts, email)
 
 
 def run(env: Env | None = None) -> list[Result]:
