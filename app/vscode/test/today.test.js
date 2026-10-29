@@ -59,11 +59,12 @@ test("Literata comes from the webview's own source only: font-src = cspSource, @
   assert.equal(today.FONT_DIR.join("/"), "media/fonts");
 });
 
-// box in box in box read as any admin dashboard (critique 2026-10-04): paper + rules, Next up alone framed
+// box in box in box read as any admin dashboard (critique 2026-10-04): paper + rules, Next up alone framed;
+// one wash allowed: --hl behind the last job clicked (user picked 2026-10-29)
 test("paper look: no card fill, jobs split by rules, one frame for Next up", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   assert.doesNotMatch(css, /--card/);
-  const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text)\))/g)].map((x) => x[1].trim());
+  const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text|hl)\))/g)].map((x) => x[1].trim());
   assert.deepEqual(backgrounds, []);
   assert.match(css, /\.card \+ \.card \{ border-top: 1px solid var\(--line\)/);
   // Next up's frame in ink-2, stronger than the grey rules between jobs (re-critique P1)
@@ -317,12 +318,14 @@ test("tiles: only positive progress numbers", () => {
   assert.deepEqual(m.tiles.map((t) => [t.label, t.value]), [["New since last check", 2], ["Sent so far", 1]]);
 });
 
-// yellow on a word that doesn't click reads as a broken button (owner rule)
+// yellow on a word that doesn't click reads as a broken button (owner rule); the last job clicked
+// gets a faint yellow wash (--hl, user picked 2026-10-29) - behind a whole job, never a word
 test("yellow only on buttons", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   const rules = css.split("}").filter((r) => /var\(--mark(-2)?\)/.test(r));
   assert.ok(rules.length);
   for (const rule of rules) assert.match(rule.trim(), /^button\.go(:hover|:active)? \{/);
+  assert.match(css, /\n\.last \{ background: var\(--hl\);/);
   // and the yellow class only ever on a button
   const page = html(today.model(FULL, say), "new");
   assert.ok((page.match(/class="go"/g) || []).length >= 2);
@@ -389,7 +392,7 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
 test("best jobs: one-line rows, 10 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
   const rows = page.split('aria-labelledby="s-best"')[1].split("</section>")[0];
-  assert.equal((rows.match(/<li><div class="what">/g) || []).length, 10);
+  assert.equal((rows.match(/<li data-job="\d+"><div class="what">/g) || []).length, 10);
   assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   // a decision needs its facts: every new row has its posting (re-critique P2)
   assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 10);
@@ -555,7 +558,15 @@ function fakeEl(attrs = {}, text = "") {
   el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
   el.removeAttribute = (k) => { delete el.attrs[k]; };
   el.classList = { add: (c) => el.classes.add(c), remove: (c) => el.classes.delete(c), contains: (c) => el.classes.has(c) };
-  el.closest = (sel) => { const k = /^button\[data-(\w+)\]$/.exec(sel); return k && k[1] in el.dataset ? el : null; };
+  el.closest = (sel) => {
+    if (sel === "[data-job]") return el.job || null;
+    const k = /^button\[data-(\w+)\]$/.exec(sel);
+    return k && k[1] in el.dataset ? el : null;
+  };
+  // screen spot: top moves w/ scroll; layout (rewrap) changes it via at
+  el.at = 0;
+  el.getBoundingClientRect = () => ({ top: el.at - (el.win ? el.win.scrollY : 0), bottom: el.at + 100 - (el.win ? el.win.scrollY : 0) });
+  el.isConnected = true;
   el.focus = () => { el.focused = true; };
   el.scrollIntoView = () => {};
   return el;
@@ -571,6 +582,10 @@ function webview(store, day = "Tuesday, September 29") {
     // status change: no data-busy (nothing to wait on in a chat)
     fakeEl({ "data-a": "2", "data-k": "12:sent", "aria-label": "I sent it, Job 12" }, "I sent it"),
   ];
+  // Job 12 + Job 13 blocks, 600 px apart; each Apply sits inside its job
+  const jobs = [fakeEl({ "data-job": "12" }), fakeEl({ "data-job": "13" })];
+  jobs[0].at = 200; jobs[1].at = 800;
+  for (const b of buttons) b.job = jobs[b.dataset.k.startsWith("13:") ? 1 : 0];
   const looks = today.LOOKS.map((l) => fakeEl({ "data-look": l.word, "aria-pressed": String(l.word === "auto") }, l.label));
   const status = fakeEl();
   const undo = fakeEl({ "data-undo": "1" }, "Undo");
@@ -580,24 +595,27 @@ function webview(store, day = "Tuesday, September 29") {
     body: { dataset: day ? { day } : {} },
     getElementById: (id) => (id === "status" ? status : id === "undo" ? undo : null),
     querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : sel === "button[data-look]" ? looks
-      : buttons.filter((b) => b.getAttribute("aria-busy"))),
+      : sel === "[data-job]" ? jobs : buttons.filter((b) => b.getAttribute("aria-busy"))),
     addEventListener: (type, fn) => { listeners["doc:" + type] = fn; },
   };
   const win = {
-    scrollY: 0, scrolledTo: null,
+    scrollY: 0, scrolledTo: null, innerHeight: 700,
     scrollTo: (x, y) => { win.scrolledTo = y; win.scrollY = y; },
+    scrollBy: (x, dy) => { win.scrollY += dy; },
     setTimeout: (fn, ms) => clock.timers.push({ fn, at: clock.t + ms, live: true }),
     clearTimeout: (id) => { if (clock.timers[id - 1]) clock.timers[id - 1].live = false; },
     addEventListener: (type, fn) => { listeners["win:" + type] = fn; },
   };
+  for (const j of jobs) j.win = win;
   const posted = [];
   const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: (m) => posted.push(m) };
   today.page(vscode, doc, win, today.CLEAR_MS, today.UNDO_MS, () => clock.t);
   return {
-    buttons, looks, status, undo, posted, win,
+    buttons, jobs, looks, status, undo, posted, win,
     click: (b) => listeners["doc:click"]({ target: b }),
     msg: (data) => listeners["win:message"]({ data }),
     scroll: (y) => { win.scrollY = y; listeners["win:scroll"](); },
+    resize: () => listeners["win:resize"](),
     tick: (ms) => {
       clock.t += ms;
       for (const t of clock.timers) if (t.live && t.at <= clock.t) { t.live = false; t.fn(); }
@@ -669,6 +687,46 @@ test("page: redraw keeps scroll, a live status line (rest of its 8 s) and the do
   // a line already past its 8 s isn't brought back
   store.state.status = "old"; store.state.until = 500;
   assert.equal(webview(store).status.textContent, "");
+});
+
+// a posting opens beside Today: the page narrows, every line rewraps, the pixel scroll lands
+// elsewhere - the job clicked stays marked + on screen where it was (user report 2026-10-29)
+test("page: last job clicked is marked, survives a redraw, stays put when the page rewraps", () => {
+  const store = {};
+  const w = webview(store);
+  w.scroll(600);
+  w.tick(100);
+  const [job12, job13] = w.jobs;
+  w.click(w.buttons[1]);
+  assert.ok(job13.classList.contains("last"));
+  assert.equal(job13.getAttribute("aria-current"), "true");
+  assert.ok(!job12.classList.contains("last"));
+  // narrower: everything above grows, Job 13 moves 500 px down the page
+  const before = job13.getBoundingClientRect().top;
+  job12.at = 300; job13.at = 1300;
+  w.resize();
+  assert.equal(job13.getBoundingClientRect().top, before, "same spot on screen");
+  assert.equal(w.win.scrollY, 1100);
+  // wider again (posting closed): back
+  job12.at = 200; job13.at = 800;
+  w.resize();
+  assert.equal(w.win.scrollY, 600);
+  // another job clicked: the mark moves
+  w.click(w.buttons[0]);
+  assert.ok(job12.classList.contains("last"));
+  assert.ok(!job13.classList.contains("last"));
+  assert.equal(job13.getAttribute("aria-current"), null);
+  const again = webview(store);
+  assert.ok(again.jobs[0].classList.contains("last"), "redraw keeps it");
+  assert.ok(!webview(store, "Wednesday, September 30").jobs[0].classList.contains("last"), "a new day starts clean");
+});
+
+// at the very top a rewrap needs no help: top stays top
+test("page: rewrap at the top of the page scrolls nothing", () => {
+  const w = webview({});
+  w.jobs[0].at = 500;
+  w.resize();
+  assert.equal(w.win.scrollY, 0);
 });
 
 // "Ready in chat" from yesterday reads as words still waiting in a chat that's long gone
@@ -767,7 +825,7 @@ test("every button's name is its own; job buttons carry the job; headings h1 > h
   const page = html(today.model(FULL, say), "new");
   assert.match(page, /aria-label="Apply, Job 100">Apply</);
   assert.match(page, /aria-label="Open the posting for Job 3: Role 3">Role 3</);
-  assert.match(page, /<article class="card" aria-labelledby="j-46"><h3 id="j-46">/);
+  assert.match(page, /<article class="card" aria-labelledby="j-46" data-job="46"><h3 id="j-46">/);
   // every section named; a line's button described by the line ("Turn it on" - what?)
   assert.equal((page.match(/<section(?![^>]*aria-label)/g) || []).length, 0);
   assert.match(page, /<span id="(l-\d+)">Your resume lines could carry more of your own numbers\.<\/span><button[^>]*aria-describedby="\1"/);
