@@ -227,7 +227,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    else). A question printed "(at most N characters)": draft within N - the page cuts a longer
    answer off unseen, so `fill` refuses it. They'd rather type one on the page themselves -> leave
    it blank, source "yours to do on
-   the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
+   the page" (`fill` fills the rest, names it as left). A written-answer box (why us, a recent project) ->
+   `job-answers` skill: how to draft it, which ones are theirs to confirm. Others: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else the likely answer (hard limits), named at handover. `file`
    question: `answer: true` only after they said yes to the named file, or `prepare` set it from
    `upload_on_apply` (hard limits). Location: the
