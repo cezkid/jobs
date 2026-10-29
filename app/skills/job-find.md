@@ -52,6 +52,12 @@ missing -> `job-setup` skill instead.
      multiSelect w/ counts -> `blocklist.software_kinds`. Their search has only a category pass
      -> also the passes of `app/profiles/frontend.yml` (`job-setup` #2): plain "Software
      Engineer" and UI / web developer titles sit outside the kind's category
+   - jobs above their level they want gone ("up to senior", "no principal / VP jobs") ->
+     `blocklist.max_level` (`entry` / `mid` / `senior`): titles above it hidden (senior: Principal, Staff,
+     Distinguished, Director, VP, Head of, Chief; Lead kept). Count first: `rank --would-hide-level
+     <level>`, say the count. `rank.career_level` still sorts the rest; "senior is fine too" -> raise it
+   - architect jobs ("Solutions Architect") for a developer -> kind `architect` (`rank.software_kinds`
+     sorts lower; hidden via `blocklist.software_kinds`, counted w/ `--would-hide-kind architect`)
    - project / program manager getting jobs that want a former engineer ("too technical", "they want
      coders", "I'm not hands-on") -> `rank.engineer_background: false`: those sort lower w/ "asks an
      engineer's background", never hidden (`job-setup` #Project + program management); confirm in one line

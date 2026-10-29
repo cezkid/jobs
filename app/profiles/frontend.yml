@@ -56,6 +56,10 @@ blocklist:
   categories: [marketing, sales]
   title_phrases: []
   title_keep: []
+  # highest level they want (entry | mid | senior): titles above it hidden - senior hides Principal, Staff,
+  # Distinguished, Director, VP, Head of, Chief, keeps Lead (rank.ABOVE_LEVEL). null = rank.career_level
+  # sorts them lower only. On the user's ask, after rank --would-hide-level counts it
+  max_level: null
   employment_types: []
   clearance: false
   # kinds hidden outright by title - only on the user's yes, after rank --would-hide-kind counts it.
