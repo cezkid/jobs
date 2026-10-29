@@ -739,12 +739,18 @@ ATS_HOST = re.compile(r"\.(?:zohorecruit|recruitee|smartrecruiters)\.\w+.*$", re
 # 2,509 rows of a React search 97 hits, 71 firms on record, the rest recruiters or outsourcers read by
 # hand; 2,400 newest US rows (PM, consultant, analyst, software) 17, all placing at another company.
 # Plain "our client" stays out (a contractor's own "our clients", Accenture Federal) and so does
-# "our client is the ..." (a government agency).
+# "our client is the ..." (a government agency). 2026-10-29, React list, 114 staffing rows: + "one of
+# our clients", "join our client", "our client is revolutionizing", "About the Company Our client",
+# "Join a small, early-stage ... team" - 7 more, each read by hand; "our clients" (a firm's own
+# work), "on behalf of its client, Altimetrik" (named) stay out
+UNNAMED_EMPLOYER = re.compile(r"\bour\s+(?:[\w-]+\s+){0,2}client,?\s+(?:is\s+)?(?:an?|looking|seeking|hiring|searching|building)\b"
+                              r"|\babout\s+(?:our|the)\s+client\b|\bon\s+behalf\s+of\s+(?:our|a|one\s+of\s+our)\s+(?:[\w-]+\s+)?clients?\b"
+                              r"|^\s*About the Role\s+Join\s+an?\s+(?:[\w,-]+\s+){0,5}(?:team|company|startup)\b"
+                              r"|\bone\s+of\s+our\s+(?:[\w-]+\s+)?clients\b|\bjoin\s+our\s+client\b"
+                              r"|\bour\s+client\s+is\s+\w+ing\b|\bAbout the Company\s+Our client\b", re.I)
 STAFFING_TEXT = re.compile(r"(?<!\bno )(?<!\bnot )(?<!\bnot a )\b(?:C2C|corp[- ]to[- ]corp)\b"
                            r"|\b(?:on|only) W-?2\b|\bW-?2 (?:contract|role|only|position|hourly)\b"
-                           r"|\bour\s+(?:[\w-]+\s+){0,2}client,?\s+(?:is\s+)?(?:an?|looking|seeking|hiring|searching|building)\b"
-                           r"|\babout\s+(?:our|the)\s+client\b|\bon\s+behalf\s+of\s+(?:our|a|one\s+of\s+our)\s+(?:[\w-]+\s+)?clients?\b"
-                           r"|^\s*About the Role\s+Join\s+an?\s+(?:[\w-]+\s+){0,5}(?:team|company|startup)\b", re.I)
+                           r"|" + UNNAMED_EMPLOYER.pattern, re.I)
 
 
 def staffing_firm(job: dict) -> bool:
@@ -756,10 +762,25 @@ def staffing_firm(job: dict) -> bool:
         or bool(STAFFING_TEXT.search(TAG.sub(" ", job.get("description") or "")))
 
 
+# A firm that won't say who it hires for sorts below one that does: user 2026-10-29, "keep legit,
+# only way is through them" - sorted lower, never hidden unasked (pay + their other settings still
+# hide). Unnamed is no sign of a fake: a firm keeps its client back for its fee or the client's
+# wish, often names it on the first call. React list 2026-10-29: 61 of 116 staffing rows; many of
+# the rest just as vague ("a high-growth NYC startup")
+def unnamed_employer(job: dict) -> bool:
+    """A staffing firm's posting that says it won't name the employer ("Our client is a ...")."""
+    return staffing_firm(job) and bool(UNNAMED_EMPLOYER.search(TAG.sub(" ", job.get("description") or "")))
+
+
+def staffing_named(job: dict) -> list[str]:
+    """What a job says about who posted it: a staffing firm, and whether it names the employer."""
+    return (["staffing firm"] + (["employer not named"] if unnamed_employer(job) else [])) if staffing_firm(job) else []
+
+
 def staffing(job: dict, rc: dict) -> list[str]:
     """Named on every such job, so the user sees who posted it; sorts lower unless they keep them
-    (rank.staffing: keep). blocklist.staffing hides them."""
-    return ["staffing firm"] if rc.get("staffing", "lower") == "lower" and staffing_firm(job) else []
+    (rank.staffing: keep) - one not naming the employer lower still. blocklist.staffing hides them."""
+    return staffing_named(job) if rc.get("staffing", "lower") == "lower" else []
 
 
 def can_hold_clearance(config: dict) -> bool | None:
@@ -870,7 +891,7 @@ def demerits(job: dict, config: dict) -> int:
 def flags(job: dict, config: dict) -> list[str]:
     """The doubts and mismatches each job's reasons name, in the order rank.reasons and best say them."""
     rc = config["rank"]
-    named = ["staffing firm"] if staffing_firm(job) else []
+    named = staffing_named(job)
     return (doubts(job, rc) + mismatches(job, rc) + (job.get("beyond") or []) + sponsorship(job, config)
             + clearance(job) + named)
 
@@ -1139,7 +1160,8 @@ def main() -> None:
         shown = [j for j in jobs if not blocked(j, {**config["blocklist"], "staffing": False})]
         firms = [j for j in shown if staffing_firm(j)]
         print(f"staffing firms posted {len(firms)} of {len(shown)} open jobs"
-              f" ({len({norm_company(j['company']) for j in firms})} firms)")
+              f" ({len({norm_company(j['company']) for j in firms})} firms),"
+              f" {sum(unnamed_employer(j) for j in firms)} of them not naming the employer")
         for j in firms[:10]:
             print(f"  {j['title']} | {j['company']}")
         return

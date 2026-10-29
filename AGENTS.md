@@ -68,7 +68,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   holds under 10 - then that list alone widens to 5, 7, 14, 30 days, then all (`age_min_jobs`,
   `age_widen_to`). "Show older jobs" / "only today's" -> set `max_age_days` in their search settings.
 - Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
-  (`rank --staffing`), then `blocklist.staffing: true` (`job-find`).
+  (`rank --staffing`), then `blocklist.staffing: true` (`job-find`). One not naming the employer
+  says "employer not named" + sorts lower still.
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 - "Remove CEZ Job Finder" -> `uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`

@@ -169,6 +169,20 @@ def test_staffing_firm_named_sorted_lower_kept_or_hidden():
     assert slugs(rank.rank([firm, direct], hide, NOW)) == ["direct"]
 
 
+# a firm that won't say who it hires for sorts below one that does, never hidden; keep = named only
+def test_staffing_firm_not_naming_employer_sorts_lowest_never_hidden():
+    pay = usd(150000)
+    unnamed = make_job("unnamed", company="Raydar", description="<p>Our client is a seed-stage AI company</p>", **pay)
+    named = dict(make_job("named", company="System One", description="Contract at Vanguard", **pay), company_staffing=1)
+    direct = make_job("direct", company="Acme", description="We build software for banks.", **pay)
+    assert slugs(rank.rank([unnamed, named, direct], CONFIG, NOW)) == ["direct", "named", "unnamed"]
+    assert "employer not named" in rank.reasons(unnamed, CONFIG, NOW)
+    assert "employer not named" not in rank.reasons(named, CONFIG, NOW)
+    keep = level_config(staffing="keep")
+    assert "employer not named" in rank.reasons(unnamed, keep, NOW)
+    assert rank.demerits(unnamed, keep) == rank.demerits(direct, keep)
+
+
 # no record says it: the firm's own name, or contract terms only a third party writes
 @pytest.mark.parametrize("company, text, expected", [
     ("Burnetts Staffing", "", True), ("Motion Recruitment", "", True), ("TalentOla", "", True),
@@ -185,7 +199,13 @@ def test_staffing_firm_named_sorted_lower_kept_or_hidden():
     ("Clera", "<h3>About the Role</h3><p>Join an early-stage financial technology team building AI", True),
     ("Accenture Federal", "We help our clients modernize. Our client is the Department of Veterans Affairs.", False),
     ("CalCPA", "strengthen our client, employer, public and government trust", False),
-    ("Scope Labs", "<h3>About the Role</h3><p>You will join our team", False)])
+    ("Scope Labs", "<h3>About the Role</h3><p>You will join our team", False),
+    # 2026-10-29: more ways to leave the employer out; a firm's own "our clients", a named one stay out
+    ("Dautom", "work closely with one of our esteemed clients", True), ("Global {M}", "join our client's Engineering Team", True),
+    ("MENA Alliances", "Our client is revolutionizing the FinTech industry", True),
+    ("Devop.One", "<h2>About the Company</h2><p>Our client believes that quality journalism", True),
+    ("Clera", "<h3>About the Role</h3><p>Join a small, fast-moving team building AI agents", True),
+    ("Alternative Path", "manage applications for our clients end to end", False)])
 def test_staffing_firm_by_name_or_terms(company, text, expected):
     assert rank.staffing_firm(make_job("j", company=company, description=text)) is expected
 
