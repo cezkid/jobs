@@ -40,7 +40,7 @@ def test_zip_replaces_program_keeps_private_folders(tmp_path, monkeypatch):
     assert (tmp_path / "My Settings" / "Search settings.yml").read_text(encoding="utf-8") == "mine"
     assert (tmp_path / "My Resume" / "Resume details.yml").read_text(encoding="utf-8") == "mine"
     assert (tmp_path / ".data" / "jobs.db").read_text(encoding="utf-8") == "mine"
-    assert [p.name for p in (tmp_path / ".data").iterdir()] == ["jobs.db"]
+    assert sorted(p.name for p in (tmp_path / ".data").iterdir()) == ["jobs.db", "program-files.json"]
 
 
 def test_offline_leaves_old_copy(tmp_path, monkeypatch):
@@ -142,3 +142,39 @@ def test_update_hands_the_window_extension_to_the_new_program(monkeypatch, capsy
     update.main()
     assert capsys.readouterr().out == f"{said}\n"
     assert calls == ([[update.sys.executable, str(update.cfg.ROOT / "app" / "jobs.py"), "window-update"]] if runs_new else [])
+
+
+def test_update_skips_when_it_would_wipe_an_edit_made_here(tmp_path, monkeypatch):
+    # 2026-10-29: a feature built + tested in an install vanished at the next start
+    monkeypatch.setattr(update, "download", lambda: archive({"app/jobs.py": "v1", "app/today.js": "v1", "README.md": "v1"}))
+    assert update.update(tmp_path) == update.UP_TO_DATE
+    write(tmp_path / "app" / "today.js", "edited here")
+    write(tmp_path / "app" / "__pycache__" / "x.pyc", "runtime")
+    monkeypatch.setattr(update, "download", lambda: archive({"app/jobs.py": "v2", "app/today.js": "v2", "README.md": "v2"}))
+    said = update.update(tmp_path)
+    assert said.startswith("Update skipped: 1 program file changed on this computer would be replaced (app/today.js).")
+    assert (tmp_path / "app" / "today.js").read_text(encoding="utf-8") == "edited here"
+    assert (tmp_path / "app" / "jobs.py").read_text(encoding="utf-8") == "v1"
+    assert (tmp_path / update.SKIPPED).read_text(encoding="utf-8") == "app/today.js\n"
+    # the edit merged upstream => the new copy carries it as it is here: update goes ahead
+    monkeypatch.setattr(update, "download", lambda: archive({"app/jobs.py": "v3", "app/today.js": "edited here", "README.md": "v3"}))
+    assert update.update(tmp_path) == update.UP_TO_DATE
+    assert (tmp_path / "app" / "jobs.py").read_text(encoding="utf-8") == "v3"
+    assert not (tmp_path / update.SKIPPED).exists()
+
+
+def test_no_record_yet_updates_as_before(tmp_path, monkeypatch):
+    # installs from before this check have no record: nothing known to keep, never stuck
+    write(tmp_path / "app" / "today.js", "who knows")
+    monkeypatch.setattr(update, "download", lambda: archive({"app/today.js": "v2"}))
+    assert update.update(tmp_path) == update.UP_TO_DATE
+    assert (tmp_path / "app" / "today.js").read_text(encoding="utf-8") == "v2"
+    assert (tmp_path / update.RECORD).is_file()
+
+
+def test_kept_settings_files_never_count_as_edits(tmp_path, monkeypatch):
+    monkeypatch.setattr(update, "download", lambda: archive({".claude/settings.json": "{}", "app/jobs.py": "v1"}))
+    assert update.update(tmp_path) == update.UP_TO_DATE
+    write(tmp_path / ".claude" / "settings.local.json", "mine")
+    monkeypatch.setattr(update, "download", lambda: archive({".claude/settings.json": "{}", "app/jobs.py": "v2"}))
+    assert update.update(tmp_path) == update.UP_TO_DATE

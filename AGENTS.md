@@ -361,7 +361,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `setup-form.json` (welcome page form answers, read by `job-setup` #0), `today.json` (Today as data for the window), `resume-source.json` (text the last import handed the AI), `What Job Finder knows about you.md` (`about show`), `start-page`
-  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `window-running.json` (window extension version the open window runs), `window-installed` (version in its profile: newer => Today says restart), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
+  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `window-running.json` (window extension version the open window runs), `window-installed` (version in its profile: newer => Today says restart), `program-files.json` (each shipped file's hash as last updated: an update that would wipe an edit made here skips, `update-skipped` lists it), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
@@ -490,7 +490,8 @@ On finding one:
 2. ASK user, plain words: "I found and fixed a problem in CEZ Job Finder itself. Want me to send the
    fix to the maintainer so everyone gets it? Only the code change goes - none of your resume or
    search details."
-3. Yes -> `report-defect` skill. No -> leave fix local, say so.
+3. Yes -> `report-defect` skill. No -> leave fix local, say so: updates then skip, since the next
+   would wipe it (`app/update.py`; doctor names it) - until it's sent or undone.
 
 Never push, fork or open PR/issue w/o that yes. No Claude credit in commits or PR text (no Co-Authored-By, Claude-Session,
 "Generated with Claude Code" lines): repo policy, `attribution` off in `.claude/settings.json`. PR mechanics: `.github/CONTRIBUTING.md`.
