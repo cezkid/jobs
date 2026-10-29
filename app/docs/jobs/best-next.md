@@ -208,6 +208,11 @@ brief show "Best remote jobs to apply to" and "Best jobs near you to apply to" (
 windows, employer spread inside it; pay placed among every job (held out, below) - in their where-first order (remote first when
 their first tier searches remote). One kind only => one "Best to apply next" list, as before.
 `rank --best --where remote|nearby` = one list (its "Show more" words).
+Window's Today page (2026-10-29, owner: "combine into one section ... tabs all | remote | nearby"): the two
+lists drawn as one "Best jobs" section, tabs All · Remote · Nearby stuck to the window's top while the list
+scrolls (`app/vscode/today.js` bestTabs). All = the two lists in turn, the where-first one leading - no new
+order, each list's own kept; each tab its own "more" line (All: "show me more jobs to apply to"). Tab picked
+kept across redraws. Today.md + the brief keep two headings (no tabs in Markdown or chat).
 
 Inside one list the tier order says nothing, so `where` reads as **place** (weight `place`, 0.3):
 - remote: open to where they live (`best.open_to`; home = their resume's state, plus every city tier's
