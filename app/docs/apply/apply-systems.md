@@ -46,7 +46,9 @@ signed-in users, so `prepare` finds the employer's own posting on the job search
 opening text, a link a system here fills (`apply/listing_copy.py`; 96 of 180 copies found one,
 2026-10-22) - and goes on with that link. Built In (`source` builtin, `builtin.com/job/...`) the same, by
 the row's own title + its whole text (19 of 41 found one, 2026-10-29); none found -> its Apply is Built
-In's own form behind a Built In sign-in: the user signs in + applies there with the tailored resume.
+In's own form behind a Built In sign-in: the user signs in + applies there with the tailored resume. Himalayas (`himalayas`, `himalayas.app/companies/<co>/jobs/...`,
+pages behind a Cloudflare check) and startup.jobs (`startupjobs`) the same way, by the row's own title (Himalayas 14 of
+60, startup.jobs 10 of 15 found one, 2026-10-30); none found -> the user finds the employer's own posting.
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
