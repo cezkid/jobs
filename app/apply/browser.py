@@ -1,8 +1,9 @@
 """The user's application window: a plain Chrome with Job Finder's own profile that we attach to,
 fill, and let go of. Shared by every application system.
 
-No automation flag, so `navigator.webdriver` is false and the employer's spam check sees an
-ordinary browser when the user clicks Submit. The profile lives in `.data/` - sign-ins stay on
+No automation flag: the user is at this window and does every Submit, CAPTCHA and sign-in
+themselves, so the page should behave as it does for them in any Chrome (the automation flag and
+banner change page behaviour). Job Finder never hides itself from a site's checks beyond that. The profile lives in `.data/` - sign-ins stay on
 this computer and never touch the user's everyday Chrome. Facts: app/docs/apply/apply-systems.md.
 """
 import contextlib

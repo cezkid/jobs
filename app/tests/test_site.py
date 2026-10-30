@@ -583,7 +583,7 @@ CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "docs/terms.html", "app/w
                "app/vscode/say.json", "app/vscode/today.js", "app/vscode/setup-form.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
                "app/alert.py", "app/launch.py", "app/workspace.py", "app/docs/app-window.md", "app/jobs.py",
                "app/vscode/extension.js", "app/docs/about-me.md", "app/update.py", "app/install/start-mac.sh",
-               "app/install/start-windows.bat", "app/cfg.py", "LICENSE")
+               "app/install/start-windows.bat", "app/cfg.py", "LICENSE", ".claude/settings.json")
 
 
 def claim_copy(tmp_path):

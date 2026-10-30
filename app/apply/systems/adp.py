@@ -13,6 +13,8 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 import httpx
 
+import cfg
+
 from apply import browser, dom
 from apply.questions import question, signs
 
@@ -83,7 +85,7 @@ def closed(url: str) -> str | None:
     q = {k.casefold(): v[0] for k, v in parse_qs(urlsplit(url.strip()).query).items()}
     try:
         r = httpx.get(RECORD.format(job=q["jobid"], cid=q["cid"], cc=q.get("ccid", ""), ms=int(time.time() * 1000)),
-                      timeout=30, headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0"})
+                      timeout=30, headers={"Accept": "application/json", "User-Agent": cfg.USER_AGENT})
         if r.status_code != 200:
             return f"can't tell if the posting is open - ADP answered {r.status_code}"
         record = r.json()

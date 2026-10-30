@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-07
+reviewed: 2026-10-28
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.60 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
@@ -363,3 +363,9 @@ Re-read `git diff origin/main` of the article and `sources.yml`; `pages.py --che
 - R8: resolved. Changes line names the evidence box and What we don't know.
 - No new finding.
 Verdict: publish
+
+## Re-review 2026-10-28
+
+Fresh AI session; made none of the edits. Change: the first section's bold answer "Yes, in the US" now reads "Generally yes, in the US"; Changes line added, `modified` bumped.
+- Fits the body right after it (no federal ban found; a few places add rules) and the page's "general information, not legal advice" line; no other "Yes" answer, card or description repeats the old wording.
+- No number or citation moved. Changes line accurate. Verdict: publish

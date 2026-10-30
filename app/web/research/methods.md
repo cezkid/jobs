@@ -2,7 +2,7 @@
 title: How the Research articles are made and checked
 description: How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.
 published: 2026-10-03
-modified: 2026-10-05
+modified: 2026-10-28
 status: published
 uncited:
   - "A program flags numbers that lack a source"
@@ -94,7 +94,7 @@ Laws and app settings change fast, so we re-check them every 3 to 6 months. Each
 
 ## What do we gain from the answers?
 
-We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me's free job search; we have no ties to it.
+We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me's free job search; we have no ties to it. The app also tailors resumes, so it competes with some of the resume companies named in these articles.
 
 Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
 
@@ -104,4 +104,5 @@ These articles are not legal advice or career counselling. A page that describes
 
 ## Changes
 
+- October 2026 - this section now says the app tailors resumes, so it competes with some resume companies these articles name.
 - October 2026 - the checking section now says some studies were read in their published summary only, and that articles say so. It had said every study's methods and tables were read.

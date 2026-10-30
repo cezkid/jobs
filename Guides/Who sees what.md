@@ -12,6 +12,7 @@ me?" to see it all on one page.
 | Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting, what its application asks, or if it's still open |
 | Your resume + jobs you ask about, what you say in interview practice, a note about you when it's used, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |
 | The email app password, if you turn on the morning email (you type it in the chat; it's then kept on this computer) | Your own AI chat account |
+| Files in your Downloads, Desktop and Documents folders the AI opens to find your resume, and web pages you give it | Your own AI chat account - it can open them without asking each time |
 | Which of your jobs your browser history shows you applied to, when you ask "which did I send?" (read on this computer; only the answer goes to the chat) | Your own AI chat account |
 | Pages Claude reads in your Chrome browser while it fills a Workday application (the page's words and pictures of it), and the titles and addresses of your open Chrome tabs | Your own Claude account, each time it reads the page |
 | Pages GitHub Copilot reads inside the CEZ Job Finder window - ones it opens itself, or ones you agree to share when VS Code asks (the page's words and pictures of it) | Your own GitHub account (may be shared with Microsoft), each time it reads the page |
@@ -24,6 +25,11 @@ me?" to see it all on one page.
 **Removing CEZ Job Finder:** sign-ins from pages opened in its window stay in VS Code after the
 folder is deleted. Say "Remove CEZ Job Finder" in the chat first: it turns off the daily check
 and clears them. Then delete the folder.
+
+**Kept on this computer, not locked:** your files are plain files - anyone who can sign in to
+your computer as you can open them, including saved form answers and the email app password.
+
+**Updates:** each time it starts, CEZ Job Finder downloads its newest program from GitHub and runs it.
 
 **VS Code's own usage reports to Microsoft:** switched off when CEZ Job Finder installed VS Code for you.
 

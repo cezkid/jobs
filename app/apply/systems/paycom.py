@@ -10,6 +10,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+import cfg
+
 from apply import browser, dom
 from apply.questions import question, signs
 
@@ -64,7 +66,7 @@ def closed(url: str) -> str | None:
     out. The posting in it -> None (open); the page without it -> closed (a real closed posting is
     unmeasured - no link to one; job ids that never existed read so); anything else -> can't tell."""
     try:
-        r = httpx.get(application_url(url), timeout=30, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+        r = httpx.get(application_url(url), timeout=30, follow_redirects=True, headers={"User-Agent": cfg.USER_AGENT})
     except httpx.HTTPError as e:
         return f"can't tell if the posting is open - Paycom didn't answer ({type(e).__name__})"
     if r.status_code == 200 and POSTING.search(r.text):

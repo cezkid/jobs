@@ -7,6 +7,9 @@ import software
 
 # what the user sees: Desktop icon, notifications, guides; installers + docs spell it out
 NAME = "CEZ Job Finder"
+# every plain HTTP read of an employer's or hiring system's page says who it is - never a browser's name
+# (a site that refuses it is the site saying no; the user goes on in their own window)
+USER_AGENT = "Mozilla/5.0 (compatible; CEZ-Job-Finder; +https://jobs.enrriquez.com)"
 APP = Path(__file__).resolve().parent
 ROOT = APP.parent
 DEFAULTS = APP / "defaults.yml"

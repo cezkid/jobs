@@ -14,6 +14,8 @@ from urllib.parse import urlsplit
 
 import httpx
 
+import cfg
+
 from apply import systems
 
 ANCHOR = re.compile(r"<a\b[^>]*>", re.I)
@@ -40,7 +42,7 @@ def apply_link(url: str, get=httpx.get) -> str | None:
     route) -> that link; a careers page with no such Apply -> None. A posting page that now sends the
     visitor to the job search -> ValueError saying it may have closed."""
     try:
-        r = get(url, timeout=30, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+        r = get(url, timeout=30, follow_redirects=True, headers={"User-Agent": cfg.USER_AGENT})
     except httpx.HTTPError:
         return None
     asked, landed = urlsplit(url), urlsplit(str(r.url))

@@ -2,7 +2,7 @@
 title: "What makes a good resume? The evidence, rule by rule"
 description: Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.
 published: 2026-10-03
-modified: 2026-10-07
+modified: 2026-10-28
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
 card: "Two spelling errors cut recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023]."
@@ -179,7 +179,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 - **"75% of resumes are rejected by software."** A 2012 sales claim with no method behind it [@levinson-2012-cio]. The full story: [Where the number came from](ats-rejection-myth.md).
 - **"Put a number on every line."** Our view: the advice invites made-up numbers. A number you cannot explain hurts in an interview.
 - **"Add the posting's keywords."** Only for skills you have. A listed skill you lack gets asked about.
-- **"Matching the job title gets 10.6 times more interviews."** One company's figure from its own users' activity, with no method beyond one line. The same report credits a bachelor's degree with 6.1 times the interview rate [@jobscan-2025].
+- **"Matching the job title gets 10.6 times more interviews."** One company's figure from its own users' activity; the report we read in October 2026 describes its method in one line. The same report credits a bachelor's degree with 6.1 times the interview rate [@jobscan-2025].
 - **0-100 resume scores from checker tools.** We searched for a published method linking these scores to interviews and found none.
 - **Two-column templates.** Our measurement above found text at the right edge read out of order. Ladders' vendor test linked several columns with weaker resumes [@ladders-2018].
 - **Photo templates.** A photo invites judgments about looks, as above [@ruffle-2015].
@@ -223,6 +223,7 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 ## Changes
 
+- October 2026 - the 10.6 times figure now says the method note is the one in the report we read in October 2026.
 - October 2026 - added a section on a job title at the top of the resume, with a 2025 recruiter survey and why its often-quoted 10.6 times figure is weak [@jobscan-2025]. The records rule now says it covers each job in your work history. The app section now says the app may put the posting's title at the top after you confirm.
 - October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.
 - October 2026 - a one-line gap reason is now "your call", since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line [@sterkens-2023]. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.

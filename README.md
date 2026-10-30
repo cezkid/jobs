@@ -103,8 +103,12 @@ Not covered by the MIT License:
 - Fonts: SIL Open Font License 1.1, in the OFL file next to each (`app/resume/fonts/<family>/`,
   `docs/fonts/`, `app/vscode/media/fonts/`).
 - Research data files: the licence named on each data page.
+- Town list `app/us-places.tsv`: [GeoNames](https://www.geonames.org/), CC BY 4.0, US places only,
+  provided as is.
 - Libraries the installer downloads from PyPI (`pyproject.toml`) keep their own licences. PyMuPDF
   is AGPL-3.0: `uv sync` downloads it onto the user's computer; never shipped in this repository.
 - Other companies' and products' names (Anthropic, Claude, OpenAI, ChatGPT, GitHub, Copilot,
-  Microsoft, VS Code, Workday, Greenhouse and others) belong to their owners. CEZ Job Finder is an
-  independent project, not affiliated with or endorsed by any of them.
+  Microsoft, VS Code, freehire, Workday, Greenhouse and others) belong to their owners. CEZ Job Finder is an
+  independent project, not affiliated with or endorsed by any of them. It runs in Visual Studio
+  Code, a Microsoft product, under Microsoft's license; job listings come from freehire.me under its
+  terms (https://freehire.me/terms).

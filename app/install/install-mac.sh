@@ -39,6 +39,11 @@ pick_ai() {
     have_ext=$({ code --list-extensions; code --list-extensions --profile "CEZ Job Finder"; } 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
     if grep -qx anthropic.claude-code <<<"$have_ext"; then word=claude
     elif grep -qx openai.chatgpt <<<"$have_ext"; then word=chatgpt; fi
+    # AI found, so no question below: still one keypress that accepts the terms (clickwrap, not just a notice)
+    if [ -n "$word" ] && { : >/dev/tty; } 2>/dev/null; then
+      printf 'Press Return to accept the terms and install, or close this window to stop: ' >/dev/tty
+      read -r _ </dev/tty || return 1
+    fi
   fi
   if [ -n "$word" ]; then echo "$word"; return; fi
   if ! { : >/dev/tty; } 2>/dev/null; then

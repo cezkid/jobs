@@ -2,7 +2,7 @@
 title: "AI hiring laws in 2026: what employers must tell you"
 description: "New York City and Illinois (AI video interviews) require AI notice; the EU, for fully automated decisions. Colorado, California and Connecticut follow."
 published: 2026-10-04
-modified: 2026-10-07
+modified: 2026-10-28
 status: published
 og_title: "AI hiring laws in 2026: what employers must tell you"
 card: "As of October 2026: no US federal ban on AI resume screening we found. A few places require notice."
@@ -29,7 +29,7 @@ This page describes laws as of October 2026. It is general information, not lega
 
 ## Is it legal for employers to use AI to screen resumes?
 
-**Yes, in the US as of October 2026.** We found no federal law that bans employers from using AI to read or rank resumes. A few places add rules on top, mostly about telling you.
+**Generally yes, in the US as of October 2026.** We found no federal law that bans employers from using AI to read or rank resumes. A few places add rules on top, mostly about telling you.
 
 The old discrimination laws still cover what the software does. In June 2026, a federal court in California let a lawsuit over AI screening go on. The claims going on include race, disability and age under federal law, plus California state-law claims. The court decided only which claims may continue, not whether they are true [@mobley-2026-order, p. 1-2, 11].
 
@@ -205,6 +205,7 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 ## Changes
 
+- October 2026 - the short answer on whether employers may use AI to read resumes now reads "generally yes": state and city rules add duties on top. The findings are unchanged.
 - October 2026 - added Illinois' AI video interview law and Maryland's face-recognition interview law, both in force since 2020, to the evidence box, the table by place, the body, the summary table, What we don't know and What helps.
 - October 2026 - Colorado's start date now reads "not settled" in every line, matching the Colorado section. The summary table's heading is now a question.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
