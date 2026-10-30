@@ -315,8 +315,7 @@ Tried, not kept:
 
 ## Shown
 
-Today page + side panel: 10 per list (owner 2026-10-11, was 5); when Next up is a best job it is the
-first of the first list's 10. Chat brief: 3 per list. Morning email: up to `alert.DIGEST_CAP`. The rest: "show me more
+Today page + side panel: 10 per list (owner 2026-10-11, was 5). Chat brief: 3 per list. Morning email: up to `alert.DIGEST_CAP`. The rest: "show me more
 jobs to apply to".
 
 ## Rejected

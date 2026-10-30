@@ -161,7 +161,7 @@ the user's own install + subscriptions.
   the window starts and deletes the marker - no 6 s wait, one `code` call. Opened from the Dock
   (no marker): extension runs `today --refresh` itself, same as the launcher.
 - Today = dashboard (`today.js`, #i): paper look like the install site (heading + rule, jobs split
-  by rules, Next up alone framed), tiles, real buttons. Literata shipped in the vsix
+  by rules; Next up removed, Waiting on you + Follow up folded until clicked - owner 2026-10-30), tiles, real buttons. Literata shipped in the vsix
   (`app/vscode/media/fonts`, OFL-literata.txt w/ it; `app/web/assets.py --only fonts` builds it): the site's face, so
   site and window read as one (owner 2026-10-08: "app font match the website", resume left in Caladea). Same
   optical size (18) + weight axis (400-700) as the site's file, its weights too (display bold, headings + controls
