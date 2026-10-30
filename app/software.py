@@ -58,6 +58,10 @@ KINDS = {
                  r"technical consultants?|customer engineers?|implementation (?:engineer|consultant|specialist)s?|"
                  r"technical account managers?|support engineers?",
                  None, set(), ("solutions_engineering", "support")),
+    # designs systems, advises clients, writes little code: Solutions / Software / Enterprise / Data Architect.
+    # Tagged w/ the stack (react ...), a plain read took "Solutions Architect" for a developer's job (one install,
+    # 2026-10-29: 79 of 94 architect titles filed under `architecture`). "Frontend Architect" names both
+    "architect": ("architect", r"architects?", None, set(), ("architecture",)),
 }
 # full-stack work is front-end work plus a back end: a plain title listing only back-end tags isn't it
 STACK = {k: (KINDS["frontend"][3] if k == "fullstack" else v[3]) for k, v in KINDS.items()}

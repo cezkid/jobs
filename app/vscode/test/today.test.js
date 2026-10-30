@@ -59,11 +59,12 @@ test("Literata comes from the webview's own source only: font-src = cspSource, @
   assert.equal(today.FONT_DIR.join("/"), "media/fonts");
 });
 
-// box in box in box read as any admin dashboard (critique 2026-10-04): paper + rules, Next up alone framed
+// box in box in box read as any admin dashboard (critique 2026-10-04): paper + rules, Next up alone framed;
+// one wash allowed: --hl behind the last job clicked (user picked 2026-10-29)
 test("paper look: no card fill, jobs split by rules, one frame for Next up", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   assert.doesNotMatch(css, /--card/);
-  const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text)\))/g)].map((x) => x[1].trim());
+  const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text|hl)\))/g)].map((x) => x[1].trim());
   assert.deepEqual(backgrounds, []);
   assert.match(css, /\.card \+ \.card \{ border-top: 1px solid var\(--line\)/);
   // Next up's frame in ink-2, stronger than the grey rules between jobs (re-critique P1)
@@ -317,12 +318,14 @@ test("tiles: only positive progress numbers", () => {
   assert.deepEqual(m.tiles.map((t) => [t.label, t.value]), [["New since last check", 2], ["Sent so far", 1]]);
 });
 
-// yellow on a word that doesn't click reads as a broken button (owner rule)
+// yellow on a word that doesn't click reads as a broken button (owner rule); the last job clicked
+// gets a faint yellow wash (--hl, user picked 2026-10-29) - behind a whole job, never a word
 test("yellow only on buttons", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   const rules = css.split("}").filter((r) => /var\(--mark(-2)?\)/.test(r));
   assert.ok(rules.length);
   for (const rule of rules) assert.match(rule.trim(), /^button\.go(:hover|:active)? \{/);
+  assert.match(css, /\n\.last \{ background: var\(--hl\);/);
   // and the yellow class only ever on a button
   const page = html(today.model(FULL, say), "new");
   assert.ok((page.match(/class="go"/g) || []).length >= 2);
@@ -389,7 +392,7 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
 test("best jobs: one-line rows, 10 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
   const rows = page.split('aria-labelledby="s-best"')[1].split("</section>")[0];
-  assert.equal((rows.match(/<li><div class="what">/g) || []).length, 10);
+  assert.equal((rows.match(/<li data-job="\d+"><div class="what">/g) || []).length, 10);
   assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   // a decision needs its facts: every new row has its posting (re-critique P2)
   assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 10);
@@ -555,7 +558,15 @@ function fakeEl(attrs = {}, text = "") {
   el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
   el.removeAttribute = (k) => { delete el.attrs[k]; };
   el.classList = { add: (c) => el.classes.add(c), remove: (c) => el.classes.delete(c), contains: (c) => el.classes.has(c) };
-  el.closest = (sel) => { const k = /^button\[data-(\w+)\]$/.exec(sel); return k && k[1] in el.dataset ? el : null; };
+  el.closest = (sel) => {
+    if (sel === "[data-job]") return el.job || null;
+    const k = /^button\[data-(\w+)\]$/.exec(sel);
+    return k && k[1] in el.dataset ? el : null;
+  };
+  // screen spot: top moves w/ scroll; layout (rewrap) changes it via at
+  el.at = 0;
+  el.getBoundingClientRect = () => ({ top: el.at - (el.win ? el.win.scrollY : 0), bottom: el.at + 100 - (el.win ? el.win.scrollY : 0) });
+  el.isConnected = true;
   el.focus = () => { el.focused = true; };
   el.scrollIntoView = () => {};
   return el;
@@ -571,6 +582,10 @@ function webview(store, day = "Tuesday, September 29") {
     // status change: no data-busy (nothing to wait on in a chat)
     fakeEl({ "data-a": "2", "data-k": "12:sent", "aria-label": "I sent it, Job 12" }, "I sent it"),
   ];
+  // Job 12 + Job 13 blocks, 600 px apart; each Apply sits inside its job
+  const jobs = [fakeEl({ "data-job": "12" }), fakeEl({ "data-job": "13" })];
+  jobs[0].at = 200; jobs[1].at = 800;
+  for (const b of buttons) b.job = jobs[b.dataset.k.startsWith("13:") ? 1 : 0];
   const looks = today.LOOKS.map((l) => fakeEl({ "data-look": l.word, "aria-pressed": String(l.word === "auto") }, l.label));
   const status = fakeEl();
   const undo = fakeEl({ "data-undo": "1" }, "Undo");
@@ -580,24 +595,27 @@ function webview(store, day = "Tuesday, September 29") {
     body: { dataset: day ? { day } : {} },
     getElementById: (id) => (id === "status" ? status : id === "undo" ? undo : null),
     querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : sel === "button[data-look]" ? looks
-      : buttons.filter((b) => b.getAttribute("aria-busy"))),
+      : sel === "[data-job]" ? jobs : buttons.filter((b) => b.getAttribute("aria-busy"))),
     addEventListener: (type, fn) => { listeners["doc:" + type] = fn; },
   };
   const win = {
-    scrollY: 0, scrolledTo: null,
+    scrollY: 0, scrolledTo: null, innerHeight: 700,
     scrollTo: (x, y) => { win.scrolledTo = y; win.scrollY = y; },
+    scrollBy: (x, dy) => { win.scrollY += dy; },
     setTimeout: (fn, ms) => clock.timers.push({ fn, at: clock.t + ms, live: true }),
     clearTimeout: (id) => { if (clock.timers[id - 1]) clock.timers[id - 1].live = false; },
     addEventListener: (type, fn) => { listeners["win:" + type] = fn; },
   };
+  for (const j of jobs) j.win = win;
   const posted = [];
   const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: (m) => posted.push(m) };
   today.page(vscode, doc, win, today.CLEAR_MS, today.UNDO_MS, () => clock.t);
   return {
-    buttons, looks, status, undo, posted, win,
+    buttons, jobs, looks, status, undo, posted, win,
     click: (b) => listeners["doc:click"]({ target: b }),
     msg: (data) => listeners["win:message"]({ data }),
     scroll: (y) => { win.scrollY = y; listeners["win:scroll"](); },
+    resize: () => listeners["win:resize"](),
     tick: (ms) => {
       clock.t += ms;
       for (const t of clock.timers) if (t.live && t.at <= clock.t) { t.live = false; t.fn(); }
@@ -669,6 +687,46 @@ test("page: redraw keeps scroll, a live status line (rest of its 8 s) and the do
   // a line already past its 8 s isn't brought back
   store.state.status = "old"; store.state.until = 500;
   assert.equal(webview(store).status.textContent, "");
+});
+
+// a posting opens beside Today: the page narrows, every line rewraps, the pixel scroll lands
+// elsewhere - the job clicked stays marked + on screen where it was (user report 2026-10-29)
+test("page: last job clicked is marked, survives a redraw, stays put when the page rewraps", () => {
+  const store = {};
+  const w = webview(store);
+  w.scroll(600);
+  w.tick(100);
+  const [job12, job13] = w.jobs;
+  w.click(w.buttons[1]);
+  assert.ok(job13.classList.contains("last"));
+  assert.equal(job13.getAttribute("aria-current"), "true");
+  assert.ok(!job12.classList.contains("last"));
+  // narrower: everything above grows, Job 13 moves 500 px down the page
+  const before = job13.getBoundingClientRect().top;
+  job12.at = 300; job13.at = 1300;
+  w.resize();
+  assert.equal(job13.getBoundingClientRect().top, before, "same spot on screen");
+  assert.equal(w.win.scrollY, 1100);
+  // wider again (posting closed): back
+  job12.at = 200; job13.at = 800;
+  w.resize();
+  assert.equal(w.win.scrollY, 600);
+  // another job clicked: the mark moves
+  w.click(w.buttons[0]);
+  assert.ok(job12.classList.contains("last"));
+  assert.ok(!job13.classList.contains("last"));
+  assert.equal(job13.getAttribute("aria-current"), null);
+  const again = webview(store);
+  assert.ok(again.jobs[0].classList.contains("last"), "redraw keeps it");
+  assert.ok(!webview(store, "Wednesday, September 30").jobs[0].classList.contains("last"), "a new day starts clean");
+});
+
+// at the very top a rewrap needs no help: top stays top
+test("page: rewrap at the top of the page scrolls nothing", () => {
+  const w = webview({});
+  w.jobs[0].at = 500;
+  w.resize();
+  assert.equal(w.win.scrollY, 0);
 });
 
 // "Ready in chat" from yesterday reads as words still waiting in a chat that's long gone
@@ -767,7 +825,7 @@ test("every button's name is its own; job buttons carry the job; headings h1 > h
   const page = html(today.model(FULL, say), "new");
   assert.match(page, /aria-label="Apply, Job 100">Apply</);
   assert.match(page, /aria-label="Open the posting for Job 3: Role 3">Role 3</);
-  assert.match(page, /<article class="card" aria-labelledby="j-46"><h3 id="j-46">/);
+  assert.match(page, /<article class="card" aria-labelledby="j-46" data-job="46"><h3 id="j-46">/);
   // every section named; a line's button described by the line ("Turn it on" - what?)
   assert.equal((page.match(/<section(?![^>]*aria-label)/g) || []).length, 0);
   assert.match(page, /<span id="(l-\d+)">Your resume lines could carry more of your own numbers\.<\/span><button[^>]*aria-describedby="\1"/);
@@ -1075,9 +1133,9 @@ test("Apply's tooltip says it makes the resume + fills the form; other buttons k
   assert.equal(today.sayTitle({ id: "find", words: "find new jobs" }, "copy"), "");
 });
 
-// remote + nearby lists (app/today.py BEST_LISTS, owner 2026-10-23): each drawn as best-next rows w/ its own
-// "more" line, Next up taken from the first list, the rest counted in that list only
-test("two best-next lists: rows, own more line each, Next up from the first", () => {
+// remote + nearby lists (app/today.py BEST_LISTS, owner 2026-10-23): one "Best jobs" section, tabs All · Remote ·
+// Nearby (owner 2026-10-29); each tab its own "more" line, Next up taken from the first list, counted in that list only
+test("two best-next lists: one tabbed section, own more line each, Next up from the first", () => {
   const list = (id, from, words) => ({ ...sec(id, Array.from({ length: 10 }, (_, i) => job(from + i, [`apply to job ${from + i}`])),
     { text: "2 more - ask the chat.", say: words }), title: id, total: 12 });
   const raw = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [],
@@ -1086,10 +1144,73 @@ test("two best-next lists: rows, own more line each, Next up from the first", ()
   assert.equal(m.next.section, "best_nearby");
   assert.equal(m.next.card.num, 200);
   const page = html(m, "new");
-  const near = page.split('aria-labelledby="s-best_nearby"')[1].split("</section>")[0];
-  const remote = page.split('aria-labelledby="s-best_remote"')[1].split("</section>")[0];
-  assert.match(near, /<ul class="rows">/);
-  assert.match(near, /2 more jobs to apply to\.<\/span><button[^>]*>Show more jobs near me</);
-  assert.match(remote, /2 more jobs to apply to\.<\/span><button[^>]*>Show more remote jobs</);
+  assert.ok(!page.includes('aria-labelledby="s-best_nearby"') && !page.includes('aria-labelledby="s-best_remote"'));
+  const best = page.split('<section class="best" aria-labelledby="s-best">')[1].split("</section>")[0];
+  assert.match(best, /<h2 id="s-best"[^>]*>Best jobs<\/h2>/);
+  // fixed tab order, All picked; count = jobs in the list less Next up's
+  const tabs = [...best.matchAll(/role="tab" id="t-best-(\w+)"[^>]*aria-selected="(\w+)"[^>]*>(\w+) <span class="count">(\d+)</g)]
+    .map((x) => x.slice(1).join(" "));
+  assert.deepEqual(tabs, ["all true All 23", "remote false Remote 12", "nearby false Nearby 11"]);
+  const panel = (t) => best.split(`id="p-best-${t}"`)[1].split('role="tabpanel"')[0];
+  assert.ok(!best.match(/id="p-best-all"[^>]*hidden/) && /id="p-best-remote"[^>]*hidden/.test(best));
+  // All: the lists in turn, the data's first (nearby) leading; Next up's job in none
+  const nums = (t) => [...panel(t).matchAll(/<li data-job="(\d+)"/g)].map((x) => Number(x[1]));
+  assert.deepEqual(nums("all").slice(0, 4), [201, 300, 202, 301]);
+  assert.equal(nums("all").length, 19);
+  assert.deepEqual(nums("nearby"), Array.from({ length: 9 }, (_, i) => 201 + i));
+  assert.ok(!nums("all").includes(200));
+  // no heading id twice: All + its own tab both show a job
+  const ids = [...best.matchAll(/ id="([^"]+)"/g)].map((x) => x[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.match(panel("nearby"), /2 more jobs to apply to\.<\/span><button[^>]*>Show more jobs near me</);
+  assert.match(panel("remote"), /2 more jobs to apply to\.<\/span><button[^>]*>Show more remote jobs</);
+  assert.match(panel("all"), /4 more jobs to apply to\.<\/span><button[^>]*>Show more jobs</);
   assert.equal(today.isBest("best_remote") && today.isBest("best") && !today.isBest("waiting"), true);
+});
+
+test("one best-next list: plain section, no tabs", () => {
+  const raw = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [],
+    sections: [{ ...sec("best", [job(5, ["apply to job 5"]), job(6, ["apply to job 6"])]), title: "Best to apply next" }] };
+  const page = html(today.model(raw, say), "new");
+  assert.ok(!page.includes('role="tablist"'));
+  assert.match(page, /aria-labelledby="s-best"/);
+});
+
+// tab picked kept across redraws; switching while the tabs are stuck starts the new list under them
+test("page: Best jobs tab picked shows its panel, kept across redraws, arrows move along", () => {
+  const make = (store) => {
+    const tabs = ["all", "remote", "nearby"].map((t, i) => fakeEl({ "data-tab": t, "aria-controls": `p-best-${t}`,
+      "aria-selected": String(i === 0) }, t));
+    const panels = Object.fromEntries(tabs.map((t) => [`p-best-${t.dataset.tab}`, fakeEl()]));
+    const bar = fakeEl();
+    for (const t of tabs) t.parentElement = bar;
+    const listeners = {};
+    const status = fakeEl();
+    const win = { scrollY: 500, innerHeight: 700, scrollTo: () => {}, scrollBy: (x, dy) => { win.scrollY += dy; },
+      setTimeout: () => 0, clearTimeout: () => {}, addEventListener: () => {} };
+    bar.getBoundingClientRect = () => ({ top: 0, bottom: 40 });
+    for (const p of Object.values(panels)) p.getBoundingClientRect = () => ({ top: 300 - win.scrollY, bottom: 900 });
+    const doc = { body: { dataset: { day: "Thursday, October 29" } },
+      getElementById: (id) => panels[id] || (id === "status" ? status : null),
+      querySelectorAll: (sel) => (sel === "button[data-tab]" ? tabs : []),
+      addEventListener: (type, fn) => { listeners[type] = fn; } };
+    const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: () => {} };
+    today.page(vscode, doc, win, today.CLEAR_MS, today.UNDO_MS, () => 0);
+    return { tabs, panels, win, listeners };
+  };
+  const store = {};
+  const a = make(store);
+  assert.deepEqual(Object.values(a.panels).map((p) => p.hidden), [false, true, true]);
+  a.listeners.click({ target: a.tabs[1] });
+  assert.deepEqual(Object.values(a.panels).map((p) => p.hidden), [true, false, true]);
+  assert.equal(a.tabs[1].getAttribute("aria-selected"), "true");
+  assert.equal(a.tabs[0].getAttribute("tabindex"), "-1");
+  assert.equal(a.win.scrollY, 260, "panel top (300 - 500) brought up under the stuck tabs (40)");
+  const b = make(store);
+  assert.deepEqual(Object.values(b.panels).map((p) => p.hidden), [true, false, true], "redraw keeps Remote");
+  let stopped = false;
+  b.listeners.keydown({ key: "ArrowRight", target: b.tabs[1], preventDefault: () => { stopped = true; } });
+  assert.ok(stopped && b.tabs[2].focused && !b.panels["p-best-nearby"].hidden);
+  b.listeners.keydown({ key: "ArrowRight", target: b.tabs[2], preventDefault: () => {} });
+  assert.ok(!b.panels["p-best-all"].hidden, "wraps to All");
 });

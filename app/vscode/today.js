@@ -33,6 +33,10 @@ const BEST_SHOWN = 10;
 // best-next lists: one ("best"), or Today's two - remote + near them (app/today.py BEST_LISTS); each its own "more" words
 const BEST_MORE = { best: "more_best", best_remote: "more_remote", best_nearby: "more_nearby" };
 const isBest = (id) => Object.prototype.hasOwnProperty.call(BEST_MORE, id);
+// two lists => one "Best jobs" section, tabs All · Remote · Nearby (owner 2026-10-29); All = both lists in turn,
+// the data's where-first list leading. Tab picked = state.tab, kept across redraws
+const BEST_TABS = [{ tab: "all", label: "All" }, { tab: "remote", id: "best_remote", label: "Remote" },
+  { tab: "nearby", id: "best_nearby", label: "Nearby" }];
 // yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
@@ -262,6 +266,9 @@ function model(raw, sayJson) {
     const moreBest = tpls.find((t) => t.id === BEST_MORE[best.id]);
     if (best.cards.length > BEST_SHOWN && !best.more && moreBest) best.more = { text: "", say: sayButton(moreBest.words) };
   }
+  // All tab's own "more" words (each list keeps its own)
+  const moreAll = tpls.find((t) => t.id === "more_best");
+  m.moreAll = moreAll && m.sections.filter((x) => isBest(x.id)).length > 1 ? sayButton(moreAll.words) : null;
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
   m.next = nextUp(m);
   m.sections = m.sections.filter((s) => s.cards.length || s.more);
@@ -496,20 +503,22 @@ async function say({ ai, mode, words, platform, exec, copy, status, busy, wait =
   }
 }
 
-// colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons.
+// colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons + the last job clicked.
 // Paper look like the install site (docs/index.html): ink on paper, sections = heading + rule, jobs
 // split by rules - no grey panels, no boxed cards; Next up alone keeps one quiet frame.
 // --edge = every control's border: ink-2, >= 3:1 on paper + desk (WCAG 1.4.11); yellow button's own
 // edge in light = ink-2 too (yellow on paper 1.28:1)
 const CSS = `
 body.vscode-light { --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --tint: #f3f3f1;
-  --edge: #3a3a3a; --go-edge: #3a3a3a; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
+  --edge: #3a3a3a; --go-edge: #3a3a3a; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000;
+  --hl: rgba(255, 228, 51, 0.32); }
 body.vscode-dark { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --tint: #2c2c2e;
-  --edge: #bdbdbd; --go-edge: #ffe433; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
+  --edge: #bdbdbd; --go-edge: #ffe433; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000;
+  --hl: rgba(255, 228, 51, 0.16); }
 body.vscode-high-contrast { --desk: var(--vscode-editor-background); --text: var(--vscode-editor-foreground);
   --text-2: var(--vscode-editor-foreground); --line: var(--vscode-contrastBorder, currentColor);
   --tint: transparent; --edge: var(--vscode-contrastBorder, currentColor); --go-edge: var(--edge); --mark: transparent;
-  --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); }
+  --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); --hl: transparent; }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
   font-family: Literata, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45;
@@ -562,8 +571,27 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
 .rows .acts { padding-top: 0; }
 .rows h3 { display: inline; font: inherit; margin: 0; }
 .rows h3 b { font-weight: 600; }
+/* last job clicked: soft yellow behind it, so it's found again after the page rewraps (user picked it
+   2026-10-29 over a ring, bar, tag + highlighted number). Reaches 12px past the text left + right (body
+   gutter is 20px), never over the rules above + below; Next up's framed card tints inside its frame */
+.last { background: var(--hl); border-radius: 6px; }
+.rows .last, .cards .card.last { margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
+.next .cards .card.last { margin: 12px 0 0; padding: 14px 18px; }
+.rows .last + li, .card.last + .card { border-top-color: transparent; }
+body.vscode-high-contrast .last { outline: 2px solid var(--edge); }
 .list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
 .list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+/* Best jobs tabs: stick to the window's top while its list scrolls by; picked one ink + underlined, like Look */
+.tabs { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 0 22px; margin: 0;
+  padding: 6px 0 0; background: var(--desk); border-bottom: 1px solid var(--line); }
+.tabs button { border: 0; border-radius: 0; background: none; padding: 8px 2px 6px; margin-bottom: -1px;
+  border-bottom: 3px solid transparent; color: var(--text-2); font-size: 1rem; font-weight: 500; }
+.tabs button:hover { background: none; box-shadow: none; color: var(--text); border-bottom-color: var(--line); }
+.tabs button:active { box-shadow: none; transform: none; }
+.tabs button[aria-selected="true"] { color: var(--text); font-weight: 600; border-bottom-color: var(--text); }
+.tabs .count { color: var(--text-2); font-size: 0.85rem; font-weight: 500; font-variant-numeric: lining-nums tabular-nums; }
+body.vscode-high-contrast .tabs button { border: 0; border-bottom: 3px solid transparent; }
+body.vscode-high-contrast .tabs button[aria-selected="true"] { border-bottom-color: var(--edge); }
 .more { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .later { font-size: 0.92rem; color: var(--text-2); }
 .later .acts { padding-top: 12px; }
@@ -655,12 +683,12 @@ function head(nonce, fonts, title = "Today", css = "") {
 // replaces the html on every show + Today rewrite; vscode.getState survives that (cheaper than
 // retainContextWhenHidden, which keeps the whole page alive while hidden)
 function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
-  const state = Object.assign({ y: 0, status: "", until: 0, done: null, undo: false, day: "" }, vscode.getState() || {});
+  const state = Object.assign({ y: 0, status: "", until: 0, done: null, undo: false, day: "", last: "" }, vscode.getState() || {});
   // kept for Today's own day only: "Ready in chat" from yesterday would read as still waiting
   const day = (doc.body && doc.body.dataset.day) || "";
   // (fallback page: no day => nothing reset)
   const save = () => vscode.setState(state);
-  if (day && state.day !== day) { Object.assign(state, { y: 0, status: "", until: 0, done: null, undo: false, day }); save(); }
+  if (day && state.day !== day) { Object.assign(state, { y: 0, status: "", until: 0, done: null, undo: false, day, last: "" }); save(); }
   const box = doc.getElementById("status");
   const undoBtn = doc.getElementById("undo");
   let timer = null;
@@ -718,14 +746,79 @@ function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
   if (state.status && state.until > now()) show(state.status, state.until, state.undo);
   else if (state.status || state.done) show("", 0);
   mark();
+  // where you left off: the job last clicked keeps a soft yellow highlight (state.last), and a
+  // posting opening beside Today (page narrows, every line rewraps) or closing again leaves the
+  // job on screen where it was - pixel scroll alone lands somewhere else (user report 2026-10-29)
+  const jobs = () => Array.from(doc.querySelectorAll("[data-job]"));
+  const markLast = () => {
+    for (const j of jobs()) {
+      const on = Boolean(state.last) && j.dataset.job === state.last;
+      j.classList[on ? "add" : "remove"]("last");
+      if (on) j.setAttribute("aria-current", "true");
+      else j.removeAttribute("aria-current");
+    }
+  };
+  // anchor = the last-opened job while on screen, else the first job on screen + its top
+  let anchor = null;
+  const hold = () => {
+    const seen = (j) => { const r = j.getBoundingClientRect(); return r.bottom > 0 && r.top < win.innerHeight; };
+    const on = jobs().filter(seen);
+    const el = win.scrollY > 0 ? on.find((j) => j.dataset.job === state.last) || on[0] : null;
+    anchor = el ? { el, top: el.getBoundingClientRect().top } : null;
+  };
+  // Best jobs tabs: the one picked shows, the others' panels hide; arrows move along them (WAI-ARIA tabs)
+  const tabs = () => Array.from(doc.querySelectorAll("button[data-tab]"));
+  const pick = (want, focus = false) => {
+    const all = tabs();
+    const on = all.find((t) => t.dataset.tab === want) || all[0];
+    if (!on) return null;
+    for (const t of all) {
+      t.setAttribute("aria-selected", String(t === on));
+      t.setAttribute("tabindex", t === on ? "0" : "-1");
+      const p = doc.getElementById(t.getAttribute("aria-controls"));
+      if (p) p.hidden = t !== on;
+    }
+    if (focus) on.focus();
+    return on;
+  };
+  // tabs stuck at the top: the new list starts right under them, not part way down
+  const choose = (want, focus = false) => {
+    const on = pick(want, focus);
+    if (!on) return;
+    state.tab = on.dataset.tab;
+    save();
+    const p = doc.getElementById(on.getAttribute("aria-controls"));
+    const bar = on.parentElement;
+    if (p && bar && bar.getBoundingClientRect) {
+      const gap = p.getBoundingClientRect().top - bar.getBoundingClientRect().bottom;
+      if (gap < 0) win.scrollBy(0, gap);
+    }
+    hold();
+  };
+  pick(state.tab);
+  markLast();
   if (state.y) win.scrollTo(0, state.y);
+  hold();
   let saving = false;
   win.addEventListener("scroll", () => {
     if (saving) return;
     saving = true;
-    win.setTimeout(() => { saving = false; state.y = win.scrollY; save(); }, 100);
+    win.setTimeout(() => { saving = false; state.y = win.scrollY; save(); hold(); }, 100);
+  });
+  win.addEventListener("resize", () => {
+    if (!anchor || !anchor.el.isConnected) return;
+    win.scrollBy(0, anchor.el.getBoundingClientRect().top - anchor.top);
   });
   doc.addEventListener("click", (e) => {
+    const job = e.target.closest("[data-job]");
+    if (job && job.dataset.job !== state.last) {
+      state.last = job.dataset.job;
+      save();
+      markLast();
+    }
+    if (job) anchor = { el: job, top: job.getBoundingClientRect().top };
+    const tab = e.target.closest("button[data-tab]");
+    if (tab) { choose(tab.dataset.tab); return; }
     const jump = e.target.closest("button[data-jump]");
     if (jump) {
       const to = doc.getElementById(jump.dataset.jump);
@@ -758,6 +851,16 @@ function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
       b.setAttribute("aria-busy", "true");
     }
     vscode.postMessage({ action: Number(b.dataset.a) });
+  });
+  doc.addEventListener("keydown", (e) => {
+    const t = e.target && e.target.closest ? e.target.closest("button[data-tab]") : null;
+    if (!t) return;
+    const all = tabs();
+    const i = all.indexOf(t);
+    const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: all.length - 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    choose(all[(to + all.length) % all.length].dataset.tab, true);
   });
   win.addEventListener("message", (e) => {
     const d = e.data || {};
@@ -825,11 +928,12 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   // detail = where it stands; why = the row's reasons (new jobs)
   const facts = (c) => [c.detail, c.why].filter(Boolean).join(" · ");
   // job number = its id in the chat: bold, body size, same on cards + rows
-  const card = (c, lead) => `<article class="card" aria-labelledby="j-${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
+  const card = (c, lead) => `<article class="card" aria-labelledby="j-${c.num}" data-job="${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
     + `${title(c)}</h3>` + (c.company ? `<p>${company(c)}</p>` : "") + (facts(c) ? `<p class="detail">${h(facts(c))}</p>` : "")
     + `<div class="acts">${acts(c, lead)}${meta(c)}</div></article>`;
   // one line a job where it fits: number, title, company, detail/why + its buttons + links
-  const row = (c, lead) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${title(c)}`
+  // pre: a job shown in two tabs (All + its own) keeps each heading id its own
+  const row = (c, lead, pre = "") => `<li data-job="${c.num}"><div class="what"><h3 id="${pre}j-${c.num}"><b>Job ${c.num}</b> - ${title(c)}`
     + `${c.company ? `, ${company(c)}` : ""}</h3>${facts(c) ? ` <span class="detail">- ${h(facts(c))}</span>` : ""}</div>`
     + `<span class="acts">${acts(c, lead)}${meta(c)}</span></li>`;
   // a line w/ one button: the button's description = the line's own words ("Turn it on" - what?)
@@ -841,16 +945,45 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const guideBtn = (g, name) => btn(g.title, g.open.action, { cls: "link", name });
   const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
   const jumps = [];
+  // best-next list: shown jobs + how many past them (Next up's one not counted)
+  const bestLeft = (s) => {
+    const shown = s.cards.slice(0, BEST_SHOWN);
+    return { shown, left: Math.max(0, (s.total || s.cards.length) - shown.length - (m.next && m.next.section === s.id ? 1 : 0)) };
+  };
+  const moreLine = (more, left) => (more && left > 0 ? { ...more, text: `${left} more ${left === 1 ? "job" : "jobs"} to apply to.` } : null);
+  const bests = m.sections.filter((s) => isBest(s.id));
+  const tabbed = bests.length > 1;
+  const bestTabs = () => {
+    const lists = bests.map((s) => ({ s, ...bestLeft(s) }));
+    const all = [];
+    for (let i = 0; lists.some((l) => i < l.shown.length); i++) for (const l of lists) if (i < l.shown.length) all.push(l.shown[i]);
+    const leftAll = lists.reduce((n, l) => n + l.left, 0);
+    const panels = BEST_TABS.map((t) => {
+      const l = t.id ? lists.find((x) => x.s.id === t.id) : null;
+      if (t.id && !l) return null;
+      const shown = l ? l.shown : all;
+      const left = l ? l.left : leftAll;
+      return { ...t, shown, count: shown.length + left, more: moreLine(l ? l.s.more : m.moreAll && { say: m.moreAll }, left) };
+    }).filter(Boolean);
+    jumps.push(["s-best", "Best jobs"]);
+    const s0 = bests[0];
+    const note = [s0.note ? h(s0.note) : "", s0.guide ? guideBtn(s0.guide, `Open the guide ${s0.guide.title}`) : ""].filter(Boolean).join(" ");
+    const tabs = `<div class="tabs" role="tablist" aria-labelledby="s-best">${panels.map((p, i) =>
+      `<button type="button" role="tab" id="t-best-${p.tab}" data-tab="${p.tab}" aria-controls="p-best-${p.tab}" `
+      + `aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${h(p.label)} <span class="count">${p.count}</span></button>`).join("")}</div>`;
+    const body = panels.map((p, i) => `<div role="tabpanel" id="p-best-${p.tab}" aria-labelledby="t-best-${p.tab}"${i ? " hidden" : ""}>`
+      + `<ul class="rows">${p.shown.map((c) => row(c, false, i ? `${p.tab}-` : "")).join("")}</ul>`
+      + (p.more ? `<ul class="list more">${line(p.more, false)}</ul>` : "") + "</div>").join("");
+    return `<section class="best" aria-labelledby="s-best">${heading("s-best", "Best jobs")}`
+      + (note ? `<p class="note">${note}</p>` : "") + tabs + body + "</section>";
+  };
   const section = (s) => {
     const best = isBest(s.id);
+    if (best && tabbed) return s === bests[0] ? bestTabs() : "";
     const rows = best || s.cards.length > ROWS_AFTER;
     const shown = best ? s.cards.slice(0, BEST_SHOWN) : s.cards;
     let more = s.more;
-    if (more && best) {
-      const total = s.total || s.cards.length;
-      const left = total - shown.length - (m.next && m.next.section === s.id ? 1 : 0);
-      more = left > 0 ? { ...more, text: `${left} more ${left === 1 ? "job" : "jobs"} to apply to.` } : null;
-    }
+    if (more && best) more = moreLine(more, bestLeft(s).left);
     // "Show the rest" under two sections => named by its section; "Show more jobs" says it already
     const moreName = more && more.say && !best ? `${sayText(more.say, mode)}: ${s.title}` : "";
     jumps.push([`s-${s.id}`, s.title]);

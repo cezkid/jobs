@@ -1,6 +1,6 @@
 """Workday through Job Finder's own Chrome (apply/systems/workday.py): links, the step read off the page,
 answers typed with real mouse + keys, My Experience by workday.js with its option clicks made real - on
-local models of the steps tenant H showed (2026-10-22). EchoJobs copies resolved to the employer's own
+local models of the steps tenant H showed (2026-10-22). EchoJobs + Built In copies resolved to the employer's own
 posting (apply/listing_copy.py)."""
 import json
 from pathlib import Path
@@ -79,8 +79,20 @@ def test_copy_without_the_same_text_elsewhere_is_not_resolved():
     assert listing_copy.apply_link("<p>no title heading</p>", "https://api.example", get=get) is None
 
 
+def test_built_in_copy_resolves_by_its_own_title_and_whole_text():
+    body = COPY.split("</h1>", 1)[1]
+    get, asked = search([
+        row("builtin", "Software Engineer III - Search Team (REMOTE)", body, "https://builtin.com/job/x/1"),
+        row("workday", "Software Engineer III - Search Team (REMOTE)", body, POSTING + "?utm_source=freehire.me")])
+    assert listing_copy.apply_link(body, "https://api.example", get=get,
+                                   title="Software Engineer III -  Search Team (REMOTE)") == POSTING
+    assert asked[0]["q"] == '"Software Engineer III - Search Team (REMOTE)"'
+    assert "builtin" in listing_copy.TITLED
+
+
 def test_echojobs_links_known():
     assert listing_copy.matches("https://echojobs.io/job/acme-software-engineer-x1y2z?utm_source=freehire.me")
+    assert listing_copy.matches("https://builtin.com/job/software-engineer/11934125?utm_source=freehire.me")
     assert not listing_copy.matches(POSTING)
 
 

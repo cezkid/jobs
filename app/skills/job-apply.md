@@ -209,7 +209,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    A job board's copy (EchoJobs: its Apply shows only to its own signed-in users): `prepare` finds
    the employer's own posting on the job search ("the posting is a copy - the employer's own posting
    is ...") and goes on with that; none found -> it says so: `jobs.py open` the posting, ask the user
-   for the employer's link.
+   for the employer's link. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
+   own form: `jobs.py open` the posting, they sign in to Built In there, click Apply + choose the tailored
+   resume (it reaches Built In + the employer then) - say where the file is.
    Workday (`app/docs/apply/workday.md` #Job Finder's Chrome): one step per page. On the posting,
    `prepare` asks how to start (Autofill with Resume / Apply Manually / Use My Last Application -
    ask which, clickable); `fill` clicks Apply + that choice; the user signs in or creates the account
@@ -227,7 +229,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    else). A question printed "(at most N characters)": draft within N - the page cuts a longer
    answer off unseen, so `fill` refuses it. They'd rather type one on the page themselves -> leave
    it blank, source "yours to do on
-   the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
+   the page" (`fill` fills the rest, names it as left). A written-answer box (why us, a recent project) ->
+   `job-answers` skill: how to draft it, which ones are theirs to confirm. Others: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else the likely answer (hard limits), named at handover. `file`
    question: `answer: true` only after they said yes to the named file, or `prepare` set it from
    `upload_on_apply` (hard limits). Location: the

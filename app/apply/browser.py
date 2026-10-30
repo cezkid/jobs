@@ -10,6 +10,7 @@ import contextlib
 import os
 import re
 import shutil
+import signal
 import socket
 import subprocess
 import sys
@@ -74,21 +75,54 @@ def answers(port: int) -> bool:
         return False
 
 
-def running_port() -> int | None:
-    """Debugging port off the command line of a Chrome running on Job Finder's profile."""
+def running() -> tuple[int, int] | None:
+    """(process id, debugging port) off the command line of a Chrome running on Job Finder's profile."""
     if sys.platform == "win32":
         command = ["powershell", "-NoProfile", "-Command",
-                   "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | ForEach-Object CommandLine"]
+                   "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | "
+                   "ForEach-Object { \"$($_.ProcessId) $($_.CommandLine)\" }"]
     else:
-        command = ["ps", "-axww", "-o", "command="]
+        command = ["ps", "-axww", "-o", "pid=,command="]
     try:
         listed = subprocess.run(command, capture_output=True, text=True, timeout=10).stdout
     except (OSError, subprocess.SubprocessError):
         return None
     for line in listed.splitlines():
-        if str(PROFILE) in line and (m := re.search(r"--remote-debugging-port=(\d+)", line)):
-            return int(m.group(1))
+        if str(PROFILE) in line and (m := re.search(r"^\s*(\d+)\s.*--remote-debugging-port=(\d+)", line)):
+            return int(m.group(1)), int(m.group(2))
     return None
+
+
+def running_port() -> int | None:
+    """Debugging port off the command line of a Chrome running on Job Finder's profile."""
+    return found[1] if (found := running()) else None
+
+
+def restart() -> None:
+    """Close Job Finder's Chrome so the next tab starts a fresh one. Its port still answers but
+    refuses Playwright's attach ("Browser context management is not supported" - seen 2026-10-29
+    on a Chrome 156 window open ~6 h with the Claude in Chrome add-on in its profile): no fill can
+    reach it, and the user was left closing it by hand. A plain terminate lets Chrome save its
+    session; sign-ins live in the profile and stay."""
+    if not (found := running()):
+        return
+    pid = found[0]
+    try:
+        if sys.platform == "win32":
+            subprocess.run(["taskkill", "/PID", str(pid)], capture_output=True, timeout=10)
+        else:
+            os.kill(pid, signal.SIGTERM)
+    except (OSError, subprocess.SubprocessError):
+        return
+    for _ in range(40):  # gone before a new Chrome may take the profile
+        if not running():
+            break
+        time.sleep(0.25)
+    PORT_FILE.unlink(missing_ok=True)
+
+
+def refuses_attach(error: Exception) -> bool:
+    return "Browser context management is not supported" in str(error)
 
 
 def free_port() -> int:
@@ -177,7 +211,7 @@ def page_at(url: str, match=None):
     """A tab on `url` in the Job Finder Chrome. `match(tab_url)` given and a tab matches -> that tab,
     the user's place in a multi-page form kept; else a new tab. On exit we only disconnect: the
     tab stays open."""
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import Error, sync_playwright
 
     with sync_playwright() as p:
         connected = {}
@@ -187,12 +221,27 @@ def page_at(url: str, match=None):
                 connected[port] = p.chromium.connect_over_cdp(f"http://127.0.0.1:{port}")
             return connected[port].contexts[0].pages
 
+        def fresh(port, target):
+            """The new tab; a Chrome refusing the attach (restart) closed and started again on `url`."""
+            try:
+                return opened(lambda: pages(port), target)
+            except Error as e:
+                if not refuses_attach(e):
+                    raise
+            print("Job Finder's Chrome stopped letting the filler in - closed it and opened a fresh one")
+            restart()
+            port, target = open_tab(url)
+            return opened(lambda: pages(port), target)
+
         page = None
         if match and (port := live_port()):
-            page = pick(pages(port), match)
+            try:
+                page = pick(pages(port), match)
+            except Error as e:
+                if not refuses_attach(e):
+                    raise
         if page is None:
-            port, target = open_tab(url)
-            page = opened(lambda: pages(port), target)
+            page = fresh(*open_tab(url))
         page.wait_for_load_state()
         page.bring_to_front()
         yield page

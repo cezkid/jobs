@@ -68,7 +68,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   holds under 10 - then that list alone widens to 5, 7, 14, 30 days, then all (`age_min_jobs`,
   `age_widen_to`). "Show older jobs" / "only today's" -> set `max_age_days` in their search settings.
 - Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
-  (`rank --staffing`), then `blocklist.staffing: true` (`job-find`).
+  (`rank --staffing`), then `blocklist.staffing: true` (`job-find`). One not naming the employer
+  says "employer not named" + sorts lower still.
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 - "Remove CEZ Job Finder" -> `uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`
@@ -338,7 +339,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   "help", "what do I do"), start `job-setup`. Their first page (START HERE) is a welcome page w/ a
   form + Start setup button that puts their answers in the chat ("Set me up with my answers: ...");
   Claude's new chats get the same line (`today --brief`).
-- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next - two lists, remote + near them, each its own order (`app/docs/jobs/best-next.md`;
+- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next - two lists, remote + near them, each its own order (window: one "Best jobs" section, tabs All / Remote / Nearby; `app/docs/jobs/best-next.md`;
   same lists in the brief; email one order), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
   w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each job check (every 2 hours, 08:00-22:00 by default; only the day's first sends the email / pop-up).
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
@@ -360,7 +361,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `setup-form.json` (welcome page form answers, read by `job-setup` #0), `today.json` (Today as data for the window), `resume-source.json` (text the last import handed the AI), `What Job Finder knows about you.md` (`about show`), `start-page`
-  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `window-running.json` (window extension version the open window runs), `window-installed` (version in its profile: newer => Today says restart), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
+  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `window-running.json` (window extension version the open window runs), `window-installed` (version in its profile: newer => Today says restart), `program-files.json` (each shipped file's hash as last updated: an update that would wipe an edit made here skips, `update-skipped` lists it), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
@@ -470,7 +471,8 @@ Read before adding a wording rule - it records rules measured and rejected, so n
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
 resume for one posting, `job-apply` fill an application, never Submit (Save / Next only w/ their `continue_on_apply` yes) ("apply to job N" / Today's Apply = resume + form in one run) (systems + adding one:
-`app/docs/apply/apply-systems.md`), `job-interview` practice for an interview + debrief after one,
+`app/docs/apply/apply-systems.md`), `job-answers` written-answer boxes on a form (why us, a recent
+project; motive confirmed word for word), `job-interview` practice for an interview + debrief after one,
 `report-defect` send fix upstream.
 
 ## Personal data - never stage
@@ -488,7 +490,8 @@ On finding one:
 2. ASK user, plain words: "I found and fixed a problem in CEZ Job Finder itself. Want me to send the
    fix to the maintainer so everyone gets it? Only the code change goes - none of your resume or
    search details."
-3. Yes -> `report-defect` skill. No -> leave fix local, say so.
+3. Yes -> `report-defect` skill. No -> leave fix local, say so: updates then skip, since the next
+   would wipe it (`app/update.py`; doctor names it) - until it's sent or undone.
 
 Never push, fork or open PR/issue w/o that yes. No Claude credit in commits or PR text (no Co-Authored-By, Claude-Session,
 "Generated with Claude Code" lines): repo policy, `attribution` off in `.claude/settings.json`. PR mechanics: `.github/CONTRIBUTING.md`.

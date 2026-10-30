@@ -28,7 +28,9 @@ missing -> `job-setup` skill instead.
    - "too many recruiters / staffing agencies" -> `uv run app/jobs.py rank --staffing` (count +
      sample), ONE clickable question w/ the count: Hide them (`blocklist.staffing: true`) / Keep
      sorting them lower (the default, `rank.staffing: lower`) / Show them like any job (`rank.staffing:
-     keep`). Name the cost: some contract work only comes through them. One posted by a firm the
+     keep`). Name the cost: some contract work only comes through them. One not naming the employer
+     says "employer not named" + sorts lower still (count on the first line) - no sign of a fake:
+     a firm keeps its client back for its fee or the client's wish, often names it on the first call. One posted by a firm the
      check misses -> `blocklist.companies` for it (`app/docs/jobs/freehire.md` #Staffing firms)
    - "does this company fit me / my values?" -> `AGENTS.md` #About me (fit question): posting
      text + `about read workplace` / `values` / `personal`; never a company's stance from memory;
@@ -52,6 +54,12 @@ missing -> `job-setup` skill instead.
      multiSelect w/ counts -> `blocklist.software_kinds`. Their search has only a category pass
      -> also the passes of `app/profiles/frontend.yml` (`job-setup` #2): plain "Software
      Engineer" and UI / web developer titles sit outside the kind's category
+   - jobs above their level they want gone ("up to senior", "no principal / VP jobs") ->
+     `blocklist.max_level` (`entry` / `mid` / `senior`): titles above it hidden (senior: Principal, Staff,
+     Distinguished, Director, VP, Head of, Chief; Lead kept). Count first: `rank --would-hide-level
+     <level>`, say the count. `rank.career_level` still sorts the rest; "senior is fine too" -> raise it
+   - architect jobs ("Solutions Architect") for a developer -> kind `architect` (`rank.software_kinds`
+     sorts lower; hidden via `blocklist.software_kinds`, counted w/ `--would-hide-kind architect`)
    - project / program manager getting jobs that want a former engineer ("too technical", "they want
      coders", "I'm not hands-on") -> `rank.engineer_background: false`: those sort lower w/ "asks an
      engineer's background", never hidden (`job-setup` #Project + program management); confirm in one line

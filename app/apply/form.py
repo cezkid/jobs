@@ -198,7 +198,10 @@ def copied_from(config: dict, url: str) -> str | None:
         row = store.jobs_by_link(conn, url)
     finally:
         conn.close()
-    return listing_copy.apply_link(row["description"] if row else None, config["api"]["base"])
+    if not row:
+        return None
+    title = row["title"] if row["source"] in listing_copy.TITLED else None
+    return listing_copy.apply_link(row["description"], config["api"]["base"], title=title)
 
 
 def prepare(slug: str, url: str, in_window: bool = False) -> None:
@@ -208,10 +211,15 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     system = systems.for_url(url)
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
     if system is None and listing_copy.matches(url):
-        # a board's copy (EchoJobs): the job search's row of the employer's own system for the same posting
+        # a board's copy (EchoJobs, Built In): the job search's row of the employer's own system for the same posting
         if found := copied_from(config, url):
             print(f"the posting is a copy - the employer's own posting is {found}")
             url, system = found, systems.for_url(found)
+        elif "builtin.com" in url.casefold():
+            sys.exit("this posting is on Built In and the job search lists no copy from the employer's own site - its "
+                     "Apply is Built In's own form, behind a Built In sign-in, not filled here: open the posting in the "
+                     "window (jobs.py open); the user signs in, clicks Apply and chooses the tailored resume themselves "
+                     "(it reaches Built In and the employer then) - or ask for the employer's own posting link")
         else:
             sys.exit("this posting is a job board's copy whose Apply shows only to that board's signed-in users, and the "
                      "job search lists no copy from the employer's own site - ask the user to open the posting "

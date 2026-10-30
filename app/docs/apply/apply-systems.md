@@ -4,6 +4,12 @@ Each hiring system lays its form out its own way; questions are much the same (c
 upload, work permit, a few employer ones). Shared logic in one place, each system's quirks in a
 small plug-in.
 
+Job Finder's own Chrome (`apply/browser.py`) stays open between forms. One open ~6 h (Chrome 156,
+Claude in Chrome add-on in its profile, 2026-10-29) still answered its port but refused Playwright's
+attach ("Browser context management is not supported"): `page_at` now closes it and starts a fresh
+one, saying so in one line. Sign-ins stay (they live in the profile); a form left open there unsent
+is lost - only a window no fill could reach anyway.
+
 | System | Link looks like | Route | Facts |
 |---|---|---|---|
 | Workday | `<co>.wd<N>.myworkdayjobs.com/[<lang>/]<site>/job/.../<title>_<req>` (also `wd<N>.myworkdaysite.com/recruiting/<co>/...`) | `apply-form`, Job Finder's own Chrome; start choice after Apply, then the user's sign-in; one step per page read off the user's tab, My Experience by `workday.js` with real clicks. Fallback: `apply` script run by the Claude Chrome extension | `workday.md` |
@@ -37,7 +43,9 @@ Careers-site postings (freehire `source` radancy): the job list's link is the em
 Job boards' copies (freehire `source` echojobs): the board shows the employer's Apply only to its own
 signed-in users, so `prepare` finds the employer's own posting on the job search - same title, same
 opening text, a link a system here fills (`apply/listing_copy.py`; 96 of 180 copies found one,
-2026-10-22) - and goes on with that link.
+2026-10-22) - and goes on with that link. Built In (`source` builtin, `builtin.com/job/...`) the same, by
+the row's own title + its whole text (19 of 41 found one, 2026-10-29); none found -> its Apply is Built
+In's own form behind a Built In sign-in: the user signs in + applies there with the tailored resume.
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and

@@ -162,3 +162,10 @@ def test_doctor_json(tmp_path, monkeypatch, capsys):
     doctor.main()
     data = json.loads(capsys.readouterr().out)
     assert {"name", "ok", "say", "fix"} <= data[0].keys()
+
+
+def test_doctor_updates_held_back(tmp_path):
+    assert doctor.updates(env(tmp_path)).ok
+    (tmp_path / "update-skipped").write_text("app/today.js\n", encoding="utf-8")
+    r = doctor.updates(env(tmp_path))
+    assert not r.ok and r.detail == "app/today.js" and "app/" not in r.say
