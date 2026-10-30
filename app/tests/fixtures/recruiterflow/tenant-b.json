@@ -1,0 +1,101 @@
+{
+ "ACTIVE_JOB_VISIBILITY": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "JOB_VISIBILITY_CLOSED": 6,
+ "job_visibility_id": 1,
+ "application_form": {
+  "candidate_profile": [
+   {
+    "display_name": "Education",
+    "id": 1,
+    "key": "education",
+    "requirement_type": "optional",
+    "response_type": "interval",
+    "view_field_id": 15
+   },
+   {
+    "display_name": "Resume",
+    "id": 3,
+    "key": "resume",
+    "requirement_type": "mandatory",
+    "response_type": "attachment",
+    "view_field_id": 14
+   },
+   {
+    "display_name": "Summary",
+    "id": 4,
+    "key": "summary",
+    "requirement_type": "optional",
+    "response_type": "richtext",
+    "view_field_id": 2
+   },
+   {
+    "display_name": "Cover Letter",
+    "id": 5,
+    "key": "cover_letter",
+    "requirement_type": "optional",
+    "response_type": "attachment",
+    "view_field_id": 14
+   },
+   {
+    "display_name": "Experience",
+    "id": 6,
+    "key": "experience",
+    "requirement_type": "optional",
+    "response_type": "interval",
+    "view_field_id": 17
+   }
+  ],
+  "is_empty": false,
+  "personal_info": [
+   {
+    "display_name": "Full Name",
+    "id": 1,
+    "key": "name",
+    "requirement_type": "mandatory",
+    "response_type": "text",
+    "view_field_id": 1
+   },
+   {
+    "display_name": "Email",
+    "id": 2,
+    "key": "email",
+    "requirement_type": "mandatory",
+    "response_type": "text",
+    "view_field_id": 1
+   },
+   {
+    "display_name": "Phone",
+    "id": 3,
+    "key": "phone",
+    "requirement_type": "mandatory",
+    "response_type": "text",
+    "view_field_id": 1
+   },
+   {
+    "display_name": "Location",
+    "id": 4,
+    "key": "address",
+    "requirement_type": "mandatory",
+    "response_type": "richtext",
+    "view_field_id": 16
+   },
+   {
+    "display_name": "LinkedIn Profile",
+    "id": 6,
+    "key": "linkedin_profile",
+    "requirement_type": "mandatory",
+    "response_type": "text",
+    "view_field_id": 1
+   }
+  ],
+  "questions": []
+ },
+ "job_id": 5992,
+ "company_path": "acme",
+ "company_name": "Acme"
+}

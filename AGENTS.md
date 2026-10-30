@@ -307,6 +307,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Zip code, city, state, skills you type | that employer's Zoho Recruit site (each box searches Zoho Recruit's own list) | That employer, letter by letter as it's typed - before Submit |
 | Contact details, work history, education, answers, resume you apply with | that employer's Zoho Recruit site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's Loxo site | That recruiting firm (a Loxo site is a recruiter's; the posting may name the hiring company), once you click Submit |
+| Resume you apply with | that employer's Recruiterflow site | That recruiting firm (a Recruiterflow site is a recruiter's; the posting may describe the hiring company), as soon as the file is chosen - before Submit (Recruiterflow reads it to fill the form) |
+| Contact details, answers you apply with | that employer's Recruiterflow site | That recruiting firm, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's Gem site | That employer, once you click Apply |
 | Resume (and cover letter) you apply with | that employer's Rippling site | That employer, as soon as the file is chosen - before Apply (Rippling reads it to fill the form) |
 | Town you type in the location box | that employer's Rippling site (the box asks Google for place suggestions) | Google, letter by letter as it's typed - before Apply |
