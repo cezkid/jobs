@@ -34,11 +34,10 @@ const build = (raw = RAW, applied = APPLIED) => {
 };
 
 // groups out of order or renamed => the panel tells a different story from the Today page
-test("groups follow the dashboard: Next up, Waiting on you, Follow up, Best to apply next, Applied", () => {
+test("groups follow the dashboard: Waiting on you, Follow up, Best to apply next, Applied", () => {
   const { groups } = build();
-  assert.deepStrictEqual(groups.map((g) => g.label), ["Next up", "Waiting on you", "Follow up", "Best to apply next", "Applied"]);
-  assert.deepStrictEqual(groups[0].items.map((i) => i.num), [1]);  // Next up taken out of Waiting, shown once
-  assert.deepStrictEqual(groups[1].items.map((i) => i.num), [2]);
+  assert.deepStrictEqual(groups.map((g) => g.label), ["Waiting on you", "Follow up", "Best to apply next", "Applied"]);
+  assert.deepStrictEqual(groups[0].items.map((i) => i.num), [1, 2]);
 });
 
 // a job labelled differently in the panel than in chat or on Today => user can't tell they're the same
@@ -65,7 +64,7 @@ test("every row runs an action from today.model's own list, same index", () => {
   assert.deepStrictEqual(next.rows.map((r) => r.label), ["Apply", "I sent it", "Open the job posting", "Show its folder"]);
   assert.deepStrictEqual(next.rows.map((r) => m.actions[r.action].type), ["say", "status", "posting", "open"]);
   // same action object the page's button holds
-  assert.strictEqual(next.rows[1].action, m.next.card.say[1].action);
+  assert.strictEqual(next.rows[1].action, m.sections[0].cards[0].say[1].action);
 });
 
 // a job shown twice in the panel reads like two jobs; a folder that isn't a job => a broken row
@@ -96,15 +95,6 @@ test("nothing to show: the page's empty line + its button, or a plain not-ready 
   assert.strictEqual(row.label, "Find new jobs");
   assert.strictEqual(m.actions[row.action].words, "find new jobs");
   assert.match(jobs.emptyRow(null).label, /isn't ready yet/);
-});
-
-// a setup step as Next up (no resume yet) must still show + work from the panel
-test("Next up without a job: the setup step's own button", () => {
-  const raw = { ...RAW, sections: [], todo: [{ text: "Add your resume to rank jobs by it.", say: "import my resume" }] };
-  const { m, groups } = build(raw, []);
-  assert.strictEqual(groups[0].label, "Next up");
-  assert.strictEqual(groups[0].items[0].label, "Add my resume");
-  assert.strictEqual(m.actions[groups[0].items[0].action].words, "import my resume");
 });
 
 // a second click path in extension.js => panel + page drift apart (owner: no new behaviors)
@@ -146,7 +136,7 @@ test("two best-next lists: both groups, the page's order, top 10 each", () => {
   raw.sections = [{ id: "best_nearby", title: "Best jobs near you to apply to", cards: cards(40) },
     { id: "best_remote", title: "Best remote jobs to apply to", cards: cards(60) }];
   const { groups } = build(raw, []);
-  assert.deepStrictEqual(groups.map((g) => g.label), ["Next up", "Best jobs near you to apply to", "Best remote jobs to apply to"]);
+  assert.deepStrictEqual(groups.map((g) => g.label), ["Best jobs near you to apply to", "Best remote jobs to apply to"]);
+  assert.strictEqual(groups[0].items.length, 10);
   assert.strictEqual(groups[1].items.length, 10);
-  assert.strictEqual(groups[2].items.length, 10);
 });

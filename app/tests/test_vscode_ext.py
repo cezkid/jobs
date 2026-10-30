@@ -234,8 +234,8 @@ def test_dashboard_keeps_every_button_the_page_offers(tmp_path):
     script = (f"const t = require({json.dumps(str(vscode_ext.SOURCE / 'today.js'))});"
               f"const say = require({json.dumps(str(vscode_ext.SOURCE / 'say.json'))});"
               f"const m = t.model(JSON.parse(require('fs').readFileSync({json.dumps(str(data))}, 'utf8')), say);"
-              # Next up = one job taken out of its section: every job still shown once
-              "const cards = [...(m.next && m.next.card ? [m.next.card] : []), ...m.sections.flatMap((s) => s.cards)];"
+              # every job shown once, in its own section
+              "const cards = m.sections.flatMap((s) => s.cards);"
               "console.log(JSON.stringify(cards.map((c) => [c.num, c.say.map((b) => b.words),"
               " !!c.posting, c.resume && c.resume.path, c.folder && c.folder.path]).sort((a, b) => a[0] - b[0])))")
     run = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=60)

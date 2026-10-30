@@ -22,9 +22,6 @@ const CLAUDE_ID = "anthropic.claude-code";
 // tested range: from 2.1.288 up to (not incl.) the next minor
 const CLAUDE_TESTED = { from: [2, 1, 288], below: [2, 2, 0] };
 const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
-// Next up: the one most valuable thing today, first found in this order (data order stays
-// app/today.py's). No resume yet blocks "Apply" => before new jobs
-const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "best" }, { todo: "morning" }];
 // setup steps that stop the job search working => above the job sections, yellow; others stay last, quiet
 const BLOCKERS = new Set(["import", "morning"]);
 // sections past this many jobs draw as one-line rows; new jobs always do, 10 shown, rest in the chat
@@ -37,9 +34,11 @@ const isBest = (id) => Object.prototype.hasOwnProperty.call(BEST_MORE, id);
 // the data's where-first list leading. Tab picked = state.tab, kept across redraws
 const BEST_TABS = [{ tab: "all", label: "All" }, { tab: "remote", id: "best_remote", label: "Remote" },
   { tab: "nearby", id: "best_nearby", label: "Nearby" }];
-// yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
+// yellow leads: each Waiting on you job's main button - tasks. Every other button
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
+// sections drawn folded (owner 2026-10-30): heading + count shown, jobs one click away; opened = state.open
+const FOLDED = new Set(["waiting", "follow_up"]);
 const QUIET = new Set(["closed"]);
 // Literata = the install site's face (one look from site to window; the resume keeps Caladea), shipped in
 // the vsix (OFL, media/fonts/OFL-literata.txt; built by app/web/assets.py): the webview may load only from
@@ -270,29 +269,15 @@ function model(raw, sayJson) {
   const moreAll = tpls.find((t) => t.id === "more_best");
   m.moreAll = moreAll && m.sections.filter((x) => isBest(x.id)).length > 1 ? sayButton(moreAll.words) : null;
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
-  m.next = nextUp(m);
   m.sections = m.sections.filter((s) => s.cards.length || s.more);
-  // tiles in the order of what they tell about (Next up first); progress-only ones after
+  // tiles in the order of what they tell about; progress-only ones after
   const at = (t) => {
-    if (m.next && t.section && m.next.section === t.section) return -1;
     const i = m.sections.findIndex((s) => s.id === t.section);
     return i < 0 ? m.sections.length : i;
   };
   m.tiles = m.tiles.map((t, i) => [at(t), i, t]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
   m.actions = actions;
   return m;
-}
-
-// takes the Next-up item out of its section or setup list (shown once, at the top)
-function nextUp(m) {
-  for (const want of NEXT_ORDER) {
-    // "best" = the first best-next list w/ a job: data order is their where-first order
-    const s = want.section && m.sections.find((x) => (x.id === want.section || (want.section === "best" && isBest(x.id))) && x.cards.length);
-    if (s) return { section: s.id, card: s.cards.shift() };
-    const i = want.todo ? m.todo.findIndex((t) => t.say && t.say.id === want.todo) : -1;
-    if (i >= 0) return { todo: m.todo.splice(i, 1)[0] };
-  }
-  return null;
 }
 
 function versionParts(text) {
@@ -505,7 +490,7 @@ async function say({ ai, mode, words, platform, exec, copy, status, busy, wait =
 
 // colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons + the last job clicked.
 // Paper look like the install site (docs/index.html): ink on paper, sections = heading + rule, jobs
-// split by rules - no grey panels, no boxed cards; Next up alone keeps one quiet frame.
+// split by rules - no grey panels, no boxed cards.
 // --edge = every control's border: ink-2, >= 3:1 on paper + desk (WCAG 1.4.11); yellow button's own
 // edge in light = ink-2 too (yellow on paper 1.28:1)
 const CSS = `
@@ -542,7 +527,14 @@ h2, h3, b, strong { font-weight: 600; }
   text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .how { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 20px; }
 section { margin: 32px 0 0; }
-section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1px solid var(--text); }
+section > h2, .fold > summary h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1px solid var(--text); }
+/* folded section: the heading is the toggle, a triangle before it turns when open */
+.fold > summary { list-style: none; cursor: pointer; }
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary h2::before { content: "\\25B8"; display: inline-block; width: 1.1em; transition: transform 0.15s; }
+.fold[open] > summary h2::before { transform: rotate(90deg); }
+.fold > summary .count { color: var(--text-2); font-size: 0.9rem; font-weight: 500; font-variant-numeric: lining-nums tabular-nums; }
+.fold > summary:focus-visible { outline: 3px solid var(--text); outline-offset: 4px; }
 .note { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 0; max-width: 65ch; }
 .figures { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: 6px 0 0; padding: 0; list-style: none; }
 .figures li { display: flex; align-items: baseline; gap: 6px; }
@@ -552,8 +544,6 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
 .cards { display: grid; grid-template-columns: 1fr; }
 .card { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 14px 0; }
 .card + .card { border-top: 1px solid var(--line); }
-.next .card { border: 1px solid var(--edge); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
-.next .card h3 { font-size: 1.3rem; }
 .card h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
 .num { display: block; font-size: 1rem; font-weight: 600; color: var(--text); }
 .card p { margin: 0; overflow-wrap: anywhere; }
@@ -573,10 +563,9 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
 .rows h3 b { font-weight: 600; }
 /* last job clicked: soft yellow behind it, so it's found again after the page rewraps (user picked it
    2026-10-29 over a ring, bar, tag + highlighted number). Reaches 12px past the text left + right (body
-   gutter is 20px), never over the rules above + below; Next up's framed card tints inside its frame */
+   gutter is 20px), never over the rules above + below */
 .last { background: var(--hl); border-radius: 6px; }
 .rows .last, .cards .card.last { margin: 0 -12px; padding-left: 12px; padding-right: 12px; }
-.next .cards .card.last { margin: 12px 0 0; padding: 14px 18px; }
 .rows .last + li, .card.last + .card { border-top-color: transparent; }
 body.vscode-high-contrast .last { outline: 2px solid var(--edge); }
 .list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
@@ -796,6 +785,16 @@ function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
     hold();
   };
   pick(state.tab);
+  // folded sections: closed by default, the ones opened stay open across redraws
+  const opened = new Set(Array.isArray(state.open) ? state.open : []);
+  for (const d of doc.querySelectorAll("details[data-fold]")) {
+    d.open = opened.has(d.dataset.fold);
+    d.addEventListener("toggle", () => {
+      if (d.open) opened.add(d.dataset.fold); else opened.delete(d.dataset.fold);
+      state.open = [...opened];
+      save();
+    });
+  }
   markLast();
   if (state.y) win.scrollTo(0, state.y);
   hold();
@@ -822,6 +821,8 @@ function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
     const jump = e.target.closest("button[data-jump]");
     if (jump) {
       const to = doc.getElementById(jump.dataset.jump);
+      const fold = to && to.closest("details");
+      if (fold) fold.open = true;
       if (to) { to.focus(); to.scrollIntoView({ block: "start" }); }
       return;
     }
@@ -945,10 +946,10 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const guideBtn = (g, name) => btn(g.title, g.open.action, { cls: "link", name });
   const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
   const jumps = [];
-  // best-next list: shown jobs + how many past them (Next up's one not counted)
+  // best-next list: shown jobs + how many past them
   const bestLeft = (s) => {
     const shown = s.cards.slice(0, BEST_SHOWN);
-    return { shown, left: Math.max(0, (s.total || s.cards.length) - shown.length - (m.next && m.next.section === s.id ? 1 : 0)) };
+    return { shown, left: Math.max(0, (s.total || s.cards.length) - shown.length) };
   };
   const moreLine = (more, left) => (more && left > 0 ? { ...more, text: `${left} more ${left === 1 ? "job" : "jobs"} to apply to.` } : null);
   const bests = m.sections.filter((s) => isBest(s.id));
@@ -989,18 +990,18 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
     jumps.push([`s-${s.id}`, s.title]);
     const lead = LEADS.has(s.id);
     const note = [s.note ? h(s.note) : "", s.guide ? guideBtn(s.guide, `Open the guide ${s.guide.title}`) : ""].filter(Boolean).join(" ");
-    return `<section aria-labelledby="s-${h(s.id)}">${heading(`s-${h(s.id)}`, s.title)}`
-      + (note ? `<p class="note">${note}</p>` : "")
+    const body = (note ? `<p class="note">${note}</p>` : "")
       + (rows ? `<ul class="rows">${shown.map((c) => row(c, lead)).join("")}</ul>`
         : `<div class="cards">${shown.map((c) => card(c, lead)).join("")}</div>`)
-      + (more ? `<ul class="list more">${line(more, false, moreName)}</ul>` : "") + "</section>";
+      + (more ? `<ul class="list more">${line(more, false, moreName)}</ul>` : "");
+    // folded: heading (+ job count) is the toggle; closed until clicked, opened ones stay open on redraw
+    if (FOLDED.has(s.id)) {
+      const n = s.total || s.cards.length;
+      return `<section aria-labelledby="s-${h(s.id)}"><details class="fold" data-fold="${h(s.id)}"><summary>`
+        + `<h2 id="s-${h(s.id)}" tabindex="-1">${h(s.title)} <span class="count">${n}</span></h2></summary>${body}</details></section>`;
+    }
+    return `<section aria-labelledby="s-${h(s.id)}">${heading(`s-${h(s.id)}`, s.title)}${body}</section>`;
   };
-  if (m.next) jumps.push(["s-next", "Next up"]);
-  const next = m.next
-    ? `<section class="next" aria-labelledby="s-next">${heading("s-next", "Next up")}`
-      + (m.next.card ? `<div class="cards">${card(m.next.card, true)}</div>`
-        : `<ul class="list">${line(m.next.todo, true)}</ul>`) + "</section>"
-    : "";
   const tiles = m.tiles.length
     ? `<ul class="figures" aria-label="So far">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
   const blocking = m.todo.filter((t) => t.blocks);
@@ -1026,7 +1027,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   return `${head(nonce, fonts)}
 <body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${restart ? `<p class="note restart">${h(restart)}</p>` : ""}${tiles}</div></div>
 <p class="how" id="how">${h(howLine(mode))}</p>
-${next}${setup}${sections}${todo}${empty}
+${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}${lookSwitch(lookOf(look))}</section>
 ${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
@@ -1255,7 +1256,7 @@ ${BAR}</main>
 
 module.exports = {
   VIEW_TYPE, WELCOME_TYPE, AI_NAMES, START_LABELS, startLabel, setupReady, afterStart, SHOW_CHAT, ALLOW_HERE, CHOOSE_RESUME, WELCOME_GUIDES, guideAction, SIGN_IN, SIGN_IN_ANY, setupLine, welcome,
-  DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, isBest, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, BEST_SHOWN, isBest, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, readingPane, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,

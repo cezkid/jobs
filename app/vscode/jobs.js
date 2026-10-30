@@ -9,9 +9,8 @@ const VIEW_ID = "cezJobFinder.jobs";
 const RUN = "cezJobFinder.jobs.run";
 // stage folder whose jobs make the Applied group (app/docs/jobs/job-folders.md)
 const APPLIED_DIR = "My Jobs/2 Applied";
-// group order + names: the dashboard's own section titles; Next up first, Applied last
+// group order + names: the dashboard's own section titles; Applied last
 const GROUPS = [
-  { id: "next", label: "Next up" },
   { id: "waiting", label: "Waiting on you" },
   { id: "interviews", label: "Interviews" },
   { id: "follow_up", label: "Follow up" },
@@ -81,15 +80,6 @@ function tree(m, applied = []) {
     const g = GROUPS.find((x) => x.id === id);
     groups.push({ id, label: g.label, items });
   };
-  if (m && m.next) {
-    if (m.next.card) add("next", [jobItem("next", m.next.card)]);
-    else if (m.next.todo && m.next.todo.say) {
-      const t = m.next.todo;
-      add("next", [{ id: "next/todo", label: t.say.label, description: "", tooltip: t.text || t.say.label,
-        accessible: t.text || t.say.label, rows: [], action: t.say.action, icon: ICONS.say }]);
-    }
-    if (m.next.card) shown.add(m.next.card.num);
-  }
   // best-next lists in the data's own order (their where-first order: remote or nearby first)
   const bestIds = m ? m.sections.filter((x) => today.isBest(x.id)).map((x) => x.id) : [];
   for (const id of ["waiting", "interviews", "follow_up", ...bestIds]) {
