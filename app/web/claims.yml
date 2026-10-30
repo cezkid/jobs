@@ -4,17 +4,19 @@
 #   {file, contains}    file still says it (exact)
 #   {file, rows, are}   lines matching `rows` (regex) are exactly `are` - a row added or reworded fails
 #   {say, label}        app/vscode/say.json button id still reads `label` + the page shows it
-#   {apply_systems}     app/apply/systems names: filled / start box, [code NAME, name on the page]
+#   {apply_systems}     app/apply/systems names shown: filled / start box, [code NAME, name on the page];
+#                       each must be in the code; code has more -> the page says "and more"
 # Fails => the app changed: fix the page sentence first, then `text` + the fact here.
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Zoho Recruit Loxo Gem Rippling Dover Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
-  why: hiring systems the app fills (bold) or starts (plain)
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable SmartRecruiters Workday and more. First box filled, next steps named: Oracle iCIMS and more.'
+  why: the most common hiring systems the app fills (bold) or starts (plain); the rest are "and more"
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Breezy, Dover, Gem, Greenhouse, JazzHR, Lever, Loxo, Manatal, Paylocity, Rippling, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday, Zoho Recruit]
+    # the top systems only (most postings on the job list, 2026-10-30) - a new minor system needs no page change
+    filled: [Ashby, Greenhouse, Lever, SmartRecruiters, Workable, Workday]
     # [name in the code, name on the page]
-    start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
+    start_box: [[Oracle Recruiting Cloud, Oracle], iCIMS]
 today-page:
   page: index.html
   text: What’s waiting on you and the newest jobs, with “Apply” buttons.

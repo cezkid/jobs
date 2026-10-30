@@ -88,7 +88,8 @@ describes the app (buttons, first start, privacy rows, hiring systems, installer
 `test_site_claims_still_match_the_app` (`site_checks.claim_problems`): page text = `text`, each
 fact still holds - `contains` (file says it, exact), `rows` (AGENTS.md privacy rows matching a
 regex = exactly these: a row added or reworded fails), `say` (button label in
-`app/vscode/say.json`), `apply_systems` (`app/apply/systems` NAMEs, start-box ones apart).
+`app/vscode/say.json`), `apply_systems` (`app/apply/systems` NAMEs, start-box ones apart: the page names the top ones, each still in
+the code, + "and more" - a new minor system needs no page change).
 Failure = `<page>: claim <id>: <what changed> -> update ...`. App change described on the site =>
 fix the sentence, then `text` + fact. Icon: `icon-sync.json` (above). Hero window + share card
 stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => add a claim.

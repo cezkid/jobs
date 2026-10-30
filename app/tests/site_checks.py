@@ -739,9 +739,12 @@ def fact_problems(root: Path, fact: dict, text: str) -> list[str]:
         out = []
         for kind, now, said in (("filled", full, fact["filled"]), ("start box", start, fact["start_box"])):
             said = [(n, n) if isinstance(n, str) else tuple(n) for n in said]
-            if now != {n for n, _ in said}:
-                out.append(f"app/apply/systems {kind}: code has {sorted(now)}, claim has {sorted(n for n, _ in said)}")
+            gone = sorted({n for n, _ in said} - now)
+            if gone:
+                out.append(f"app/apply/systems {kind}: claim names {gone}, the code no longer has them")
             out += [f"{kind} system {shown!r} not in the page text" for _, shown in said if shown not in text]
+            if now - {n for n, _ in said} and "and more" not in text:
+                out.append(f"app/apply/systems {kind}: code has more than the claim names, page doesn't say \"and more\"")
         return out
     return [f"unknown fact {fact!r}"]
 

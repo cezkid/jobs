@@ -607,10 +607,10 @@ def test_claim_check_names_page_and_claim_when_the_app_changes(tmp_path):
     assert claim_problems(root) == []
     say = root / "app/vscode/say.json"
     say.write_text(say.read_text(encoding="utf-8").replace('"label": "Apply"', '"label": "Apply now"'), encoding="utf-8")
-    (root / "app/apply/systems/dayforce.py").write_text('NAME = "Dayforce"\n', encoding="utf-8")
+    (root / "app/apply/systems/greenhouse.py").unlink()
     problems = claim_problems(root)
     assert any(p.startswith("index.html: claim today-page:") and "'Apply now'" in p for p in problems), problems
-    assert any(p.startswith("index.html: claim apply-systems:") and "Dayforce" in p for p in problems), problems
+    assert any(p.startswith("index.html: claim apply-systems:") and "Greenhouse" in p for p in problems), problems
     assert all("app/web/claims.yml" in p for p in problems), problems
 
 
@@ -943,3 +943,10 @@ def test_install_step_shows_the_desktop_icon_as_drawn():
     assert drawn and drawn.group(1) == shapes, "copy app/install/icon-32.svg's shapes into docs/index.html step 3"
     step = home[home.index('<ol class="steps">'):home.index("</ol>", home.index('<ol class="steps">'))]
     assert "Desktop" in step and "first page" in step and "Type 1" not in step
+
+
+def test_a_new_minor_hiring_system_needs_no_page_change(tmp_path):
+    # the home page names the top systems only (owner 2026-10-30: the rest was noise); "and more" covers the rest
+    root = claim_copy(tmp_path)
+    (root / "app/apply/systems/dayforce.py").write_text('NAME = "Dayforce"\n', encoding="utf-8")
+    assert claim_problems(root) == []
