@@ -65,7 +65,10 @@ START_WAIT_MS = 10000
 # the whole My Experience run: about 4 s a skill when the window is in front (tenant H, 45 skills ~3 min)
 RUN_LIMIT_S = 600
 
-# read every option of an open search list: it draws only what is in view (tenant H, How Did You Hear)
+# read every option of an open search list: it draws only what is in view (tenant H, How Did You Hear).
+# A leaf carries a tick box: inside the option on tenant H; on its promptLeafNode beside the option on
+# another tenant, where categories have none (tenant P's How Did You Hear, 2026-10-30: read as all
+# categories, so no option at all and another employer's saved pick filled)
 LIST_ALL = """() => new Promise(async (done) => {
   const shown = () => [...document.querySelectorAll('[data-automation-id="promptOption"]')]
     .filter((o) => o.getClientRects().length && !o.closest('[data-automation-id="selectedItem"]'));
@@ -74,13 +77,17 @@ LIST_ALL = """() => new Promise(async (done) => {
   const seen = new Map();
   if (pane) pane.scrollTop = 0;
   for (let i = 0; i < 60; i++) {
-    for (const o of shown()) seen.set(o.textContent.trim(), !!o.querySelector('input'));
+    for (const o of shown()) seen.set(o.textContent.trim(), !!(o.closest('[data-automation-id="promptLeafNode"]') || o).querySelector('input'));
     if (!pane || pane.scrollTop + pane.clientHeight >= pane.scrollHeight - 2) break;
     pane.scrollTop += pane.clientHeight * 0.8;
     await new Promise((r) => setTimeout(r, 250));
   }
   done([...seen].map(([text, leaf]) => ({ text, leaf })));
 })"""
+# a search list drawn open: an option outside the picked pills - a pill's own option shows on the step all
+# along (tenant P's Phone Country Code, 2026-10-30: waiting on any shown option read the list before it drew)
+LIST_OPEN = """() => [...document.querySelectorAll('[data-automation-id="promptOption"]')]
+  .some((o) => o.getClientRects().length && !o.closest('[data-automation-id="selectedItem"]'))"""
 # scroll an open search list until the option with these words shows -> true when it does
 SCROLL_TO = """(want) => new Promise(async (done) => {
   const shown = () => [...document.querySelectorAll('[data-automation-id="promptOption"]')]
@@ -215,7 +222,7 @@ def list_options(page, f: dict) -> list[str]:
     out = []
     try:
         field.click()
-        page.locator(f"{OPTION}:visible").first.wait_for(timeout=4000)
+        page.wait_for_function(LIST_OPEN, timeout=4000)
         top = page.evaluate(LIST_ALL)
         for o in top:
             if o["leaf"]:
@@ -482,7 +489,7 @@ def put_list(page, b, value: str) -> str:
         return "ok"
     field.click()
     try:
-        page.locator(f"{OPTION}:visible").first.wait_for(timeout=4000)
+        page.wait_for_function(LIST_OPEN, timeout=4000)
         if category:
             page.locator(f"{OPTION}:visible", has_text=category[0]).first.click()
             page.wait_for_timeout(600)

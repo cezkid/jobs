@@ -18,6 +18,13 @@ description has no <h1> - same search by the row's title, the whole description 
 SmartRecruiters 2, Greenhouse, Zoho Recruit, JazzHR, Workable, Oracle 1 each), the rest none (best
 overlap 0.0-0.52, or a system not here: Dayforce). One with none ran Apply on Built In itself (`isApplyFormEnabled` in its page): a
 Built In account's form, filled by the user.
+
+Himalayas (`himalayas`, `himalayas.app/companies/<co>/jobs/...`; its pages sit behind a Cloudflare check, so
+never read) and startup.jobs (`startupjobs`): the row keeps the employer's own title, no <h1> - the Built In
+way. Measured 2026-10-30 on random open rows: Himalayas 14 of 60 resolved (Zoho Recruit 5, Teamtailor 3,
+Workday, Greenhouse, Lever, Manatal, SmartRecruiters, UKG 1 each), startup.jobs 10 of 15 (Ashby 4, Lever 3,
+Workday, Greenhouse, Rippling 1 each); each hit checked: same employer (or its parent company's careers site). Wellfound matched only other Wellfound pages, whatjobs, betterteam and adzuna none -
+not added.
 """
 import html
 import re
@@ -26,9 +33,10 @@ import httpx
 
 from apply import systems
 
-LINK = re.compile(r"https?://(?:www\.)?(?:echojobs\.io|builtin\.com)/job/", re.I)
-SOURCES = ("echojobs", "builtin")
-TITLED = ("builtin",)  # boards whose row title is the employer's own (no <h1> in the description)
+LINK = re.compile(r"https?://(?:www\.)?(?:(?:echojobs\.io|builtin\.com)/job/|himalayas\.app/companies/[^/]+/jobs/|startup\.jobs/)",
+                  re.I)
+SOURCES = ("echojobs", "builtin", "himalayas", "startupjobs")
+TITLED = ("builtin", "himalayas", "startupjobs")  # boards whose row title is the employer's own (no <h1> in the description)
 TITLE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.I | re.S)
 TAG = re.compile(r"<[^>]+>")
 SAME = 0.6

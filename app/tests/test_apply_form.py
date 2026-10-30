@@ -2300,6 +2300,19 @@ def test_how_you_heard_defaults_to_the_employers_own_site():
     assert questions.draft([tenant_h], {})[0]["answer"] is None
 
 
+def test_a_saved_how_you_heard_pick_never_filled_into_a_list_not_read():
+    """Another employer's wording ("... Company Website - <brand>") filled on Workday tenant P, whose list
+    read as no options (2026-10-30): offered, never filled unseen."""
+    saved = [{"key": "how you heard", "question": "How Did You Hear About Us?",
+              "answer": "Careers Page > Company Website - Globex", "job": "Job 1", "on": "2026-10-23"}]
+    unread = questions.question("source", "How Did You Hear About Us?", "choice", True, [])
+    got = questions.draft([unread], {}, saved=saved)[0]
+    assert got["answer"] is None and "offer saved answer" in got["source"]
+    listed = questions.question("source", "How Did You Hear About Us?", "choice", True,
+                                ["Careers Page > Company Website - Globex", "Job Board > Indeed"])
+    assert questions.draft([listed], {}, saved=saved)[0]["answer"] == "Careers Page > Company Website - Globex"
+
+
 # --- text-message opt-ins, optional boxes left blank on their word, pronouns, the employer's AI screening ---
 # (owner 2026-10-26, a Workday tenant's My Information "SMS Opt-in", Pronoun menu and AI opt-out question)
 

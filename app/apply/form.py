@@ -211,7 +211,7 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     system = systems.for_url(url)
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
     if system is None and listing_copy.matches(url):
-        # a board's copy (EchoJobs, Built In): the job search's row of the employer's own system for the same posting
+        # a board's copy (EchoJobs, Built In, Himalayas, startup.jobs): the job search's row of the employer's own system for the same posting
         if found := copied_from(config, url):
             print(f"the posting is a copy - the employer's own posting is {found}")
             url, system = found, systems.for_url(found)
@@ -221,8 +221,8 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
                      "window (jobs.py open); the user signs in, clicks Apply and chooses the tailored resume themselves "
                      "(it reaches Built In and the employer then) - or ask for the employer's own posting link")
         else:
-            sys.exit("this posting is a job board's copy whose Apply shows only to that board's signed-in users, and the "
-                     "job search lists no copy from the employer's own site - ask the user to open the posting "
+            sys.exit("this posting is a job board's copy (its Apply shows only to that board's signed-in users, or "
+                     "behind its bot check), and the job search lists no copy from the employer's own site - ask the user to open the posting "
                      "(jobs.py open), find the employer's own posting, and give its link")
     if system is None and not systems.elsewhere(url) and not (form and form.get("found")):
         # an employer's careers page (Radancy): its Apply names the system - a plain read of the posting page

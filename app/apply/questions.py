@@ -688,6 +688,8 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         answer = from_resume(q, contact)
         if not answer and hit:
             mode, entry = hit
+            if heard_unread(q):
+                mode = "offer"
             out.append({**q, "answer": entry["answer"], "source": f"{SAVED} - {answers.named(entry)} - name it to the user"}
                        if mode == "fill" else
                        {**q, "answer": None, "source": f"{ASK} - offer saved answer {entry['answer']!r} ({answers.named(entry)})"})
@@ -696,6 +698,13 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
 
+
+
+def heard_unread(q: dict) -> bool:
+    """How did you hear as a list whose options weren't read: a saved pick is another form's wording, often
+    naming that employer ("Careers Page > Company Website - <brand>" filled on Workday tenant P,
+    2026-10-30) - offered, never filled unseen."""
+    return "how you heard" in topics(q["title"]) and q["kind"] in ("choice", "multichoice") and not q["options"]
 
 
 def own_site(q: dict) -> str | list[str] | None:

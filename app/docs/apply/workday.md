@@ -81,6 +81,15 @@ Modelled in `fixtures/workday/tenant-w.html` (`test_apply_workday.py`).
 | After Save and Continue the passed step's tagged box lingered while the next drew: fill hit it detached (FAIL "not attached to the DOM") | a question whose `page` isn't the step shown is `LATER` |
 | My Experience: both Degree menus "did not open" in workday.js's run (FAIL); picked by hand with real clicks, options B.A. as "Bachelor of Arts" | unfixed - not measured past the run; next time on this tenant: read the run's Degree click |
 
+### Tenant P (2026-10-30, through Job Finder's Chrome)
+
+| Seen | Filler rule |
+|---|---|
+| How Did You Hear: Campus Campaign / Career Websites / Job Sites / Other / Social Referral, each a list (Career Websites > Corporate Website, Job Sites > Indeed ...). A leaf's tick box sits on its `promptLeafNode` row beside the option, not inside it; a category has none (`data-uxi-multiselectlistitem-hassidecharm="true"`). Read as all categories -> no options, and another employer's saved "Careers Page > Company Website - <brand>" filled and failed | `LIST_ALL` looks for the tick box on the option's `promptLeafNode`, else in the option (tenant H); a how-heard list read as no options never fills a saved pick (`questions.heard_unread`) - offered |
+| Phone Country Code pill's own option ("United States of America (+1)") shows on My Information all along | the wait for an open list is `LIST_OPEN` - an option outside the picked pills; any shown option read the list before it drew |
+| Workday reopens a search list inside the category last opened | unfixed - only seen after a hand-driven look; the filler's own reads go back to the top (Escape + click) |
+| My Experience: both Degree menus "did not open" (FAIL), as tenant M; one job's To showed 12/2013 yet Save said "Invalid Date: /2013" until typed again with real keys; Spanish "I am fluent" left unticked (WARN) | unfixed - done by hand with real clicks and keys (CDP `Input.dispatchMouseEvent` / `dispatchKeyEvent`); options B.A., A.A. |
+
 ## Widgets (all tenants)
 
 | Widget | Behaviour | Filler rule |

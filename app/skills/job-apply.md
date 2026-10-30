@@ -209,7 +209,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    A job board's copy (EchoJobs: its Apply shows only to its own signed-in users): `prepare` finds
    the employer's own posting on the job search ("the posting is a copy - the employer's own posting
    is ...") and goes on with that; none found -> it says so: `jobs.py open` the posting, ask the user
-   for the employer's link. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
+   for the employer's link. Himalayas + startup.jobs the same. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
    own form: `jobs.py open` the posting, they sign in to Built In there, click Apply + choose the tailored
    resume (it reaches Built In + the employer then) - say where the file is.
    Workday (`app/docs/apply/workday.md` #Job Finder's Chrome): one step per page. On the posting,

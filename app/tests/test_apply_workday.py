@@ -90,9 +90,23 @@ def test_built_in_copy_resolves_by_its_own_title_and_whole_text():
     assert "builtin" in listing_copy.TITLED
 
 
+def test_himalayas_and_startup_jobs_copies_resolve_by_their_own_title():
+    body = COPY.split("</h1>", 1)[1]
+    for source in ("himalayas", "startupjobs"):
+        get, _ = search([
+            row(source, "Software Engineer III - Search Team (REMOTE)", body, "https://himalayas.app/companies/acme/jobs/x"),
+            row("workday", "Software Engineer III - Search Team (REMOTE)", body, POSTING + "?utm_source=freehire.me")])
+        assert source in listing_copy.TITLED and source in listing_copy.SOURCES
+        assert listing_copy.apply_link(body, "https://api.example", get=get,
+                                       title="Software Engineer III - Search Team (REMOTE)") == POSTING
+
+
 def test_echojobs_links_known():
     assert listing_copy.matches("https://echojobs.io/job/acme-software-engineer-x1y2z?utm_source=freehire.me")
     assert listing_copy.matches("https://builtin.com/job/software-engineer/11934125?utm_source=freehire.me")
+    assert listing_copy.matches("https://himalayas.app/companies/acme/jobs/software-engineer-ii-8184144146?utm_source=freehire.me")
+    assert listing_copy.matches("https://startup.jobs/frontend-architect-tripactions-10464073?utm_source=freehire.me")
+    assert not listing_copy.matches("https://himalayas.app/companies/acme")
     assert not listing_copy.matches(POSTING)
 
 
@@ -226,6 +240,41 @@ def test_my_information_answers_typed_and_picked(page):
     assert page.input_value("#name--legalName--firstName") == "Jane"
     assert page.text_content("#address--countryRegion") == "New Jersey"
     assert page.text_content("#phoneNumber--phoneType") == "Mobile"
+
+
+# My Information as tenant P showed it (2026-10-30): How Did You Hear's options sit in promptLeafNode rows -
+# a leaf's tick box beside the option, not in it; categories have none - and the Phone Country Code pill's own
+# option shows on the step all along, before any list opens. The list draws a moment after the click.
+LEAF_NODES = """<div data-automation-id="progressBarActiveStep">current step 1 of 5 My Information</div>
+<div data-automation-id="formField-source"><label for="source--source">How Did You Hear About Us?*</label>
+  <span>0 items selected</span><div id="pills"></div><input id="source--source"></div>
+<div data-automation-id="formField-countryPhoneCode"><label for="phoneNumber--countryPhoneCode">Country Phone Code*</label>
+  <div data-automation-id="selectedItem"><p data-automation-id="promptOption">United States of America (+1)</p></div></div>
+<div id="prompt" hidden></div>
+<script>
+  const tree = { 'Career Websites': ['Corporate Website'], 'Job Sites': ['Indeed', 'LinkedIn'] };
+  const prompt = document.getElementById('prompt');
+  const draw = (level) => { prompt.innerHTML = (level ? tree[level] : Object.keys(tree)).map((t) =>
+    `<div data-automation-id="promptLeafNode" data-t="${t}">${level ? '<input type="checkbox">' : ''}<p data-automation-id="promptOption">${t}</p></div>`).join(''); };
+  let level = null;
+  document.addEventListener('click', (e) => {
+    if (e.target.id === 'source--source') { level = null; prompt.innerHTML = ''; prompt.hidden = false; setTimeout(() => draw(null), 300); return; }
+    const node = e.target.closest('#prompt [data-automation-id=promptLeafNode]');
+    if (node && !level) { level = node.dataset.t; draw(level); return; }
+    if (node) { document.getElementById('pills').innerHTML = `<div data-automation-id="selectedItem">${node.dataset.t}</div>`; prompt.hidden = true; }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { prompt.hidden = true; level = null; } });
+</script>"""
+
+
+def test_a_list_whose_leaves_tick_beside_the_option_read_after_it_draws(page):
+    page.set_content(LEAF_NODES)
+    heard = next(q for q in workday.read(page) if q["id"] == "source--source")
+    assert heard["options"] == ["Career Websites > Corporate Website", "Job Sites > Indeed", "Job Sites > LinkedIn"]
+    from apply import questions
+    assert questions.own_site(heard) == "Career Websites > Corporate Website"
+    assert workday.fill(page, {**heard, "answer": "Career Websites > Corporate Website"}, None) == "ok"
+    assert page.text_content("#pills") == "Corporate Website"
 
 
 def test_a_list_answer_not_there_is_asked_never_near(page):
