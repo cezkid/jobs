@@ -1,0 +1,104 @@
+<!doctype html>
+<!-- Stand-in for a Recruiterflow application form: the markup measured on tenant A (2026-10-30) - box names,
+     p.form-label + span.required, yes-no buttons with class "selected", react-select's container > control >
+     value container > input[role=combobox], options role=option in a menu beside the control, the resume chip
+     .file-list-item, the phone box's hidden country list (role=option too), Min/Max pay boxes shown with commas - with just enough script to behave like it. -->
+<html><body>
+<form>
+  <div class="rf-careers-dnd-file-container-handler-wrapper"><input type="file" id="fileInput"><div class="chips"></div></div>
+  <div class="full-name-inputs-wrapper">
+    <input type="text" name="personal_info.first_name" placeholder="First name">
+    <input type="text" name="personal_info.last_name" placeholder="Last name">
+  </div>
+  <div class="email-input-wrapper"><p class="form-label">Email <span class="required">*</span></p>
+    <div class="common-input-wrapper"><input type="email" name="personal_info.email" placeholder="Email address"></div></div>
+  <div class="iti"><ul role="listbox" style="display: none"><li role="option">Afghanistan +93</li><li role="option">Albania +355</li></ul>
+    <input type="tel" id="user-phone" name="personal_info.phone" placeholder="Enter phone number"></div>
+  <div class="location"><p class="form-label">Location <span class="required">*</span></p>
+    <input type="text" name="personal_info.location.city" placeholder="City">
+    <input type="text" name="personal_info.location.state" placeholder="State">
+    <div class="common-input-wrapper" data-select="single"><div class="sel"><div class="ctl"><div class="vc">
+      <div class="ph">Country</div><div class="ic"><input role="combobox" id="react-select-2-input" type="text"></div>
+    </div></div></div></div>
+    <input type="text" name="personal_info.location.postal_code" placeholder="Zip code">
+  </div>
+  <input type="text" name="personal_info.linkedin_profile" placeholder="Enter LinkedIn profile URL">
+  <div class="text-area-input-wrapper"><p class="form-label">Summary </p>
+    <div class="common-input-wrapper"><textarea placeholder="Enter summary"></textarea></div></div>
+
+  <div class="currency-range"><p class="form-label">What is the base compensation range that are you expecting? Use a range from minimum to maximum. <span class="required">*</span></p>
+    <div class="common-input-wrapper"><div class="range-inputs"><input type="text" class="money" placeholder="Min">-<input type="text" class="money" placeholder="Max"></div></div></div>
+  <div class="multi-select-input-wrapper"><p class="form-label">Where are you in your job search? <span class="required">*</span></p>
+    <div class="common-input-wrapper" data-select="single"><div class="sel"><div class="ctl"><div class="vc">
+      <div class="ph">Click to view options</div><div class="ic"><input role="combobox" id="react-select-3-input" type="text"></div>
+    </div></div></div></div></div>
+  <div class="yes-no-input-wrapper"><p class="form-label">Are you legally authorized to work in the United States? <span class="required">*</span></p>
+    <div class="common-input-wrapper"><div class="yes-no-inputs">
+      <button class="input-styles yes-input ">Yes</button><button class="input-styles no-input ">No</button></div></div></div>
+  <div class="multi-select-input-wrapper"><p class="form-label">Would you like to work at companies of these sizes? Select all that you are interested in. <span class="required">*</span></p>
+    <div class="common-input-wrapper" data-select="multi"><div class="sel"><div class="ctl"><div class="vc">
+      <div class="ph">Click to view options</div><div class="ic"><input role="combobox" id="react-select-4-input" type="text"></div>
+    </div></div></div></div></div>
+  <div class="text-area-input-wrapper"><p class="form-label">Do you have anything else to share with our team? </p>
+    <div class="common-input-wrapper"><textarea placeholder="Enter text here"></textarea></div></div>
+  <button type="submit">Submit Application</button>
+</form>
+<script>
+const OPTIONS = {
+  "react-select-2-input": ["United States", "United States Minor Outlying Islands", "Canada"],
+  "react-select-3-input": ["Immediate - I can start today.", "Within 30 Days", "Just need to give 2 weeks notice"],
+  "react-select-4-input": ["Seed (1 - 10 employees)", "Very Large (501 - 1000 employees)", "Very Very Large (1001 - 10000 employees)"],
+};
+function closeMenus() { document.querySelectorAll(".menu").forEach(m => m.remove()); }
+function draw(wrap) {
+  const vc = wrap.querySelector(".vc"), input = vc.querySelector("input"), picks = wrap._picks || [];
+  vc.querySelectorAll(".pick").forEach(p => p.remove());
+  vc.querySelector(".ph").style.display = picks.length ? "none" : "";
+  picks.forEach(p => { const d = document.createElement("div"); d.className = "pick"; d.textContent = p; vc.insertBefore(d, vc.querySelector(".ic")); });
+  wrap.querySelectorAll(".clear").forEach(c => c.remove());
+  if (picks.length) { const c = document.createElement("div"); c.className = "clear";
+    c.textContent = wrap.dataset.select === "multi" ? "Clear All" : "Clear";
+    c.onclick = () => { wrap._picks = []; draw(wrap); }; wrap.appendChild(c); }
+}
+function open(input) {
+  closeMenus();
+  const wrap = input.closest("[data-select]"), menu = document.createElement("div");
+  menu.className = "menu";
+  const typed = input.value.toLowerCase();
+  const base = input.id.replace(/-input$/, "");
+  OPTIONS[input.id].filter(o => o.toLowerCase().includes(typed)).forEach((o, n) => {
+    const d = document.createElement("div"); d.setAttribute("role", "option"); d.id = `${base}-option-${n}`; d.textContent = o;
+    d.onclick = () => {
+      if (wrap.dataset.select === "multi") { wrap._picks = [...new Set([...(wrap._picks || []), o])]; }
+      else { wrap._picks = [o]; closeMenus(); }
+      input.value = ""; draw(wrap);
+    };
+    menu.appendChild(d);
+  });
+  document.body.appendChild(menu);  // react-select's menu is drawn on <body> (menuPortalTarget)
+}
+document.querySelectorAll("[role=combobox]").forEach(i => {
+  i.addEventListener("click", () => open(i));
+  i.addEventListener("input", () => open(i));
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenus(); });
+document.querySelectorAll(".yes-no-inputs button").forEach(b => b.addEventListener("click", e => {
+  e.preventDefault();
+  b.parentElement.querySelectorAll("button").forEach(x => x.classList.remove("selected"));
+  b.classList.add("selected");
+}));
+document.querySelectorAll("input.money").forEach(i => i.addEventListener("input", () => {
+  const d = i.value.replace(/\D/g, ""); i.value = d ? Number(d).toLocaleString("en-US") : "";
+}));
+// choosing a file: its chip shows, then the resume read overwrites the name boxes (measured: "Wcag" / "2.2")
+document.getElementById("fileInput").addEventListener("change", e => {
+  const f = e.target.files[0], chip = document.createElement("div");
+  chip.className = "file-list-item"; chip.textContent = f.name.length <= 35 ? f.name : f.name.substr(0, 35) + "...";
+  document.querySelector(".chips").replaceChildren(chip);
+  setTimeout(() => {
+    document.querySelector('[name="personal_info.first_name"]').value = "Wcag";
+    document.querySelector('[name="personal_info.last_name"]').value = "2.2";
+  }, 400);
+});
+</script>
+</body></html>

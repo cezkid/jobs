@@ -51,8 +51,8 @@ form over, fix the program after.
   put your resume in the form without asking each time? It reaches the employer's site then -
   some sites before Submit." - Yes, upload when I click Apply (Recommended) -> true / No, ask me
   each time -> false; `prepare` again. "Stop uploading without asking" / "upload without asking"
-  later -> false / true, confirm in one line. Cover letter + any other file: a yes each time. Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
-  SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
+  later -> false / true, confirm in one line. Cover letter + any other file: a yes each time. Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity,
+  SmartRecruiters and Recruiterflow send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
   Ashby also takes each answer as its box is filled, and the town or school letter by letter in its location and school boxes - say so before `fill`.
 - Likely answers, not stops (owner 2026-10-23): an everyday question (worked here before, commuting
   distance from their home address, a yes/no their resume or settings settle, a list option naming
@@ -268,6 +268,11 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    box (texts, Terms of Service) is theirs to tick. Resume by hand: in the Upload File box only -
    a file set on the hidden input outside it shows nothing (and goes twice if added in the box
    too). `app/docs/apply/loxo.md`.
+   Recruiterflow (`recruiterflow.com/<firm>/jobs/<id>`): a recruiting firm's own site - say the application
+   goes to the firm. One page. The resume goes on choosing it and the site reads it into the name boxes
+   (once as "Wcag 2.2") - `fill` types the names after. Experience / Education rows: theirs on the page
+   (`+Add`), a required one included. Its cookie notice has only "Got it!" - their click.
+   `app/docs/apply/recruiterflow.md`.
    Gem (`jobs.gem.com`): one page; everything, resume too, goes at Apply. Two buttons may show -
    "Apply and save" keeps their contact details on Gem for its next forms, "Apply without saving"
    doesn't: their click, say so. LinkedIn typed by hand: `https://www.linkedin.com/in/...` - Gem
