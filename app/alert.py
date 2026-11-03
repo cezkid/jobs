@@ -70,7 +70,7 @@ def unseen_ranked(conn, config: dict) -> list[dict]:
     now = datetime.now(timezone.utc)
     ranked = [j for j in rank.rank(store.all_jobs(conn), config, now) if not j["seen"] and not j["stale"]]
     # best-to-apply-next order, as Today + the chat brief: the top ones get the lowest new numbers
-    ranked = best.score(ranked, config, now, best.resume_facts(config, now.date()))
+    ranked = best.score(best.acted(conn, ranked, config, now), config, now, best.resume_facts(config, now.date()))
     store.numbered(conn, ranked[:DIGEST_CAP])
     return ranked
 

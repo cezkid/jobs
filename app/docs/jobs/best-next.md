@@ -16,13 +16,13 @@ demerit. Ties: listing id order => same list reads the same every time.
 
 | Factor | How | Why + basis |
 |---|---|---|
-| match (0.35) | share of the posting's **required** asks the resume backs: years asked vs dated years (`knockout.dated_years`), degree asked vs held, a language asked vs their Languages line at working level (every non-English one it names; Conversational / Basic back none; English alone not counted - the resume is in it; 88 of 1,966 live required lines name one, 2026-10-08), a licence or certification asked vs its short form anywhere in their resume details or a certification's initials ("Certified Internal Auditor" = CIA; one from an either/or list answers it; any other certificate never does; an exam part or candidacy - "FRM Part I", "CFA Level II Candidate" - holds nothing yet; before 2026-10-09 "Active CAMS certification" counted as backed by any certificate and Series 63 backed Series 24), a portfolio or reel asked vs a link to their work in their contact links (not LinkedIn; 204 of 551 video postings ask one - before 2026-10-09 it counted against everyone, link or not), named tool (Excel, SAP) on the resume - a maker or edition alone names none ("Adobe", "Pro": a resume w/ Photoshop + Final Cut Pro backed 60+ asks for Premiere Pro or After Effects before 2026-10-09; "the Adobe Creative Suite" / "Microsoft Office" by name is backed by any of that maker's tools), several-word names read as one (After Effects, Final Cut, Media Composer, Power BI, United States), else half the ask's content words found - each word also w/o its plural or -ed / -ing (edit / edits / edited / editing met no other form at 6 letters before 2026-10-09; old vs new on 13,000 required lines of 6 fields w/ a matching resume each: video + creative +290 backed (portfolio asks most), finance / software / healthcare +6 to +8, marketing +12; every change outside video read by hand, video by sample + the word each turned on). Traits ("detail-oriented") not counted. Age minimum, work permit, physical-ability asks not counted - answered on the form ("Must be at least 18 years of age", "Authorized to work in the US without sponsorship", "able to lift 50 pounds"; age 18+ on 12 of 143 forms read, a work permit on 70, `app/web/research/knockout-questions-2026-10.csv`; before 2026-10-10 each counted against everyone, as citizenship did); nor age-coded asks ("recent college graduate", "digital native", "young" - never "young children") (`best.NOT_ON_RESUME`; a real ask on the same line - years, a degree - is read first; a driver's licence or CDL is a credential, read as one). `experience_years_min` = one more ask when no line said years - never on an early-career title or an intern / junior row (`rank.early_career`): there the tag read 10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 7 on "18+ years old" (2026-10-07) | Minimum qualifications are a real knock-out (Hidden Workers 2021, HBS/Accenture - survey; Enhancv 2025, n=25 recruiters - vendor survey; `resume/bullets.md`). Weighs most. Word overlap = an estimate for order, never a verdict; `job-tailor` judges each ask w/ the user |
+| match (0.35) | share of the posting's **required** asks the resume backs: years asked vs dated years (`knockout.dated_years`), degree asked vs held, a language asked vs their Languages line at working level (every non-English one it names; Conversational / Basic back none; English alone not counted - the resume is in it; 88 of 1,966 live required lines name one, 2026-10-08), a licence or certification asked vs its short form anywhere in their resume details or a certification's initials ("Certified Internal Auditor" = CIA; one from an either/or list answers it; any other certificate never does; an exam part or candidacy - "FRM Part I", "CFA Level II Candidate" - holds nothing yet; before 2026-10-09 "Active CAMS certification" counted as backed by any certificate and Series 63 backed Series 24), a portfolio or reel asked vs a link to their work in their contact links (not LinkedIn; 204 of 551 video postings ask one - before 2026-10-09 it counted against everyone, link or not), named tool (Excel, SAP) on the resume - a maker or edition alone names none ("Adobe", "Pro": a resume w/ Photoshop + Final Cut Pro backed 60+ asks for Premiere Pro or After Effects before 2026-10-09; "the Adobe Creative Suite" / "Microsoft Office" by name is backed by any of that maker's tools), several-word names read as one (After Effects, Final Cut, Media Composer, Power BI, United States), else half the ask's content words found - each word also w/o its plural or -ed / -ing (edit / edits / edited / editing met no other form at 6 letters before 2026-10-09; old vs new on 13,000 required lines of 6 fields w/ a matching resume each: video + creative +290 backed (portfolio asks most), finance / software / healthcare +6 to +8, marketing +12; every change outside video read by hand, video by sample + the word each turned on). Traits ("detail-oriented") not counted. Age minimum, work permit, physical-ability asks not counted - answered on the form ("Must be at least 18 years of age", "Authorized to work in the US without sponsorship", "able to lift 50 pounds"; age 18+ on 12 of 143 forms read, a work permit on 70, `app/web/research/knockout-questions-2026-10.csv`; before 2026-10-10 each counted against everyone, as citizenship did); nor age-coded asks ("recent college graduate", "digital native", "young" - never "young children") (`best.NOT_ON_RESUME`; a real ask on the same line - years, a degree - is read first; a driver's licence or CDL is a credential, read as one). The years a posting's text asks (`resume/posting_years.py`, #Years from the posting's text) = one more ask when no line said years; `experience_years_min` only when there's no text, never on an early-career title or an intern / junior row (`rank.early_career`): there the tag read 10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 7 on "18+ years old" (2026-10-07) | Minimum qualifications are a real knock-out (Hidden Workers 2021, HBS/Accenture - survey; Enhancv 2025, n=25 recruiters - vendor survey; `resume/bullets.md`). Weighs most. Word overlap = an estimate for order, never a verdict; `job-tailor` judges each ask w/ the user |
 | title (0.5) | share of the posting title's kind-of-work words found in their own past titles + headline (half) and anywhere in their resume details (half) - level, schedule and place words left out ("Senior", "Manager", "II", "Remote"), the bracketed part too; "front-end" / "frontend" / "front end" one word (also back end, full stack). No resume, or a title of level words only => 0.5. A plain software title whose asks never name their kind of work keeps `plain_title` (0.6) of it (#Plain software titles). Why line says "title unlike your past work" only when no word meets | 2026-10-11: an HR director's top 10 held "Tableau Developer", a brokerage analyst's "Payroll Tax Analyst"; match reads asks only, and 4 in 10 postings list none. 1,050 live titles (finance, HR leader, front-end; a fixture resume each) judged same field / adjacent / other by `claude -p` (Sonnet), one run per batch: top-10 quality (nDCG, the judged labels) 0.55 / 0.97 / 0.82 at weight 0 => 0.79 / 0.97 / 1.00 at 0.25. Raised to 0.5 on 2026-10-12 (below, "Measured as a whole"). Own titles weigh half: "analyst" met "variance analysis" (6-letter stems), so "Financial Analyst" read as a senior accountant's own title. Word overlap, an estimate |
 | asks (0.15) | required asks + lead/own/manage asks counted twice; full at `asks_light` (8) or fewer, 0 at `asks_heavy` (16). Level 2+ rungs above their `career_level` halves it | Owner: "some ask a lot". Cut-offs measured 2026-10-04: 944 live US rows, 7 occupations, 449 list required asks, median 7, top tenth 12+, 14 at 16+. Convention, not a study |
 | pay (0.2) | place among the listed pay of the jobs scored; under their pay floor halves it; not listed 0.25 | Their own floor (setup answer). Unknown pay sits below a listed middle, not favoured. Under the floor = hidden unless let back in a thin week (`pay-filter.md`) |
 | where (0.15) | their own where-first order (search settings passes): first 1, last 0 | Their stated preference, nothing inferred |
 | fresh (0.15) | 1 posted today, linear to 0 at `fresh_days` (21); posting date = freehire's first sighting, else when it reached their list | Owner: "newer jobs are better". Old postings are more often filled or ghost (`freehire.md` reality, stale). Convention |
-| demerit (-0.15 each) | rank's own: likely ghost, level/hours mismatch (internships only: a title naming no internship, early-career level or student programme), no sponsor, clearance they can't hold, a student's "asks 3+ years" / graduation window missed, a required licence or certification their resume details never name - "asks Series 24" (`rank.asks_beyond`, `knockout.credentials_asked`; counted once per credential however many lines ask it - "Series 7" folds into "Series 7 and Series 63", `rank.credential_asks`), an active clearance above the one their resume shows (`knockout.clearance_short`), a skill they'd rather not work in - "asks Java" (`rank.avoid_skills`, `rank.avoided`) | Same signals rank already demotes by |
+| demerit (-0.15 each) | rank's own: likely ghost (a closing date its posting says has passed counts here, once), a title they already acted on at this employer (#Acted on before), level/hours mismatch (internships only: a title naming no internship, early-career level or student programme), no sponsor, clearance they can't hold, a student's "asks 3+ years" / graduation window missed, a required licence or certification their resume details never name - "asks Series 24" (`rank.asks_beyond`, `knockout.credentials_asked`; counted once per credential however many lines ask it - "Series 7" folds into "Series 7 and Series 63", `rank.credential_asks`), an active clearance above the one their resume shows (`knockout.clearance_short`), a skill they'd rather not work in - "asks Java" (`rank.avoid_skills`, `rank.avoided`) | Same signals rank already demotes by |
 
 Match is read with `match_prior` (2) asks added at half-backed: (backed + 1) / (counted + 2). 1 of 1
 = 0.67, 3 of 3 = 0.8, 8 of 8 = 0.9, 0 of 1 = 0.33. Why: 2026-10-11, 1,200 live rows (finance, HR
@@ -44,6 +44,12 @@ every one read by hand was the same job. Ten picks across ten employers spread t
 employer's system sees every application to it. Convention (recommender re-ranking, MMR), not
 a study. Copies kept apart by `rank.collapse` (one row per company + title + place) - a
 different company name means a different row there.
+
+A job board's copy (`rank.BOARDS`) takes `twin` from the start when the employer's own copy is on the list, so the
+own one leads whichever was seen first: the link goes where the application is sent. `rank.collapse` keeps the own
+one too, unless only the board's lists pay. 2026-11-02, a React list of 2,436: about 25 board copies above their own, one
+at #2 (Hims & Hers from jobicy, its own Ashby copy past #1,000) - first seen later, so it read "posted today". Boards held 10 of the
+two lists' top 20. Top-10 nDCG (#Read from career-ops) 0.530 without, 0.532 with. Any source not named counts as the employer's own: today's order.
 
 ## Freshest first
 
@@ -317,6 +323,84 @@ Tried, not kept:
 
 Today page + side panel: 10 per list (owner 2026-10-11, was 5). Chat brief: 3 per list. Morning email: up to `alert.DIGEST_CAP`. The rest: "show me more
 jobs to apply to".
+
+## Read from career-ops (2026-11-02)
+
+Owner: "check how career-ops filters / sorts jobs, take the best parts". Repo read at `1ebef70` (MIT): `scan.mjs`, `jd-years.mjs`,
+`detect-reposts.mjs`, `closing-soon.mjs`, `classify-tier.mjs`, `role-clarity.mjs`, `filter-audit.mjs`, `rank-pipeline.mjs`, `modes/oferta.md`. Its order
+is an AI's 1-5 per posting; its filters are hard drops (title, place, years, salary, visa). Nothing here hides a job: what it reads, we sort by.
+
+Measured as a whole: 2,046 live rows of 6 fields, 8 resumes (senior / mid / junior front-end, HR leader, security, program manager,
+video, AML compliance), never tuned on; no weight changed. Top-10 nDCG (`claude -p`, Sonnet, every top-30 job rated 0-3, the years a posting says shown):
+
+| | base | now |
+|---|---|---|
+| senior front-end | 0.437 | 0.409 |
+| junior front-end | 0.445 | 0.628 |
+| mid front-end | 0.817 | 0.817 |
+| HR leader (remote / nearby) | 0.571 / 0.418 | 0.571 / 0.418 |
+| security | 0.608 / 0.424 | 0.602 / 0.465 |
+| program manager | 0.519 / 0.564 | 0.519 / 0.564 |
+| video | 0.679 / 0.438 | 0.679 / 0.476 |
+| compliance | 0.451 / 0.301 | 0.471 / 0.300 |
+| average | 0.513 | 0.532 |
+
+Second judge, each top 10 rated by `claude -p --model opus`: average rating 1.63 => 1.62, flat (Sonnet 1.42 => 1.46): junior +0.2, security remote
++0.2, senior + mid front-end -0.2 each. So: a clear gain for someone junior, no change in fit overall - a check on direction, one resume each. Most
+lists move one or two jobs. What's taken is taken for what the ratings can't see: a why line that says what the posting says, the employer's
+own link, no relisted job shown as new. Fit ratings ignore all three.
+
+### Years from the posting's text
+
+Of 2,436 rows on one list, 596 list no requirements and 506 more no years line; the job search's tag stood in. It reads sub-bars: 2 on "8+ years ... at least
+2 on platform teams", 4 on "12+ years ... at least 4 of people management", so the why line said "Asks 2+ years, you have them". `posting_years.asked`
+reads the posting's text, rules from career-ops' `jd-years.mjs`. 180 postings where the readers disagree (hard ones, no line says years), `claude -p`
+(Sonnet) asked the overall bar; tuned on 87, held out 93:
+
+| right of 93 held out | |
+|---|---|
+| the tag | 26 |
+| career-ops' lowest figure | 43 |
+| first bar stated | 61 |
+| now: first bar + doing-words after the years + a wish after the figure read as about what follows + one skill's years when nothing else | 75 |
+| now, else the tag | 63 |
+
+So the first bar, not career-ops' lowest (theirs gates a hard drop, where a wrong reading hides a job; here it orders) - the lowest only among degree paths
+or levels offered as alternatives. No bar read => no ask, never the tag: 23 of 93 tag readings where the AI found none. The tag is left for postings with no text
+(under `rank.THIN_POSTING`). `rank.asks_beyond` reads it too: an entry-level user hears "asks 5+ years" off a posting with no lines. Top-10 nDCG 0.526 tag, 0.532 text.
+
+In the lines too (`knockout.years_asked`): "1.5+ years" read as 5 (6 lines of 15,646), years offered in place of a degree no longer an ask of
+a degree holder (6 lines).
+
+Tried, not kept: counting the years only when they fall short (a met "2+ years" says little): average 0.527, mid front-end 0.817 => 0.693. A demerit for
+years 3+ or 5+ beyond theirs (career-ops' `experience_filter` band): 0.537, all of it one list's one job; every other list unchanged.
+
+### Acted on before
+
+A job they saved, sent or passed on comes back: a new link, so the slug and link checks miss it, and it reads as new. career-ops dedupes by company + role against
+its history (`scan.mjs`) and keeps same-role cooldowns. Here, for `again_days` (90, its repost window - convention):
+- the same title at that employer: one demerit, the why says it ("you applied for this title here 12 days ago", "they said no to this title ..."). Never hidden:
+  a sibling opening shares the title. Same title = the same set of words, `detect-reposts.mjs`' title identity: its fuzzy match read "Solutions Engineer - Munich" vs "- Berlin"
+  as one. 2026-11-02, one user's 72 acted jobs vs 2,436 open: 4, one a "no" 11 days back; with bracket parts left out, 2 more that were other teams, so they stay in.
+- any other job there starts one `repeat` down: 122 open rows. Spreads the bet, as #Employers spread. A job marked closed says nothing about the next.
+
+The morning email reads it too (`alert.unseen_ranked`): a relisted job never arrives as new without saying so. Fit ratings can't show this: their resumes have no history.
+
+### Closing dates + sponsorship
+
+- A closing date the posting states (`rank.closing_date`, from `closing-soon.mjs`, MM/DD only when it can't be DD/MM): passed = a ghost doubt, said ("its closing date has passed (Oct 14)") -
+  the job search still lists them open. Within 14 days: said ("closes Nov 14"), no score. 2,046 rows of 6 fields: 18 state one, 3 passed; 2,436 software rows: 9, 6. Rare, cheap. "Open until at least" isn't one.
+- "We can't sponsor" in a posting's own words when the tag is empty (`rank.NO_SPONSOR`, `scan.mjs` `DEFAULT_VISA_NEGATIVE`), only for those who need a sponsor: 65 more on 2,120 untagged
+  rows beside 211 tagged. 30 of 30 sampled read right; "with or without sponsorship" read out.
+
+### Read and left
+
+- `rank-pipeline.mjs`, its AI score per posting: needs an AI running at every job check, with no one there.
+- Contractor wording ("1099"): 22 of 2,436, 13 tagged contract already; of 3 tagged full time, one says "No 1099".
+- Language order: 2 of 2,436 not in English.
+- `classify-tier.mjs`: a title's tier, Associate rules included. `rank.LEVEL_MISMATCH` + `ENTRY_TITLE_KEEP` read the same.
+- `role-clarity.mjs`, description quality as a ghost sign: career-ops itself says it reports only, no effect on its score; nothing shows it parts fit from unfit.
+- `filter-audit.mjs` (which title words earn their keep): a search-settings tool, not an order. Worth a look if settings tuning needs one.
 
 ## Rejected
 

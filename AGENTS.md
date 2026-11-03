@@ -70,6 +70,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
   (`rank --staffing`), then `blocklist.staffing: true` (`job-find`). One not naming the employer
   says "employer not named" + sorts lower still.
+- The same title they saved, sent or passed on at that employer in the last 90 days says so + sorts lower (relisted, or a
+  sibling opening - never hidden); other jobs there sit a little lower. "Its closing date has passed" = the posting's own date;
+  may still be open. A job board's copy sinks below the employer's own posting (`app/docs/jobs/best-next.md`).
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 - "Remove CEZ Job Finder" -> `uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`

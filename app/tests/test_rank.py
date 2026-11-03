@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import pytest
 import yaml
@@ -232,6 +232,59 @@ def test_seniority_mismatch_demoted_nulls_untouched():
     senior = level_config(career_level="senior")
     assert rank.mismatches(make_job("i", title="Audit Intern"), senior["rank"]) == ["title below your level"]
     assert rank.mismatches(make_job("i", title="Internal Auditor"), senior["rank"]) == []
+
+
+def test_collapse_keeps_the_employers_own_copy_over_a_boards():
+    jobs = [make_job("board", company="Acme", title="Web Developer", source="himalayas", first_fetched_at="2026-09-01T00:00:00Z"),
+            make_job("own", company="Acme", title="Web Developer", source="manatal", first_fetched_at="2026-09-10T00:00:00Z")]
+    assert slugs(rank.rank(jobs, CONFIG, NOW)) == ["own"]
+    # a country edition is that board too; pay on the board's copy still wins, it is what's ordered by
+    assert rank.board_copy(make_job("x", source="whatjobs-ca"))
+    jobs[0].update(usd(90000))
+    assert slugs(rank.rank(jobs, CONFIG, NOW)) == ["board"]
+
+
+@pytest.mark.parametrize("words,refuses", [
+    ("Work Truck Solutions DOES NOT sponsor H-1B visas.", True),
+    ("We are unable to sponsor or take over sponsorship of an employment visa.", True),
+    ("Please note that visa sponsorship is not available for this position.", True),
+    ("Candidates must be legally authorized to work in the U.S. without sponsorship.", True),
+    ("Must be authorized to work in the United States, with or without sponsorship.", False),
+    ("We sponsor visas for this role.", False),
+])
+def test_a_posting_saying_it_wont_sponsor_counts_when_the_tag_is_empty(words, refuses):
+    needs = cfg.merge(CONFIG, {"work_authorization": {"needs_sponsorship": True}})
+    assert bool(rank.sponsorship(make_job("a", description=f"<p>{words}</p>", enrichment={}), needs)) is refuses
+    # the job search says it sponsors: the tag stands; nobody who needs none is told
+    assert not rank.sponsorship(make_job("a", description=words, enrichment={"visa_sponsorship": True}), needs)
+    assert not rank.sponsorship(make_job("a", description=words, enrichment={}), CONFIG)
+
+
+@pytest.mark.parametrize("words,when", [
+    ("Applications will be accepted through November 30, 2026.", date(2026, 11, 30)),
+    ("Closing date: 2026-10-14", date(2026, 10, 14)),
+    ("This posting is expected to close on: 11/28/2026", date(2026, 11, 28)),
+    # no year: this year's, unless over 60 days before the job was first seen
+    ("Deadline: Sep 28", date(2026, 9, 28)),
+    ("Deadline: January 15th", date(2027, 1, 15)),
+    # can't be told from a day first
+    ("Apply by 04/05/2026", None),
+    ("closing the loop with customers since May", None),
+    ("We are closing on 2026-13-40", None),
+    ("This role is open until at least October 12th, 2026.", None),
+])
+def test_closing_date_read_from_the_posting(words, when):
+    assert rank.closing_date(make_job("a", description=words, first_fetched_at="2026-09-20T00:00:00Z")) == when
+
+
+def test_a_passed_closing_date_is_a_doubt_a_coming_one_isnt():
+    now = datetime(2026, 11, 2, tzinfo=timezone.utc)
+    past = make_job("past", description="Applications accepted until October 14, 2026.", first_fetched_at="2026-10-01T00:00:00Z")
+    soon = make_job("soon", description="Applications accepted until November 14, 2026.", first_fetched_at="2026-10-01T00:00:00Z")
+    rows = {j["public_slug"]: j for j in rank.rank([past, soon], CONFIG, now)}
+    assert "its closing date has passed (Oct 14)" in rank.flags(rows["past"], CONFIG)
+    assert rank.demerits(rows["past"], CONFIG) == 1
+    assert rows["soon"]["closes"] == "2026-11-14" and rank.demerits(rows["soon"], CONFIG) == 0
 
 
 def test_no_sponsorship_demoted_only_for_a_user_who_needs_it():

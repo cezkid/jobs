@@ -24,7 +24,8 @@ from resume import schema
 
 WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
          "ten": 10, "twelve": 12, "fifteen": 15}
-NUM = r"(\d{1,2}|" + "|".join(WORDS) + r")"
+# a figure may carry a decimal: "1.5+ years" read as 5 before 2026-11-02 (6 of 15,646 required lines)
+NUM = r"(\d{1,2}(?:\.\d+)?|" + "|".join(WORDS) + r")"
 YEARS = re.compile(rf"\b{NUM}\s*(?:\+|plus)?\s*(?:(?:-|–|to|or)\s*{NUM}\s*\+?\s*)?(?:full[- ]time\s+)?(?:years?|yrs?)\b"
                    r"(?!\s+(?:of\s+age|old|ago))", re.I)
 NOT_WORK = re.compile(rf"\bwithin\s+(?:\(?{NUM}\)?\s*)+(?:years?|months?)|\bevery\b|\bper\b|of age\b|\byears? old\b|"
@@ -60,16 +61,26 @@ PROFESSIONAL = re.compile(r"\b(?:j\.?d|m\.?d|d\.?d\.?s|pharm\.?\s?d|psy\.?\s?d|d
 HELD = {"associate": "associate's", "bachelor": "bachelor's", "master": "master's"}
 
 
-def years_asked(text: str) -> int | None:
+# years offered in place of a degree bind only someone without it: "Bachelor's degree or 5+ years of
+# experience in lieu of a degree" asks no 5 years of a degree holder (read from career-ops jd-years.mjs;
+# 6 of 15,646 required lines on one software list, 2026-11-02)
+DEGREE_OR = re.compile(r"\b(?:degree|bachelor'?s?|diploma|b\.?s\.?|b\.?a\.?|bsc)\b[^.;]{0,40}\bor\s+(?:an?\s+)?(?:equivalent\s+)?"
+                       r"(?:combination\s+of\s+)?(?:at least\s+|a minimum of\s+|minimum of\s+)?$", re.I)
+IN_LIEU = re.compile(r"^[^.;]{0,50}\b(?:in lieu of|instead of|in place of|as a substitute|equivalent to a degree|without a degree)", re.I)
+
+
+def years_asked(text: str) -> float | None:
     if NOT_WORK.search(text):
         return None
     m = YEARS.search(text)
+    if m and (DEGREE_OR.search(text[:m.start()]) or IN_LIEU.search(text[m.end():])):
+        return None
     rest = re.split(r"[;.](?:\s|$)", text[m.end():], maxsplit=1)[0] if m else ""
     school = STUDY.match(rest) and not re.search(r"\bexperience\b", rest, re.I)
     if not m or school or UP_TO.search(text[:m.start()]) \
             or not (WORK.search(text) or AFTER.match(text[m.end():])):
         return None
-    return int(m[1]) if m[1].isdigit() else WORDS[m[1].lower()]
+    return WORDS[m[1].lower()] if m[1].lower() in WORDS else int(m[1]) if m[1].isdigit() else float(m[1])
 
 
 def degree_asked(text: str) -> str | None:

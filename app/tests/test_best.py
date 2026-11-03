@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+import alert
 import best
 import cfg
 import rank
@@ -333,6 +334,92 @@ def test_employers_spread_and_copies_sink():
     # never hidden, and `best` stays as scored
     assert {j["public_slug"]: j["best"] for j in best.score([s2], CONFIG, NOW, f)}["s2"] == \
         {j["public_slug"]: j["best"] for j in best.score([s1, s2], CONFIG, NOW, f)}["s2"]
+
+
+def test_the_employers_own_copy_above_a_boards():
+    f = facts()
+    copy = dict(title="Staff Accountant", description="<p>Why Acme? Close the books.</p>")
+    board = job("board", STRONG, days=0, company_slug="reposter", source="himalayas", **copy)
+    own = job("own", STRONG[:3] + WEAK[:1], days=9, company_slug="acme", source="greenhouse", **copy)
+    other = job("other", STRONG[:3] + WEAK[:2], days=9, company_slug="gamma", title="Accountant")
+    assert order([board, own, other], f)[0] == "own"
+    # no own copy here: the board's stands, nothing lost
+    assert order([board, other], f)[0] == "board"
+    # two boards: first placed leads, as any two copies
+    assert best.spread(best.score([board, dict(own, source="builtin")], CONFIG, NOW, f), 0.1, 0.5)[0]["public_slug"] == "board"
+
+
+def apply_row(conn, company, title, state, days_ago, slug=None):
+    at = (NOW - timedelta(days=days_ago)).strftime(store.ISO)
+    conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (f"k-{company}-{title}-{state}", None, company, title, slug, state, at, at))
+
+
+def test_a_title_acted_on_at_that_employer_sinks_and_says_so(conn):
+    f = facts()
+    apply_row(conn, "Acme, Inc.", "Senior Accountant", "applied", 12)
+    relisted = job("relisted", STRONG, company="ACME", company_slug="acme", title="Accountant, Senior")
+    sibling = job("sibling", STRONG, company="Acme", company_slug="acme", title="Senior Accountant, Payroll")
+    other = job("other", STRONG[:3] + WEAK[:2], company="Gamma", company_slug="gamma", title="Accountant")
+    rows = {j["public_slug"]: j for j in best.acted(conn, [relisted, sibling, other], CONFIG, NOW)}
+    assert rows["relisted"]["acted_role"] == "you applied for this title here 12 days ago"
+    assert "acted_role" not in rows["sibling"] and rows["sibling"]["acted_employer"]
+    assert "acted_employer" not in rows["other"]
+    scored = {j["public_slug"]: j for j in best.score(list(rows.values()), CONFIG, NOW, f)}
+    # one demerit + says it; never hidden
+    plain = {j["public_slug"]: j for j in best.score([relisted, sibling, other], CONFIG, NOW, f)}
+    assert round(plain["relisted"]["best"] - scored["relisted"]["best"], 6) == CONFIG["rank"]["best_next"]["demerit"]
+    assert "you applied for this title here 12 days ago" in best.reasons(scored["relisted"], CONFIG, NOW)
+    # an employer they acted on starts one repeat down: order only, `best` as scored
+    assert scored["sibling"]["best"] == plain["sibling"]["best"]
+    even = job("even", STRONG, company="Delta", company_slug="delta", title="Senior Accountant, Payroll", description="other")
+    assert order([rows["sibling"], even], f)[0] == "even"
+
+
+def test_a_relisted_job_says_so_on_today_and_in_the_email(conn):
+    # the email reads the clock itself
+    now = datetime.now(timezone.utc)
+    at = (now - timedelta(days=5)).strftime(store.ISO)
+    conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)", ("k", None, "Acme", "Senior Vue Engineer relisted", None, "no", at, at))
+    store.upsert(conn, [job("relisted", STRONG, posted_at=now.strftime(store.ISO))], now.strftime(store.ISO))
+    assert best.candidates(conn, CONFIG, now)[0]["acted_role"] == "they said no to this title 5 days ago"
+    assert alert.unseen_ranked(conn, CONFIG)[0]["acted_role"] == "they said no to this title 5 days ago"
+
+
+def test_acted_on_long_ago_or_closed_says_nothing(conn):
+    apply_row(conn, "Old Co", "Senior Accountant", "no", CONFIG["rank"]["best_next"]["again_days"] + 1)
+    apply_row(conn, "Shut Co", "Senior Accountant", "closed", 3)
+    rows = best.acted(conn, [job("a", company="Old Co", title="Senior Accountant"), job("b", company="Shut Co", title="Senior Accountant")], CONFIG, NOW)
+    assert not any("acted_role" in j or "acted_employer" in j for j in rows)
+
+
+def test_years_read_off_the_posting_over_the_tag():
+    f = facts()
+    def only(**over):
+        return best.score([job("a", enrichment={"requirements": [], "experience_years_min": 2}, **over)], CONFIG, NOW, f)[0]
+    long_text = "<p>" + "About the team. " * 20 + "</p>"
+    # the tag read a sub-bar; the posting says 8
+    row = only(description=long_text + "<p>8+ years of accounting experience, with at least 2 years on audit teams.</p>")
+    assert row["best_facts"]["years_only"] == (8, 6)
+    assert best.reasons(row, CONFIG, NOW).startswith("Asks 8+ years, you have 6")
+    # text read, no bar in it: no ask, not the tag's
+    assert only(description=long_text)["best_facts"]["matched"] is None
+    # no text to read: the tag stands in, never on an early-career title
+    assert only(description="short")["best_facts"]["years_only"] == (2, 6)
+    assert only(description="short", title="Accountant - New Grad")["best_facts"]["matched"] is None
+
+
+def test_an_entry_level_user_hears_the_years_a_posting_only_says_in_its_text():
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "entry"}})
+    a = job("a", title="Accountant", description="<p>Requires 5+ years of accounting experience.</p>")
+    assert "asks 5+ years" in rank.asks_beyond(a, config, None, NOW.date(), None)
+
+
+def test_a_closing_date_soon_is_said_later_isnt():
+    def why(closes):
+        row = best.score([job("a", closes=closes)], CONFIG, NOW, facts())[0]
+        return best.reasons(row, CONFIG, NOW)
+    assert "closes Oct 14" in why("2026-10-14")
+    assert "closes" not in why("2026-12-14")
 
 
 # an HR director's top 10 held "Tableau Developer"; nothing compared the posting's title w/ their work

@@ -105,6 +105,8 @@ Not covered by the MIT License:
 - Research data files: the licence named on each data page.
 - Town list `app/us-places.tsv`: [GeoNames](https://www.geonames.org/), CC BY 4.0, US places only,
   provided as is.
+- `app/resume/posting_years.py` adapts rules from [career-ops](https://github.com/career-ops-hq/career-ops)
+  `jd-years.mjs`: MIT, Copyright (c) 2026 Santiago Fernández de Valderrama.
 - Libraries the installer downloads from PyPI (`pyproject.toml`) keep their own licences. PyMuPDF
   is AGPL-3.0: `uv sync` downloads it onto the user's computer; never shipped in this repository.
 - Other companies' and products' names (Anthropic, Claude, OpenAI, ChatGPT, GitHub, Copilot,
