@@ -302,7 +302,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone you start with | that employer's Paycom site | That employer, when you click Continue on its start box - before the form |
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
-| Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
+| Email you start with | that employer's iCIMS site | That employer, when Next is clicked on its start box (by you, or by Job Finder once you let it go on for you) - before the form |
 | Email typed into a sign-in or new-account page (`account_email`, else your resume's; password always yours) | that employer's Workday, Taleo or UKG site | That employer, when you click Sign In / Create Account |
 | Resume you apply with | that employer's Taleo site | That employer, as soon as it's chosen and attached (only after you say yes) - before Submit; kept on your account there |
 | Contact details, work history, education, answers you apply with | that employer's Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |
@@ -319,8 +319,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone, LinkedIn, town you apply with, if you click "Apply and save" | Gem (the hiring system behind that employer's site) | Gem, kept to fill its next forms for you |
 | Contact details, answers, resume you apply with | that employer's Dover site | That employer, once you click Apply (Dover's Submit) |
 | Everything you type on a Dover application (name, email, phone, answers) + your resume's file name | PostHog, Dover's analytics company (its session recording on the employer's Dover page) | PostHog, as you type - before Apply (every visit recorded, typed boxes not masked - Dover's own setting, measured) |
-| Each page's answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer's site (Workday) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |
-| Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
+| Each page's answers, when you let Job Finder go on for you (`continue_on_apply`, asked once) | that employer's site (Workday; on iCIMS only its start box's Next, your email) | That employer, as Job Finder clicks Next / Continue / Save and Continue on a page with nothing left for you - before Submit, which stays yours |
+| Which posting you're applying to (its public page read once, nothing about you) | that employer's careers site (Radancy, Jibe ...) | That employer, when an application starts from its posting link (to find where Apply leads) |
 | Companies + jobs on your job list (their listing names + ids, nothing about you) | freehire.me job search | At each job check (morning, then every 2 hours until 22:00), to find each company's website and whether it's a staffing firm, and whether each job the newest search no longer returns is still open |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user's own GitHub account name |

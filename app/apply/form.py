@@ -67,6 +67,7 @@ CONTINUE = re.compile(r"^\s*(?:next|continue|next step|save (?:and|&) continue)\
 MAX_PAGES = 12
 # how long a pressed Next gets to show the next page (Workday's Save and Continue: ~2-6 s, tenant H)
 MOVE_MS = 20000
+NO_WAY_ON = "no Next / Continue here (Submit stays the user's)"
 
 
 def job_dir(config: dict, slug: str) -> Path:
@@ -435,6 +436,9 @@ def fill(slug: str, in_window: bool = False) -> None:
             report, extra = fill_page(page, system, data["questions"], resume, letter)
             lines, other = page_report(data["questions"], report, shown, per_page)
             print("\n".join(lines))
+            # a system that presses only some pages' button (iCIMS: its start box): the rest are the user's
+            if going and hasattr(system, "next_button") and system.next_button(page) is None:
+                going = False
             if not going:
                 break
             if why := held(data["questions"], report, shown, extra) or go_on(page, system):
@@ -505,7 +509,10 @@ def held(qs: list[dict], report: list[tuple], shown: set, extra: list) -> str | 
 
 def next_button(page, system):
     """The page's one way on (system NEXT) when its label is Next / Continue / Save and Continue, else
-    None: none or several shown, or Submit, Review, Apply - those are the user's."""
+    None: none or several shown, or Submit, Review, Apply - those are the user's. A system whose button sits
+    in a frame finds it itself (optional `next_button(page)`, same rule)."""
+    if hasattr(system, "next_button"):
+        return system.next_button(page)
     found = page.locator(system.NEXT).filter(visible=True)
     if found.count() != 1 or not CONTINUE.match(found.first.inner_text()):
         return None
@@ -522,7 +529,7 @@ def go_on(page, system) -> str | None:
     (the last page), the page's own error words (optional page_errors), or no change in MOVE_MS."""
     button = next_button(page, system)
     if button is None:
-        return "no Next / Continue here (Submit stays the user's)"
+        return NO_WAY_ON
     before = spot(page, system)
     if hasattr(page, "bring_to_front"):  # a page behind other windows sent no Save for 40 s+ (workday.md #Widgets)
         page.bring_to_front()

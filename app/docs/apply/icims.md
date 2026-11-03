@@ -107,6 +107,27 @@ job-specific questions (work authorization, sponsorship) -> Submit. No password 
   (a past job's city, not the home address) and Zip emptied - iCIMS's "Invalid Data Error". When it is
   replaced (on upload or on Next) unmeasured; `steps` tells the user to check City, State and Zip.
 
+### A second tenant (F, 2026-11-03, one application sent by hand-repaired fill)
+
+Start box -> one long Candidate Profile (Create a login with their own password, its button **Submit Profile**) ->
+Candidate Questions -> EEO (button **Submit**, more steps after it) -> Job Specific Questions -> a last step. Sent page:
+address ends `/job?mode=submit_apply`, "Your application was submitted successfully".
+
+- Lists: same widget, its select opacity 0, so only the link reads as a box (`<a role=combobox>`, hook
+  `<select id>_icimsDropdown`). `fill` typed into it: 5 of 5 "not an input". Now `WIDGET_LINK` -> `put_widget`.
+- Choosing the resume reloads the form (`?uploadResume=1`) with Experience rows read off it, jobs in no date order,
+  each date the 1st, job descriptions opening with stray text; boxes typed meanwhile were lost (Preferred Name + Pronouns,
+  1 of 2 runs). `put_resume` waits for the reload. How long it takes: unmeasured.
+- Rows: "Professional Experience (1)", "Professional References (1)", "Skillset (1)": boxes known by block + row only. The
+  row's answer landed on whichever job the site put first: `fill` now leaves a row box the site filled (`ROW`, ASK).
+- References: First / Last Name got the applicant's name by title alone. `dom.OTHER_PERSON` drops the key by section.
+- Text Message Opt-In: required list, theirs. Please specify fills itself after How did you hear; it stays listed as
+  blank (`prepare` reads before the pick).
+- Reached from the employer's Jibe careers site (`careers_page`): its page carries `apply_url`.
+
+Next on the start box: `next_button`, with `continue_on_apply` only. Not yet watched live: pressing it ourselves past
+the invisible hCaptcha (a check that shows stops `go_on`: "didn't move on").
+
 Window: offered since the owner's yes 2026-10-07 (plan-k8n.20): `fill --in-window`, off by default, one holder
 keeps the user's tab between pages; its note says the hCaptcha check, pages after Next + the resume upload are
 untested there (`vscode-browser.md` "iCIMS - route 2").
@@ -122,8 +143,9 @@ None public found: the questions come after Next, per employer - unmeasured.
 | Listing id (job page, start box reads) | opening the start box |
 | Security check config (hCaptcha), analytics + ad tags (B, C), chat widget (C) | page load (blocked in every run) |
 | Listing id (job page read) | only when no box shows, to say why (`closed`) |
-| Email | the user's own click on Next - before the form |
-| Resume, profile, survey + EEO answers, work-authorization answers | each page's Next, the user's own click (tenant E); when the resume file itself goes - unmeasured |
+| Email | Next on the start box, the user's own click or `fill`'s with `continue_on_apply` - before the form |
+| Resume file | on choosing it: the form reloads with what the site read off it (tenant F) |
+| Profile, survey + EEO answers, work-authorization answers | each page's button, the user's own click (tenants E, F) |
 
 ## Tenant notes
 
@@ -133,3 +155,4 @@ None public found: the questions come after Next, per employer - unmeasured.
   filled by `try`.
 - D (`careers-<co>`): job page only, measured (no boxes); not tried.
 - E (`careers-<region>`): full application sent by the owner (2026-10-12), lists picked by hand, then fixed.
+- F (`careers-<co>`): full application sent by the owner (2026-11-03), above.

@@ -193,6 +193,7 @@ Optional members (`systems/__init__.py`):
 | `read(page)` | questions off the page the user is on; `prepare` attaches to their tab + merges (`questions.merge`): other pages kept as they are, this page's replaced, a new page appended. No `page` on what's read (UKG, one page) -> whole list replaced |
 | `on_tab(url, tab_url)` | this application's tab, when the default (host + posting id) doesn't fit |
 | `NEXT` | CSS selector of the page's way on (Workday: its footer button). With the user's `continue_on_apply: true`, `fill` presses it when its label is Next / Continue / Save and Continue (`form.CONTINUE`) - never Submit, Review, Apply - then reads the next page (`read`) and fills on |
+| `next_button(page)` | the button itself, or None: for one inside a frame, or a system pressing only some pages (iCIMS: its start box's Next, never a later page) |
 | `step(page)` | the page's step name: `go_on` waits for it to change (and not be blank mid-redraw) after Next |
 | `page_errors(page)` | the page's own error words after Next ("The field ... is required") - stop and say them |
 

@@ -7,6 +7,10 @@ data-selector-name="job-apply-link" with the system's link in data-apply-url and
 Avature seen. The same page holds an employees-only Apply (class *internal-apply*, another career section):
 never taken. A gone posting's link answered by sending the visitor to the site's job search (/search-jobs,
 1 of 1): said, nothing filled.
+
+Jibe sites too (freehire `source` jibe: <co>.jibeapply.com or the employer's own domain, /careers-home/jobs/<id>).
+Measured 2026-11-03 on all 11 such links on one job list (5 employers): 7 pages (3 employers) carried the posting as
+data, with one "apply_url" - an iCIMS link each; 2 answered 404, 2 a short page with no posting.
 """
 import html
 import re
@@ -22,10 +26,11 @@ ANCHOR = re.compile(r"<a\b[^>]*>", re.I)
 APPLY = re.compile(r"""data-selector-name\s*=\s*["']job-apply-link["']""", re.I)
 ATTR = re.compile(r"""\b(data-apply-url|href)\s*=\s*["']([^"']+)["']""", re.I)
 SEARCH = re.compile(r"/search-jobs(?:/|$)", re.I)
+JIBE = re.compile(r'''"apply_url"\s*:\s*"(https?://[^"]+)"''')
 
 
 def links(page_html: str) -> list[str]:
-    """The Apply anchors' links in page order: data-apply-url before href, each once."""
+    """The Apply anchors' links in page order, data-apply-url before href, then a Jibe page's apply_url - each once."""
     out = []
     for a in ANCHOR.findall(page_html):
         if not APPLY.search(a):
@@ -34,6 +39,9 @@ def links(page_html: str) -> list[str]:
         for k in ("data-apply-url", "href"):
             if (v := found.get(k, "")).startswith(("http://", "https://")) and v not in out:
                 out.append(v)
+    for v in JIBE.findall(page_html):
+        if (v := html.unescape(v).strip()) not in out:
+            out.append(v)
     return out
 
 
