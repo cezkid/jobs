@@ -112,11 +112,21 @@ def upload_note(system, answers: list[dict]) -> str:
     """A system that sends a file the moment it is chosen: the yes for the named file says so - or,
     the Apply click being that yes (upload_on_apply), the handover does."""
     if getattr(system, "FILE_ON_CHOICE", False) and any(a["kind"] == "file" for a in answers):
-        if all(a.get("source") == questions.UPLOAD_ON_APPLY for a in answers if a["kind"] == "file"):
+        if all(a.get("source") in (questions.UPLOAD_ON_APPLY, questions.COVER_LETTER_OFF, questions.COVER_LETTER_REQUIRED)
+               for a in answers if a["kind"] == "file"):
             return (f"{system.NAME}: the resume goes to the employer's site as soon as it is chosen, before Submit - "
                     "their Apply click was the yes (upload_on_apply); say so at handover, naming the file")
         return (f"{system.NAME}: a file goes to the employer's site as soon as it is chosen, before Submit - "
                 "say so in the question asking the user's yes to the named file")
+    return ""
+
+
+def letter_note(answers: list[dict]) -> str:
+    """A required cover letter box under cover_letter: never: the letter is written, no question first."""
+    if any(a.get("source") == questions.COVER_LETTER_REQUIRED and questions.blank(a.get("answer")) for a in answers):
+        return ("cover letter box is required (cover_letter: never): no question - write the letter (job-tailor step "
+                "6), confirm each paragraph, answer true for a file box or the letter's text for a text box, keep its "
+                "source; name it at handover, and when it reached the employer")
     return ""
 
 
@@ -262,6 +272,8 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     for a in answers:
         print(line(a))
     if note := upload_note(system, answers):
+        print(note)
+    if note := letter_note(answers):
         print(note)
     if note := typed_note(system, answers):
         print(note)

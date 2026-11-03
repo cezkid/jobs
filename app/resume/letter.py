@@ -2,7 +2,8 @@
 
 Basis graded in app/docs/resume/cover-letter.md. What code holds a draft to:
 - the user's own sentence on why this job, verbatim, exactly once - their motive is never written
-  for them (an AI's enthusiasm is the generic text readers spot);
+  for them (an AI's enthusiasm is the generic text readers spot); none, under cover_letter: never ->
+  the letter opens with the role + their strongest fact;
 - every number, tool and name in what they've done comes from the facts that paragraph cites;
 - 3-4 paragraphs, at most 5 facts, 250-400 words - over fails, under is fine and said, never padded;
 - none of the filler career guides warn against; the resume's own wording rules on the AI's words;
@@ -58,7 +59,7 @@ WHY = {
 ANSWER_SCHEMA = handoff.obj(paragraphs=handoff.array(handoff.obj(text=handoff.STRING, sources=handoff.STRINGS)))
 SYSTEM = f"""You draft one cover letter for one job from the candidate's own facts. Code adds the date, greeting, contact details and sign-off - write only the paragraphs.
 
-- {PARAGRAPHS[0]}-{PARAGRAPHS[1]} short paragraphs, {SHORT_WORDS}-{MAX_WORDS} words in all. First: the role, and the candidate's own sentence (`your_words`) verbatim, exactly once - never add reasons of your own. Middle: what they have done that this job asks for. Last: one line offering to talk.
+- {PARAGRAPHS[0]}-{PARAGRAPHS[1]} short paragraphs, {SHORT_WORDS}-{MAX_WORDS} words in all. First: the role, and the candidate's own sentence (`your_words`) verbatim, exactly once - never add reasons of your own; `your_words` empty: the role, then their strongest fact, cited in `sources`, and no reason at all for wanting the job. Middle: what they have done that this job asks for. Last: one line offering to talk.
 - What the candidate has DONE comes only from facts you cite in each paragraph's `sources` (master bullet ids, `certifications[i]`, `education[i]`) - at most {MAX_FACTS} facts in all. Every number, tool and name in a paragraph must be in the facts it cites (code checks). A word that qualifies a number (about, over, nearly, up to, ~, +) is part of it: keep it.
 - Prefer requirements the resume does not show (`on_resume: false`): the letter adds, it never repeats a resume line.
 - Never use a word from `words_resume_never_shows`: those are what the candidate has not shown - a gap, never a claim.
@@ -109,14 +110,27 @@ def content_words(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z0-9]+", text.casefold()) if w not in STOPWORDS and len(w) > 2}
 
 
+def without(text: str, why: str) -> str:
+    """A paragraph minus the user's own sentence: only the AI's words are held to the rules."""
+    return text.replace(why.strip(), " ") if why.strip() else text
+
+
+def read_why(data: Path) -> str:
+    return (data / WHY_FILE).read_text(encoding="utf-8").strip() if (data / WHY_FILE).exists() else ""
+
+
 def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> list[tuple[str, str, str]]:
     paragraphs = [p["text"].strip() for p in answer["paragraphs"]]
     text = "\n\n".join(paragraphs)
     found: list[tuple[str, str, str]] = []
     if not PARAGRAPHS[0] <= len(paragraphs) <= PARAGRAPHS[1]:
         found.append((FAIL, "letter-shape", f"{len(paragraphs)} paragraphs - write {PARAGRAPHS[0]} or {PARAGRAPHS[1]}"))
-    if text.count(why.strip()) != 1:
+    if why.strip() and text.count(why.strip()) != 1:
         found.append((FAIL, "your-words", f"their sentence must appear exactly once, word for word: {why.strip()!r}"))
+    if not why.strip() and answer["paragraphs"]:
+        first = answer["paragraphs"][0]
+        if job["title"].casefold() not in first["text"].casefold() or not first["sources"]:
+            found.append((FAIL, "letter-shape", "no sentence of theirs: the first paragraph names the role and cites their strongest fact"))
     facts = facts_of(master)
     cited = [s for p in answer["paragraphs"] for s in p["sources"]]
     if unknown := sorted(set(cited) - facts.keys()):
@@ -129,7 +143,7 @@ def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> li
     gap_words = set(never_shows(job, master))
     page_lines = [b["text"] for t in tailored["entries"] for b in t["bullets"]]
     for i, p in enumerate(answer["paragraphs"], 1):
-        own = p["text"].replace(why.strip(), " ")
+        own = without(p["text"], why)
         sources = [facts.get(s, "") for s in p["sources"]] + headers_of(master, p["sources"])
         if extra := [e for e in gaps.invented(own, [*sources, job["title"], job["company"]]) if e not in FIRST_PERSON]:
             found.append((FAIL, "unresolved-entity", f"paragraph {i}: {extra} in no fact it cites"))
@@ -153,10 +167,10 @@ def check(master: dict, job: dict, tailored: dict, why: str, answer: dict) -> li
         found.append((INFO, "letter-length", f"{count} words - short, fine if that's all that's true"))
     locked = [str(e.get(k)) for e in master["roles"] for k in ("company", "title") if e.get(k)]
     locked += [str(e.get(k)) for e in master.get("education") or [] for k in ("institution", "degree") if e.get(k)]
-    fails, warns = about.never_check("\n\n".join(p["text"].replace(why.strip(), " ") for p in answer["paragraphs"]),
+    fails, warns = about.never_check("\n\n".join(without(p["text"], why) for p in answer["paragraphs"]),
                                      posting=tailor.posting_text(job), company=job.get("company") or "", locked=locked)
     found += [(FAIL, "never-mention", f) for f in fails] + [(WARN, "never-mention", w) for w in warns]
-    found += prose(master, job, [p.replace(why.strip(), " ") for p in paragraphs])
+    found += prose(master, job, [without(p, why) for p in paragraphs])
     return found
 
 
@@ -231,13 +245,13 @@ def prepare(config: dict, job: str) -> None:
     data = folder / tailor.JOB_DATA
     if not report.ready((folder / tailor.CHECK_FILE).read_text(encoding="utf-8") if (folder / tailor.CHECK_FILE).exists() else ""):
         sys.exit("the resume for this job isn't made yet (its check hasn't passed) - the letter rests on it")
-    if not (data / WHY_FILE).exists() or not (data / WHY_FILE).read_text(encoding="utf-8").strip():
+    if not read_why(data) and config.get("cover_letter") != "never":
         sys.exit(f"ask them first, then save their answer word for word to {data / WHY_FILE}: "
                  "\"In one sentence, in your own words: why this job or this company?\"")
     master = schema.load(cfg.resume_path(config, "master"))
     payload_text = payload(master, json.loads((data / "jd.json").read_text(encoding="utf-8")),
                            json.loads((data / "tailored.json").read_text(encoding="utf-8")),
-                           (data / WHY_FILE).read_text(encoding="utf-8").strip())
+                           read_why(data))
     handoff.write_task(data / TASK_FILE, data / ANSWER_FILE, SYSTEM, ANSWER_SCHEMA, payload_text,
                        f'uv run app/jobs.py letter check {job}',
                        f"Your resume for this job is ready to send without a letter: {folder / render.file_name(master)}",
@@ -249,7 +263,7 @@ def run_check(config: dict, job: str) -> int:
     data = folder / tailor.JOB_DATA
     master = schema.load(cfg.resume_path(config, "master"))
     answer = handoff.read_answer(data / ANSWER_FILE, ANSWER_SCHEMA)
-    why = (data / WHY_FILE).read_text(encoding="utf-8").strip()
+    why = read_why(data)
     found = check(master, json.loads((data / "jd.json").read_text(encoding="utf-8")),
                   json.loads((data / "tailored.json").read_text(encoding="utf-8")), why, answer)
     for severity, rule, detail in found:

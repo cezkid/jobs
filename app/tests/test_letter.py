@@ -48,6 +48,15 @@ def test_a_draft_resting_on_cited_facts_passes(master):
     assert [f for f in found(master, GOOD) if f[0] == letter.FAIL] == []
 
 
+# no sentence of theirs (cover_letter: never, required box): opens with the role + a cited fact, no motive
+def test_without_their_sentence_the_letter_opens_with_the_role_and_a_fact(master):
+    ans = copy.deepcopy(GOOD)
+    ans["paragraphs"][0] = {"text": "I'm applying for the Senior Vue Engineer, Search role at Acme. I built "
+                                    "retrieval-augmented search over support docs.", "sources": ["acme-rag-search"]}
+    assert [f for f in found(master, ans, "") if f[0] == letter.FAIL] == []
+    assert (letter.FAIL, "letter-shape") in found(master, GOOD, "")  # opening cites no fact
+
+
 def test_letter_overstatement_report_only(master):
     master["roles"][1]["bullets"][0]["claim"] = "Assisted with design system migration across product surfaces"
     ans = copy.deepcopy(GOOD)

@@ -142,6 +142,9 @@ TEXTS = re.compile(r"\bsms\b|\btext(?:ing| messag\w*| alerts?| updates?|s)\b|\bw
 TEXTS_OFF = "search settings - text messages: never - left unticked"
 # resume box: their Apply click was the yes (search settings upload_on_apply: true)
 UPLOAD_ON_APPLY = "search settings - upload on Apply: their click was the yes - name the file at handover"
+# cover letter box, search settings cover_letter: never - optional: left empty, required: letter written unasked
+COVER_LETTER_OFF = f"search settings - cover letter: never - {SIGN_ON_PAGE}"
+COVER_LETTER_REQUIRED = "search settings - cover letter: never asked, this box is required - write the letter - name it at handover"
 # "I confirm that my application materials ... were not generated, edited, or supplemented by AI
 # tools" (2026-10-05, one Greenhouse tenant): a resume tailored here is AI help, so a drafted Yes is a
 # false statement - left on the page like a signature, and prepare tells the AI to say how the resume
@@ -646,6 +649,9 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             continue
         if q["kind"] == "file" and q.get("key") == "resume" and (config or {}).get("upload_on_apply") is True:
             out.append({**q, "answer": True, "source": UPLOAD_ON_APPLY})
+            continue
+        if q["kind"] in ("file", "longtext") and q.get("key") == "cover_letter" and (config or {}).get("cover_letter") == "never":
+            out.append({**q, "answer": None, "source": COVER_LETTER_REQUIRED if q["required"] else COVER_LETTER_OFF})
             continue
         if q["key"] in EDUCATION:
             answer, source = school_answer(q, schools or [])
