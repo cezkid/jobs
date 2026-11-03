@@ -7,7 +7,9 @@ user's facts, code checks, the user confirms each paragraph. Outputs in the job 
 ## When
 
 Offered only when the application has a cover letter box (read ahead - `app/docs/apply/answers.md`).
-No box or unknown -> not offered; written if the user asks. Demand: freehire.me (the job search) counted a
+No box or unknown -> not offered; written if the user asks. `cover_letter: never` in search settings ->
+never asked: an optional box stays empty; a required one gets a letter, why sentence from a motive answer they
+confirmed on that form, else the opening below; each paragraph still confirmed (owner 2026-11-02). Demand: freehire.me (the job search) counted a
 letter asked for on 209,297 of 402,117 open postings whose form it captured (2026-09, its
 repo github.com/strelov1/freehire, internal/candidate/coverletter/AGENTS.md) - about half, tech-heavy.
 

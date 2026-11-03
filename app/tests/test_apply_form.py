@@ -217,6 +217,27 @@ def test_apply_click_is_the_upload_yes_only_while_the_setting_is_on():
     assert questions.draft(boxes, CONTACT, said, {"upload_on_apply": False})[0]["answer"] is True
 
 
+# cover_letter: never (owner 2026-11-02): no question; optional box empty, required box gets the letter; default asks
+def test_cover_letter_never_empties_an_optional_box_and_writes_for_a_required_one():
+    optional, required = q("Cover letter", "file", "cover_letter", False), q("Cover letter", "file", "cover_letter")
+    never = {"cover_letter": "never"}
+    left = questions.draft([optional], CONTACT, config=never)
+    assert (left[0]["answer"], left[0]["source"]) == (None, questions.COVER_LETTER_OFF)
+    assert questions.missing(left) == [] and not form.for_the_user(left[0]) and form.letter_note(left) == ""
+    write = questions.draft([required], CONTACT, config=never)
+    assert (write[0]["answer"], write[0]["source"]) == (None, questions.COVER_LETTER_REQUIRED)
+    assert questions.missing(write) == write and form.letter_note(write).startswith("cover letter box is required")
+    assert not questions.unvouched([{**write[0], "answer": True}])
+    assert form.letter_note([{**write[0], "answer": True}]) == ""
+    for config in ({"cover_letter": "ask"}, {}):
+        assert questions.draft([required], CONTACT, config=config)[0]["source"] == questions.ASK
+    both = questions.draft([q("Resume/CV", "file", "resume"), required], CONTACT,
+                           config={"upload_on_apply": True, "cover_letter": "never"})
+    assert "Apply click was the yes" in form.upload_note(greenhouse, both)
+    kept = [{**write[0], "answer": True}]  # the written letter survives a second prepare
+    assert questions.draft([required], CONTACT, kept, never)[0]["answer"] is True
+
+
 def test_first_form_with_a_resume_box_asks_once_whether_apply_uploads():
     resume = [{**q("Resume/CV", "file", "resume"), "answer": None, "source": questions.ASK}]
     assert form.upload_ask({"upload_on_apply": None}, resume).startswith("ask once: when they click Apply")

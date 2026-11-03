@@ -51,7 +51,8 @@ form over, fix the program after.
   put your resume in the form without asking each time? It reaches the employer's site then -
   some sites before Submit." - Yes, upload when I click Apply (Recommended) -> true / No, ask me
   each time -> false; `prepare` again. "Stop uploading without asking" / "upload without asking"
-  later -> false / true, confirm in one line. Cover letter + any other file: a yes each time. Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity,
+  later -> false / true, confirm in one line. Cover letter + any other file: a yes each time (a required
+  cover letter box under `cover_letter: never`: their setting is the yes, named at handover). Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity,
   SmartRecruiters and Recruiterflow send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
   Ashby also takes each answer as its box is filled, and the town or school letter by letter in its location and school boxes - say so before `fill`.
 - Likely answers, not stops (owner 2026-10-23): an everyday question (worked here before, commuting
@@ -236,7 +237,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    `upload_on_apply` (hard limits). Location: the
    city they live in. Home address: `home_address` in search settings fills it; not set -> ask, offer to
    keep it there (never on the resume). Answers from search settings: name them to the user.
-   Cover letter box: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after
+   Cover letter box: `cover_letter: never` -> no question: optional stays empty; required (`prepare`
+   says so) -> `job-tailor` step 6 writes it, each paragraph confirmed, `answer: true` (a text box: its
+   text), named at handover - their setting is the yes. Otherwise: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after
    their yes) or paste from `Cover letter.md`; none made -> offer `job-tailor` step 6.
    Workable: the resume reaches the employer's site as soon as it is put in the box, before
    Submit - say so when asking for the yes. Its Address box comes filled by the page from their

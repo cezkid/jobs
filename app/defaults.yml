@@ -95,6 +95,10 @@ saved_answers: null
 # a yes asked before each upload. Named at handover either way (owner 2026-10-13).
 upload_on_apply: null
 
+# A form's cover letter box: ask = one question when a form has one ("Write one too?"); never = no
+# question: an optional box stays empty, a required one gets a letter (each paragraph still confirmed).
+cover_letter: ask
+
 # A form spread over pages (Workday): fill presses the page's own Next / Continue / Save and Continue and
 # goes on, stopping at the first page holding something only the user answers, an answer that didn't
 # take, or the page's own error - never Submit. Each passed page's answers reach the employer's site then.
