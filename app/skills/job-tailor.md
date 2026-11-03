@@ -2,7 +2,7 @@
 
 `AGENTS.md` #User = not technical binds. Needs `My Resume/Resume details.yml` (missing -> `job-setup` skill step 3).
 Before writing: `uv run app/jobs.py about read goals` (which of their true lines lead - never a new
-claim) + `about read never_mention` (kept off the page); a letter adds `about read voice` (wording only).
+claim) + `about read never_mention` (kept off the page); a letter adds `about read voice` (wording only) + the tone of their earlier written answers (`answers list`): tone + sentence shape only, never a fact or reason from them.
 Never values / personal here (`AGENTS.md` #About me).
 
 1. Source:
