@@ -77,8 +77,8 @@ test("best jobs: more-line counts from the section's own total, not the new-sinc
   raw.sections = [{ ...raw.sections.find((s) => s.id === "best"), total: 40 }];
   raw.todo = [];
   const page = html(today.model(raw, say), "new");
-  // 40 scored - the 10 shown (FULL holds 10)
-  assert.match(page.split('aria-labelledby="s-best"')[1], /30 more jobs to apply to\.<\/span>/);
+  // 40 scored - the 20 shown (FULL holds 20)
+  assert.match(page.split('aria-labelledby="s-best"')[1], /20 more jobs to apply to\.<\/span>/);
 });
 
 // a posting title is employer text: markup in it must show as words, never run or link
@@ -342,8 +342,8 @@ const FULL = {
     sec("waiting", [3, 5].map((n) => job(n, [`apply to job ${n}`, `I sent job ${n}`]))),
     sec("interviews", [job(46, ["practise my interview for job 46", "I had the interview for job 46"])]),
     sec("follow_up", [job(13, ["write a follow-up for job 13", "I heard back from job 13", "job 13 is closed"])]),
-    { ...sec("best", Array.from({ length: 10 }, (_, i) => job(100 + i, [`apply to job ${100 + i}`])),
-      { text: "2 more - ask the chat.", say: "show me more jobs to apply to" }), total: 12 },
+    { ...sec("best", Array.from({ length: 20 }, (_, i) => job(100 + i, [`apply to job ${100 + i}`])),
+      { text: "2 more - ask the chat.", say: "show me more jobs to apply to" }), total: 22 },
   ],
   todo: [{ text: "Your resume isn't in yet.", say: "import my resume" },
     { text: "Your resume lines could carry more of your own numbers.", say: "ask me about my resume numbers" }],
@@ -398,15 +398,15 @@ test("yellow only on Waiting on you; status changes outline, closing quietest; p
 });
 
 // 10 new-job cards at 240 px each pushed setup to the bottom of a 3,750 px page (critique P1)
-test("best jobs: one-line rows, 10 shown, the rest in the chat", () => {
+test("best jobs: one-line rows, 20 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
   const rows = page.split('aria-labelledby="s-best"')[1].split("</section>")[0];
-  assert.equal((rows.match(/<li data-job="\d+"><div class="what">/g) || []).length, 10);
+  assert.equal((rows.match(/<li data-job="\d+"><div class="what">/g) || []).length, 20);
   assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   // a decision needs its facts: every new row has its posting (re-critique P2)
-  assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 10);
+  assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 20);
   assert.match(rows, /2 more jobs to apply to\.<\/span><button[^>]*>Show more jobs</);
-  // fewer than 10 + nothing beyond => no "more" line
+  // fewer than 20 + nothing beyond => no "more" line
   const few = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [], tiles: [] };
   few.sections = few.sections.map((s) => ({ ...s, cards: s.cards.slice(0, 3), more: null }));
   assert.doesNotMatch(html(today.model(few, say), "new"), /more jobs? to apply/);

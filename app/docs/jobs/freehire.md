@@ -482,7 +482,8 @@ in passing ("integrate backend services with frontend applications"). Sorted low
 `blocklist.software_kinds` hides by title only, after the user sees the count.
 A language they don't want ("no Java"): `rank.avoid_skills` reads the required lines, not the tags,
 when there are any - a front-end list, 2026-10-12: 31 of 161 open rows name Java in a required line or
-tag, 17 only as one choice of several ("Python, Node.js, or Java"), so 14 sort lower.
+tag, 17 only as one choice of several ("Python, Node.js, or Java"), so 14 sort lower. A title naming it goes
+after every other job (`rank.title_avoided`, 2026-11-03).
 Customer-facing titles (2026-10-28, `customer` kind): the job search tags pre-sales, setup + support
 jobs w/ the product's stack - "Solutions Engineer - NYC" carried react + typescript, read as
 front-end, #3 of a front-end user's nearby list. Category can't sort them: `solutions_engineering`

@@ -30,7 +30,7 @@ DASHBOARD_VERSION = 1
 # words to say, shared w/ the dashboard buttons: a word changed here changes there
 SAY_FILE = cfg.APP / "vscode" / "say.json"
 TEMPLATES = {t["id"]: t["words"] for t in json.loads(SAY_FILE.read_text(encoding="utf-8"))["templates"]}
-WAITING_MAX, FOLLOW_UP_MAX, BEST_MAX = 5, 5, 10
+WAITING_MAX, FOLLOW_UP_MAX, BEST_MAX = 5, 5, 20
 # no resume yet: the order can't weigh fit, said once under the section
 NO_RESUME_NOTE = "Add your resume for a better order: it then puts the jobs you fit best first."
 # jobs per line in the chat brief: a few hundred tokens at most, the page holds the rest

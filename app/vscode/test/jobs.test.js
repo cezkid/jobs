@@ -49,9 +49,11 @@ test("each job reads 'Job N - Title, Company', its number as stored", () => {
 });
 
 // a long list of new jobs squeezes the file list; the rest are one chat away, as on the page
-test("Best to apply next shows the top 10 only", () => {
-  const { groups } = build();
-  assert.deepStrictEqual(groups.find((g) => g.id === "best").items.map((i) => i.num), [4, 5, 6, 7, 8, 9, 10, 20, 21, 22]);
+test("Best to apply next shows the top 20 only", () => {
+  const raw = JSON.parse(JSON.stringify(RAW));
+  raw.sections.find((s) => s.id === "best").cards = Array.from({ length: 22 }, (_, i) => card(100 + i, `Role ${100 + i}`, "Sample Corp", [`apply to job ${100 + i}`]));
+  const { groups } = build(raw, []);
+  assert.deepStrictEqual(groups.find((g) => g.id === "best").items.map((i) => i.num), Array.from({ length: 20 }, (_, i) => 100 + i));
 });
 
 // a row doing something the dashboard doesn't => two behaviors for one button, one untested
@@ -129,14 +131,14 @@ test("empty panel before setup: one Set me up row, never 'made at the next start
   assert.notStrictEqual(jobs.emptyRow(null, false), jobs.SETUP_ROW);
 });
 
-// remote + nearby lists on Today => the panel shows both, in the page's order, top 10 each
-test("two best-next lists: both groups, the page's order, top 10 each", () => {
+// remote + nearby lists on Today => the panel shows both, in the page's order, top 20 each
+test("two best-next lists: both groups, the page's order, top 20 each", () => {
   const raw = JSON.parse(JSON.stringify(RAW));
-  const cards = (from) => Array.from({ length: 12 }, (_, i) => card(from + i, `Role ${from + i}`, "Sample Corp", [`apply to job ${from + i}`]));
+  const cards = (from) => Array.from({ length: 22 }, (_, i) => card(from + i, `Role ${from + i}`, "Sample Corp", [`apply to job ${from + i}`]));
   raw.sections = [{ id: "best_nearby", title: "Best jobs near you to apply to", cards: cards(40) },
     { id: "best_remote", title: "Best remote jobs to apply to", cards: cards(60) }];
   const { groups } = build(raw, []);
   assert.deepStrictEqual(groups.map((g) => g.label), ["Best jobs near you to apply to", "Best remote jobs to apply to"]);
-  assert.strictEqual(groups[0].items.length, 10);
-  assert.strictEqual(groups[1].items.length, 10);
+  assert.strictEqual(groups[0].items.length, 20);
+  assert.strictEqual(groups[1].items.length, 20);
 });
