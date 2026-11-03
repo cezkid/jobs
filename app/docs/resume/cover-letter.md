@@ -22,6 +22,9 @@ repo github.com/strelov1/freehire, internal/candidate/coverletter/AGENTS.md) - a
 | Every number, tool, name from the facts each paragraph cites; never a word the resume never shows | `bullets.md` Tier 1 - anything on paper gets asked about | policy (FAIL) |
 | A word the resume says in another form is shown ("edits" for "Edit", "captions" for "caption") | 22 of 552 gap words on 9 video postings were such forms (2026-10-09, `best.root`) | measured |
 | Posting asks to see their work -> "Reel: vimeo.com/name" (or Portfolio) under a text-box letter, by code | the PDF's contact block carries the link, a form's box has none; video postings ask for "your reel and a short note" (204 of 551 ask to see work, `freehire.md` #Video work) | convention |
+| Each middle paragraph names one need from the posting, then the fact that shows it | career-ops (open source, MIT; `modes/cover.md`, read 2026-11-02) | convention - no study |
+| Reread every sentence: could it go to any company? Rewrite if so | career-ops `modes/cover.md` language rule 9 | convention - no study |
+| Active voice, varied sentence length, each claim a number, system name or outcome | career-ops `modes/cover.md` rules 1 + 6, `modes/_writing.md` | convention - no study |
 | At most 5 facts | more reads as the resume again | judgement |
 | No "passionate", "excited to apply", "To Whom It May Concern" | generic, unverifiable self-description (Insight Global 2025: generic content is what readers reject) | vendor survey + convention |
 
@@ -37,3 +40,8 @@ Over 400 words fails; under 250 is said, never padded.
   computer (privacy table row + user yes first, AGENTS.md); a researched fact is no fact of theirs, so
   it fails the facts-only check (FAIL above). Evidence-backed lever = the user's own "why" sentence
   (Cui, Dias & Ye 2025, above). Policy + preprint.
+- **career-ops' other steps** (`modes/cover.md`, read 2026-11-02; no evidence given for any):
+  - Web search on the company: new off-computer step, not their fact (above).
+  - Four mandatory prompts + a keyword list to confirm before drafting: owner wants fewer questions (2026-11-02).
+  - Bullet achievements + a "Problems I will solve" plan paragraph: a plan written for them is motive.
+  - 350-420 words: ours, 250-400, rests on Harvard FAS + MIT (table above).
