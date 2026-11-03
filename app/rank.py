@@ -1,7 +1,7 @@
 import argparse
 import re
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 import cfg
 import software
@@ -86,6 +86,8 @@ STUDENT_PROGRAM = (r"fellows?|fellowships?|students?|scholars?|rotational|rotati
 # (knockout.years_asked reads the posting's own line; the job search's experience_years_min tag read
 # 10 on "Software Engineer - New Grad" and 7 on "18+ years old", 2026-10-07)
 ENTRY_MAX_YEARS = 3
+# shorter than this: no posting's text to read years off, the job search's tag stands in
+THIN_POSTING = 200
 # graduation compared only while studying or this soon after: a year further back says nothing
 # about an internship's window, and a year they hid stays hidden
 GRADUATION_RECENT_MONTHS = 24
@@ -105,6 +107,17 @@ def norm_company(name: str | None) -> str:
     while len(parts) > 1 and parts[-1] in COMPANY_SUFFIXES:
         parts.pop()
     return " ".join(parts)
+
+
+# job boards and reposters: they list other employers' postings, the employer's own hiring system holds the
+# real one (and where it's sent). Any other source counts as the employer's own - today's order if unsure
+BOARDS = {"4dayweek", "adzuna", "arc", "builtin", "djinni", "echojobs", "energyjobline", "hackernews", "himalayas", "jobboardly",
+          "jobicy", "jobspresso", "jobstash", "powertofly", "remotedotcom", "remotive", "seek", "startupjobs", "staffy",
+          "torre", "weworkremotely", "wellfound", "whatjobs", "workatastartup", "wttj"}
+
+
+def board_copy(job: dict) -> bool:
+    return board_in(job, BOARDS)
 
 
 def board_in(job: dict, boards: list[str] | None) -> bool:
@@ -341,7 +354,45 @@ def doubts(job: dict, rc: dict) -> list[str]:
         out.append("old listing")
     if r.get("class") == "likely-evergreen":
         out.append("always-open listing")
+    if job.get("closing_passed"):
+        out.append(f"its closing date has passed ({job['closing_passed']})")
     return out
+
+
+# a closing date the posting itself states (career-ops closing-soon.mjs reads the same from notes):
+# 2026-11-02, 2,436 software rows 9 state one, 6 passed while the job search still lists them open; 2,046 rows
+# of 6 fields 18, 3 passed
+_MONTH = r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?"
+CLOSES = re.compile(
+    r"\b(?:clos(?:es|ing)(?: date)?|deadline(?: to apply| for applications?)?|apply by|expected to close|"
+    r"applications?(?: will be| are| being)*(?: accepted)?(?: through| until| by| close| closes| due)|"
+    r"accepted (?:through|until)|posting (?:closes|end date|expires)|open until)\b[^.\n]{0,30}?"
+    rf"(?:(20\d\d)-(\d\d)-(\d\d)|\b{_MONTH}\s+(\d{{1,2}})(?:st|nd|rd|th)?(?:,?\s*(20\d\d))?|\b(\d{{1,2}})/(\d{{1,2}})/(20\d\d))", re.I)
+MONTHS = {m: i for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split(), 1)}
+
+
+def closing_date(job: dict) -> date | None:
+    """The date the posting says applications close. No year given: read against when it was first seen,
+    a date over 60 days before that being next year's. MM/DD only when it can't be DD/MM (career-ops).
+    "Open until at least" is a floor, no close."""
+    if not (m := CLOSES.search(TAG.sub(" ", job.get("description") or ""))) or "at least" in m[0].lower():
+        return None
+    seen = (job.get("first_fetched_at") or job.get("posted_at") or "")[:10]
+    try:
+        if m[1]:
+            return date(int(m[1]), int(m[2]), int(m[3]))
+        if m[9]:
+            month, day = int(m[7]), int(m[8])
+            return date(int(m[9]), month, day) if day > 12 or month == day else None
+        month, day = MONTHS[m[4][:3].lower()], int(m[5])
+        if m[6]:
+            return date(int(m[6]), month, day)
+        if not seen:
+            return None
+        when = date(int(seen[:4]), month, day)
+        return when.replace(year=when.year + 1) if (date.fromisoformat(seen) - when).days > 60 else when
+    except ValueError:
+        return None
 
 
 def title_type(job: dict) -> str | None:
@@ -481,7 +532,7 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
     the one their resume shows ("asks an active TS/SCI clearance, your resume shows a Secret clearance").
     Sorted lower, never hidden. A credential is counted once per posting: "Active CPA license" + "CPA
     required" say it once, "Series 7 required" folds into "Series 7 and Series 63 required"."""
-    from resume import knockout  # light: the posting's lines only
+    from resume import knockout, posting_years  # light: the posting's text only
     out = []
     if credentials is not None:
         out += [f"asks {said}, {knockout.missing_words(missing, credentials)}"
@@ -493,6 +544,8 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
             out.append(f"asks {short[0]}, {short[1]}")
     if config["rank"].get("career_level") == "entry":
         asked = [y for t in required_lines(job) if (y := knockout.years_asked(t)) is not None]
+        if not asked and (said := posting_years.asked(job.get("description"))):
+            asked = [said]
         if asked and max(asked) >= ENTRY_MAX_YEARS:
             out.append(f"asks {max(asked)}+ years")
     reqs = (job.get("enrichment") or {}).get("requirements") or []
@@ -656,11 +709,22 @@ def student_graduation(config: dict, today) -> str | None:
     return when if recent else None
 
 
+# the posting saying it won't sponsor, the job search's tag empty: career-ops scan.mjs DEFAULT_VISA_NEGATIVE.
+# 2026-11-02, 2,436 open rows, 2,120 w/ no tag: 65 more on top of 211 tagged, 30 of 30 sampled read right - "with
+# or without sponsorship" (an employer's eligibility line) read out
+NO_SPONSOR = re.compile(r"(?<!with or )(?<!and )\bwithout (?:\w+ )?sponsorship\b|\bno (?:visa )?sponsorship\b|"
+                        r"\b(?:unable|not able) to (?:provide )?sponsor\b|\b(?:can ?not|can't|do not|does not|don't|doesn't|will not|won't)"
+                        r" (?:be able to )?(?:offer |provide )?(?:visa )?sponsor(?:ship)?\b|"
+                        r"\bnot (?:offer|provide) (?:visa )?sponsorship\b|\bsponsorship (?:is )?not available\b|"
+                        r"\bpermanent residents only\b", re.I)
+
+
 def sponsorship(job: dict, config: dict) -> list[str]:
-    """User needs a visa sponsor and freehire marks this job as never sponsoring. A weak label
-    (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
+    """User needs a visa sponsor and freehire marks this job as never sponsoring, or the posting says it
+    won't. A weak label (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
     wa = config.get("work_authorization") or {}
-    if not (wa.get("needs_sponsorship") and (job.get("enrichment") or {}).get("visa_sponsorship") is False):
+    tagged = (job.get("enrichment") or {}).get("visa_sponsorship")
+    if not (wa.get("needs_sponsorship") and (tagged is False or tagged is None and NO_SPONSOR.search(TAG.sub(" ", job.get("description") or "")))):
         return []
     # CPT and OPT need no employer sponsorship: an internship saying "no sponsorship" may still take them
     return ["says no visa sponsorship - CPT or OPT may still work, read the posting"] if wa.get("student_visa") \
@@ -818,14 +882,16 @@ def dedupe_key(job: dict) -> tuple[str, str, str]:
 
 def collapse(jobs: list[dict]) -> list[dict]:
     """One row per (company, title, place): a live copy over a stale one, then the copy with
-    pay, else the earliest seen.
+    pay, the employer's own over a job board's (4 of 4 mixed groups kept the board's, 2026-11-02),
+    else the earliest seen.
     Kept row carries `duplicates` (other slugs) and `seen` (any copy already notified)."""
     groups = defaultdict(list)
     for j in jobs:
         groups[dedupe_key(j)].append(j)
     kept = []
     for group in groups.values():
-        group.sort(key=lambda j: (bool(j.get("stale")), not has_salary(j), j.get("first_fetched_at") or j.get("posted_at") or ""))
+        group.sort(key=lambda j: (bool(j.get("stale")), not has_salary(j), board_copy(j),
+                                  j.get("first_fetched_at") or j.get("posted_at") or ""))
         best = dict(group[0], duplicates=[j["public_slug"] for j in group[1:]],
                     seen=any(j.get("alerted_at") for j in group))
         kept.append(best)
@@ -843,6 +909,27 @@ def unaged(jobs: list[dict], config: dict, now: datetime) -> list[dict]:
     return [marked(j) for j in jobs if not blocked(j, config["blocklist"]) and not far(j, config)]
 
 
+CLOSES_SOON = 14  # days
+
+
+def day_words(when: date) -> str:
+    return f"{when:%b} {when.day}"
+
+
+def closing(job: dict, now: datetime) -> dict:
+    """What a job's why says about the closing date its posting states: passed (a doubt), or soon."""
+    when = closing_date(job)
+    if not when:
+        return {}
+    return {"closing_passed": day_words(when)} if when < now.date() else {"closes": when.isoformat()}
+
+
+def closes_words(job: dict, now: datetime) -> str:
+    """Said only when close: a closing date further off changes nothing they'd do today."""
+    when = date.fromisoformat(job["closes"]) if job.get("closes") else None
+    return f"closes {day_words(when)}" if when and (when - now.date()).days <= CLOSES_SOON else ""
+
+
 def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[dict]:
     rc = config["rank"]
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
@@ -852,7 +939,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept = pay_filter(collapse([j for j in base if not too_old(j, limits.get(list_of(j)), now)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
     graduation, credentials = student_graduation(config, now.date()), resume_credentials(config)
-    kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date(), credentials)) for j in kept]
+    kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date(), credentials), **closing(j, now)) for j in kept]
     # Order, most decisive first:
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
@@ -881,11 +968,12 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
 
 def demerits(job: dict, config: dict) -> int:
     """How many reasons sort a job lower: likely ghost (once), level/hours mismatch, no sponsor, a
-    clearance they can't hold, what asks_beyond names, a staffing firm. rank.rank and best both."""
+    clearance they can't hold, what asks_beyond names, a staffing firm, a title they already acted on
+    at this employer (best.acted). rank.rank and best both."""
     rc = config["rank"]
     return (bool(doubts(job, rc)) + len(mismatches(job, rc)) + len(job.get("beyond") or [])
             + len(sponsorship(job, config)) + (bool(clearance(job)) and can_hold_clearance(config) is False)
-            + len(staffing(job, rc)))
+            + len(staffing(job, rc)) + bool(job.get("acted_role")))
 
 
 def flags(job: dict, config: dict) -> list[str]:
@@ -893,7 +981,7 @@ def flags(job: dict, config: dict) -> list[str]:
     rc = config["rank"]
     named = staffing_named(job)
     return (doubts(job, rc) + mismatches(job, rc) + (job.get("beyond") or []) + sponsorship(job, config)
-            + clearance(job) + named)
+            + clearance(job) + named + ([job["acted_role"]] if job.get("acted_role") else []))
 
 
 def too_old(job: dict, limit: int | None, now: datetime) -> bool:
@@ -1007,7 +1095,8 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     hits = [COLLECTION_NAMES.get(c, c) for c in job.get("collections") or [] if c in rc["boost_collections"]]
     parts = [place, pay_words(job, rc), *hits,
-             age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
+             age_label(job, now or datetime.now(timezone.utc)) if when is None else when,
+             closes_words(job, now or datetime.now(timezone.utc))]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
     parts += flags(job, config) + posting_says(job, rc)

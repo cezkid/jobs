@@ -258,6 +258,10 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   Each tag alone misses up to a third. 300 newest `seniority=intern`: 200 intern/co-op titles, the
   rest trainee, new grad and a few mislabels (AI Engineer II, a Director) - `career_level: entry`
   sorts those lower.
+- `enrichment.experience_years_min` often reads a sub-bar: 2 on "8+ years ... at least 2 on platform teams", 4 on
+  "12+ years ... at least 4 of people management". 180 hard postings an AI judged (no line says years, readers
+  disagree): tag right on 46, the posting's own text on 147 - ranking reads the text (`resume/posting_years.py`,
+  `jobs/best-next.md` #Years from the posting's text); the tag only when there's no text.
 - `enrichment.experience_years_min`: on 990 of 1,600 rows (8 categories), 749 >= 3; but 407 of
   990 have no years line in the required asks, and on early-career titles it reads wild ("Software
   Engineer - New Grad" 10, "Entry Level Sales Representative" 20, "18+ years old" 7). => a

@@ -34,6 +34,13 @@ TODAY = date(2026, 10, 1)
     ("Minimum 5+ years of high school and/or club basketball coaching experience", 5),
     ("5+ years of enterprise sales and/or relevant consulting or program management experience", 5),
     ("Three years of full-time teaching in a public school", 3),
+    # a decimal is one figure: "1.5+" read as 5 before 2026-11-02
+    ("1.5+ years of experience as a software engineer", 1.5),
+    ("At least 2.5 years of relevant professional development experience", 2.5),
+    # years in place of a degree ask nothing of one who holds it
+    ("Bachelor's degree or 5+ years of experience in software engineering in lieu of a degree", None),
+    ("Bachelor's Degree in Computer Science or related field, or 3 years of experience in lieu of a degree", None),
+    ("Bachelor's degree and 4+ years of prior relevant experience", 4),
 ])
 def test_years_asked_reads_the_lower_bound_never_age_or_deadlines(text, years):
     assert knockout.years_asked(text) == years

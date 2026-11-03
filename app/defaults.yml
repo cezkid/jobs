@@ -286,3 +286,7 @@ rank:
     # list; one posting under two company names (an aggregator's copy) sinks as `twin`. Order only
     repeat: 0.1
     twin: 0.5
+    # days a job they saved, sent or passed on still counts: the same title at that employer takes a demerit
+    # + says so, any other job there starts one `repeat` down. career-ops' same-role cooldown; 90 its
+    # repost window, convention. 0 = off
+    again_days: 90

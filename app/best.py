@@ -18,7 +18,7 @@ import places
 import rank
 import software
 import store
-from resume import knockout, schema, tailor
+from resume import knockout, posting_years, schema, tailor
 
 # seniority facet (row `seniority`, from enrichment) -> rung; career_level (setup answer) -> rung.
 # "above yours" = 2+ rungs up: a mid-level applying to a senior post is ordinary, to a lead isn't
@@ -345,14 +345,16 @@ def required(job: dict) -> list[str]:
             if r.get("priority") == "required" and (t := asked(r["text"]))]
 
 
-def years_tag(job: dict, facts: dict | None, asks: list[str]) -> int | None:
-    """The job search's years tag (experience_years_min) when it counts as an ask: no line said years, their
-    dated years known, not an early-career title (rank.EARLY_CAREER: the tag read 10 on "New Grad")."""
-    years = (job.get("enrichment") or {}).get("experience_years_min")
-    if years and facts and facts["years"] is not None and not rank.early_career(job) \
-            and not any(knockout.years_asked(t) is not None for t in asks):
-        return years
-    return None
+def years_tag(job: dict, facts: dict | None, asks: list[str]) -> float | None:
+    """The years a posting asks when no line said it and their dated years are known: read off its own text
+    (posting_years). The job search's tag (experience_years_min) only when there's no text to read, and not
+    on an early-career title (rank.EARLY_CAREER: the tag read 10 on "New Grad"). Text read and no bar found =
+    none: of the 93 held-out postings an AI judged, falling back to the tag lost 12 (#Years from the posting's text)."""
+    if not (facts and facts["years"] is not None) or any(knockout.years_asked(t) is not None for t in asks):
+        return None
+    if len(job.get("description") or "") >= rank.THIN_POSTING:
+        return posting_years.asked(job["description"]) or None
+    return None if rank.early_career(job) else (job.get("enrichment") or {}).get("experience_years_min") or None
 
 
 def years_only(job: dict, facts: dict | None, counted: tuple[int, int] | None) -> tuple[int, int] | None:
@@ -588,18 +590,23 @@ def posting_keys(job: dict) -> list[tuple]:
 def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = None) -> list[dict]:
     """Best first, less `repeat` per job from the same employer already placed above and `twin`
     per copy of the same posting above (one employer filled 2-4 of the top 10, the same posting
-    sat twice under two names - 2026-10-11, 1,200 live rows). `seen` = counts from jobs placed
-    before these, updated. Order only: `best` stays as scored."""
+    sat twice under two names - 2026-10-11, 1,200 live rows). A job board's copy takes `twin` from the
+    start when the employer's own is here too; an employer they acted on lately starts one `repeat` down
+    (`acted`). `seen` = counts from jobs placed before these, updated. Order only: `best` stays as scored."""
     seen = {} if seen is None else seen
+    keyed = [(j, posting_keys(j)) for j in sorted(jobs, key=lambda j: (-j["best"], j["public_slug"]))]
+    own = {k for j, postings in keyed if not rank.board_copy(j) for k in postings}
+    busy = {j["company_slug"] for j in jobs if j.get("acted_employer")}
     # one queue per employer, best first: the employer's cut is the same for all its jobs, so only
     # each queue's head competes (1,400 rows from one employer: 1 s => 0.3 s for the Today page)
     queues = {}
-    for j in sorted(jobs, key=lambda j: (-j["best"], j["public_slug"])):
-        queues.setdefault(j["company_slug"], deque()).append((j, posting_keys(j)))
+    for j, postings in keyed:
+        queues.setdefault(j["company_slug"], deque()).append((j, postings))
 
     def entry(employer):
         j, postings = queues[employer][0]
-        return (-(j["best"] - repeat * seen.get(employer, 0) - twin * any(k in seen for k in postings)),
+        copy = any(k in seen or rank.board_copy(j) and k in own for k in postings)
+        return (-(j["best"] - repeat * (seen.get(employer, 0) + (employer in busy)) - twin * copy),
                 j["public_slug"], employer)
 
     heap = [entry(e) for e in queues]
@@ -666,13 +673,57 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
     return placed
 
 
+def title_identity(title: str | None) -> frozenset[str]:
+    """A title's words as a set: word order and punctuation may change between two listings of one role, a
+    city, team or level word may not (career-ops detect-reposts.mjs: similar titles read sibling openings
+    as reposts)."""
+    return frozenset(rank.norm(title).split())
+
+
+ACTED_WORDS = {"applied": "you applied for this title here", "heard_back": "you applied for this title here",
+               "interview": "you applied for this title here", "offer": "you applied for this title here",
+               "no": "they said no to this title", "not_sending": "you chose not to send this title",
+               "saved": "you saved this title here", "resume_made": "you made a resume for this title here"}
+
+
+def acted(conn, jobs: list[dict], config: dict, now: datetime) -> list[dict]:
+    """Jobs + what they already did at that employer in the last `again_days`: the same title (`acted_role`,
+    the row's words, one demerit - a relisted job, a new link so nothing else catches it) or any job there
+    (`acted_employer`, `spread`). Sorted lower, never hidden: a sibling opening shares the title too. A job
+    they marked closed says nothing about the next one. Why: app/docs/jobs/best-next.md #Acted on before."""
+    days = config["rank"]["best_next"].get("again_days")
+    if not days:
+        return jobs
+    roles, employers = {}, set()
+    for r in conn.execute("SELECT a.company, a.title, a.state, a.state_at, j.company_slug FROM applications a"
+                          " LEFT JOIN jobs j USING (public_slug) ORDER BY a.state_at"):
+        since = (now - datetime.strptime(r["state_at"][:19], store.ISO[:17]).replace(tzinfo=timezone.utc)).days
+        if r["state"] not in ACTED_WORDS or since > days or not r["company"]:
+            continue
+        company = rank.norm_company(r["company"])
+        employers |= {company, r["company_slug"] or company}
+        roles[company, title_identity(r["title"])] = f"{ACTED_WORDS[r['state']]} {ago_days(since)}"
+    out = []
+    for j in jobs:
+        company = rank.norm_company(j.get("company"))
+        said = roles.get((company, title_identity(j.get("title"))))
+        out.append({**j, **({"acted_role": said} if said else {}),
+                    **({"acted_employer": True} if company in employers or j.get("company_slug") in employers else {})})
+    return out
+
+
+def ago_days(days: int) -> str:
+    return "today" if days < 1 else "yesterday" if days == 1 else f"{days} days ago"
+
+
 def candidates(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> list[dict]:
     """Open jobs on their list they haven't acted on: no job folder, not applied, not closed,
     not blocked (rank hides those), not stale (likely filled). ranked = rank.rank of every row,
     when the caller already made it."""
     acting = {v for r in conn.execute("SELECT public_slug, link_key(url) FROM applications") for v in r if v}
-    return [j for j in (rank.rank(store.all_jobs(conn), config, now) if ranked is None else ranked)
-            if not j["stale"] and not ({j["public_slug"], *j["duplicates"], store.link_key(j["url"])} & acting)]
+    return acted(conn, [j for j in (rank.rank(store.all_jobs(conn), config, now) if ranked is None else ranked)
+                        if not j["stale"] and not ({j["public_slug"], *j["duplicates"], store.link_key(j["url"])} & acting)],
+                 config, now)
 
 
 def lists(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> dict[str, list[dict]]:
@@ -726,5 +777,6 @@ def reasons(job: dict, config: dict, now: datetime) -> str:
         miles, where_at = f["office"]
         place = f"{where_at}, {'under 1 mile' if miles < 1 else '1 mile' if round(miles) == 1 else f'{round(miles)} miles'} from home"
     parts += [rank.pay_words(job, rc), place, ago(posted_days(job, now))]
+    parts.append(rank.closes_words(job, now))
     parts += rank.flags(job, config)
     return " · ".join(p for p in parts if p)
