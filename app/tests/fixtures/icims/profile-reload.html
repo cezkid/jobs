@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- a profile page rebuilt from what was read on one tenant (2026-11-03): a list whose select is fully hidden, only
+     its link <a role=combobox> reads as a box; choosing the resume reloads the page ("?uploadResume=1") with the
+     work history read off it, losing what was typed meanwhile; a references block -->
+<html><body><h2>Candidate Profile</h2>
+<label for="resume">Please upload your resume*</label><input type="file" id="resume" required>
+<label for="first">Legal First Name*</label><input id="first" required>
+<label for="pref">Preferred First Name</label><input id="pref">
+<label id="c-l" for="-1_PersonProfileFields.AddressCountry">Country*</label>
+<select id="-1_PersonProfileFields.AddressCountry" required icimsdropdown-enabled="1"
+        style="position:absolute; opacity:0; width:1px"><option value="">— Make a Selection —</option><option value="1">Canada</option><option value="2">United States</option></select>
+<a href="#" role="combobox" aria-labelledby="c-l" id="-1_PersonProfileFields.AddressCountry_icimsDropdown">— Make a Selection —</a>
+<div id="-1_PersonProfileFields.AddressCountry_icimsDropdown_ctnr" style="display:none">
+  <input type="text" class="dropdown-search" aria-label="— Type to Search —">
+  <ul id="-1_PersonProfileFields.AddressCountry_dropdown-results"></ul>
+</div>
+<h3>Professional Experience (1)</h3>
+<label for="emp">Employer</label><input id="emp-1234" name="-814960_rcf3219" data-x="emp">
+<h3>Professional References (1)</h3>
+<label for="rf">First Name</label><input id="rf">
+<label for="rl">Last Name</label><input id="rl">
+<input type="submit" id="profileButton" value="Submit Profile">
+<script>
+document.querySelector('label[for=emp]').htmlFor = "emp-1234";
+const read = location.search.includes("uploadResume=1");
+if (read) document.getElementById("emp-1234").value = "Beta Corp";
+document.getElementById("resume").addEventListener("change", () => setTimeout(() => { location.search = "uploadResume=1"; }, 300));
+const id = "-1_PersonProfileFields.AddressCountry", sel = document.getElementById(id);
+const link = document.getElementById(id + "_icimsDropdown"), box = document.getElementById(id + "_icimsDropdown_ctnr");
+const search = box.querySelector("input"), list = document.getElementById(id + "_dropdown-results");
+link.addEventListener("click", e => { e.preventDefault(); box.style.display = "block"; search.focus(); });
+search.addEventListener("input", () => {
+  list.innerHTML = "";
+  for (const o of sel.options) if (o.value && o.text.toLowerCase().includes(search.value.toLowerCase())) {
+    const li = document.createElement("li"); li.className = "result-selectable"; li.textContent = o.text;
+    li.addEventListener("click", () => { sel.value = o.value; link.textContent = o.text; box.style.display = "none"; });
+    list.append(li); } });
+</script></body></html>

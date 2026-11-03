@@ -35,7 +35,7 @@ form over, fix the program after.
 - An optional box they said to leave blank: source "you said", answer blank - `fill` goes on past it.
 - Never click **Submit**, or anything irreversible. **Save and Continue** / **Next** / **Continue**
   only through `fill` with `continue_on_apply: true` in search settings (owner 2026-10-22): `prepare`
-  prints "ask once" on the first form over pages whose system names its button (Workday) -> ONE clickable
+  prints "ask once" on the first form over pages whose system names its button (Workday; iCIMS's start box, its later buttons read Submit and stay theirs) -> ONE clickable
   question: "When a page is filled and nothing on it is left for you, click Next / Continue for you and
   go on? Each page's answers reach the employer's site as it's passed. Submit always stays yours." -
   Yes, keep going for me (Recommended) -> true / No, I'll click each one -> false. `fill` then presses
@@ -205,7 +205,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 2. `uv run app/jobs.py apply-form prepare <job number> "<posting link>"` -> picks the system
    from the link, writes the job's `.data/application.json`, prints every question: `ok` (from
    resume or search settings) or `NEEDED`. Rerun keeps answers already written. The job list's
-   link may be the employer's own careers page (a Radancy careers site): pass it as is -
+   link may be the employer's own careers page (a Radancy or Jibe careers site): pass it as is -
    `prepare` reads that page once and follows its Apply ("the posting's Apply leads to ...").
    A job board's copy (EchoJobs: its Apply shows only to its own signed-in users): `prepare` finds
    the employer's own posting on the job search ("the posting is a copy - the employer's own posting
@@ -313,7 +313,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    reads page by page; answers already given are kept), then `fill` again - it works on their
    own tab, where they are. Repeat to the last page.
    Some sites ask for your email or name first, then show the form: say "you type / agree / do
-   the check and click Continue yourself; I fill the boxes I know". A consent, terms or
+   the check and click Continue yourself; I fill the boxes I know" (iCIMS with `continue_on_apply: true`:
+   `fill` clicks its start box's Next itself unless a tick or check is left for them). A consent, terms or
    signature question: clickable choices, the user's own words - they tick or sign it on the
    page. Which sites work this way: `app/docs/apply/apply-systems.md`.
    A question asking them to confirm no AI helped (`prepare`: "saying whether AI helped"): say

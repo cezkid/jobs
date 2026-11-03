@@ -23,6 +23,8 @@ Optional, for forms spread over pages (start box, then the form; "Step 1 of 5"):
     NEXT                         CSS selector of the page's way on (Workday's footer button): with the
                                  user's continue_on_apply, form.go_on presses it when its label is Next /
                                  Continue / Save and Continue - never Submit - and fill goes on page by page
+    next_button(page) -> locator the button itself, or None (a page whose way on stays the user's): for a button
+                                 in a frame, or one system only presses on some pages (iCIMS's start box)
     step(page) -> str            the page's step name; go_on waits for it to change after Next
     page_errors(page) -> list    the page's own error words after Next ("The field ... is required")
 

@@ -24,6 +24,9 @@ AUTOCOMPLETE = {"given-name": "first_name", "family-name": "last_name", "email":
                 "address-line1": "street", "address-level2": "city", "address-level1": "state", "postal-code": "zip"}
 INPUT_KIND = {"email": "email", "tel": "phone", "url": "url", "number": "number", "date": "date", "file": "file"}
 REQUIRED_MARK = re.compile(r"\s*(?:\*|\(required\))\s*$", re.I)
+# a block about someone else: its First Name is a reference's, never the applicant's (iCIMS, 2026-11-03: the
+# applicant's own name went into "Professional References (1)")
+OTHER_PERSON = re.compile(r"\b(?:references?|emergency contact|supervisor|manager's)\b", re.I)
 
 # shared by snapshot + fill (runs in each frame): controls, their names and hooks, worked out once
 LIB = r"""
@@ -236,6 +239,8 @@ def questions(snap: dict, page: str | None = None) -> list[dict]:
         kind, name = kind_of(c), title(c["label"])
         key = AUTOCOMPLETE.get(c["autocomplete"].split()[-1] if c["autocomplete"] else "")
         key = key or ("location" if kind == "location" else key_from_title(name, kind))
+        if OTHER_PERSON.search(c.get("section") or ""):
+            key = None
         out.append(question(c["hook"], name, kind, c["required"], c["options"], key,
                             f"dom:{c['tag']}:{c['type'] or c['control']}", page=page))
     return out

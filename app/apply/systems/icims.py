@@ -31,6 +31,9 @@ EXAMPLES = ("https://careers-acme.icims.com/jobs/12345/test-job/job?utm_source=x
             "https://uscareers-acme.icims.com/jobs/678/test-job/job?lang=en",
             "https://careers-acme.icims.com/jobs/12345/test-job/login")
 PER_PAGE = True
+# the start box's way on (3 of 3 tenants, a submit input in the page's own frame): pressed only with the user's
+# continue_on_apply, only there. Later pages' buttons read Submit Profile / Submit (one tenant) and stay theirs
+NEXT = "#enterEmailSubmitButton"
 # the boxes sit in the page's own frame (?in_iframe=1, 3 of 3 tenants): a main-frame selector never
 # sees them - recover waits for them in any readable frame, this only for the frame itself
 READY = "iframe[src*='in_iframe=1'], input:not([type=hidden]):visible, select:visible, textarea:visible"
@@ -52,6 +55,15 @@ WIDGET = "icimsdropdown-enabled"
 RESUME_READ = ("check City, State and Zip before and after Next - iCIMS may replace them with a place it "
                "reads off your resume (seen once)")
 WIDGET_WAIT = 8
+# the same list where the select is fully hidden (one tenant, 2026-11-03): only its link reads as a box, an
+# <a role=combobox>, named "<select id>_icimsDropdown"
+WIDGET_LINK = re.compile(r'^\[id="(.+)_icimsDropdown"\]$')
+# a repeating block's box, known only by its block's title + row ("Professional Experience (1)")
+ROW = re.compile(r"\(\d+\)\|")
+# a chosen resume reloads the form, read off the resume (one tenant, 2026-11-03: address "?uploadResume=1", the
+# work history in its rows, boxes typed meanwhile lost): boxes wait for it. How long it takes: unmeasured
+RESUME_WAIT = 15
+RESUME_QUIET = 1.5
 
 
 def parse_url(url: str) -> tuple[str, str, str]:
@@ -148,6 +160,25 @@ def start_box(snap: dict) -> bool:
     return any(c["visible"] and c["name"] == LOGIN for c in snap["controls"])
 
 
+def next_button(page):
+    """Next on the start box, else None. Later pages are never pressed for the user."""
+    if not start_box(dom.snapshot(page)):
+        return None
+    for frame in dom.frames(page)[0]:
+        found = frame.locator(NEXT).filter(visible=True)
+        if found.count() == 1 and (found.first.get_attribute("value") or "").strip().casefold() == "next":
+            return found.first
+    return None
+
+
+def step(page) -> str:
+    """Where the form is, for form.go_on: blank while no box shows (the page mid-change)."""
+    snap = dom.snapshot(page)
+    if not any(c["visible"] for c in snap["controls"]):
+        return ""
+    return START if start_box(snap) else "after the start box"
+
+
 def from_snapshot(snap: dict) -> list[dict]:
     """Questions off the page as read; the start box named as one page whatever its heading (3 tenants,
     2 headings), any other by its first heading. The Next button is no question."""
@@ -158,14 +189,15 @@ def from_snapshot(snap: dict) -> list[dict]:
 
 def steps(snap: dict) -> list[str]:
     """The applicant's own steps on this page, in plain words - never done by us."""
-    said = [q["title"] for q in dom.questions(snap) if signs(q["title"])]
+    said = [q["title"] for q in dom.questions(snap) if q["title"].strip() and signs(q["title"])]
     out = [f"tick '{t}' yourself (agreeing or consenting)" for t in said]
     out += dom.user_steps(snap)
     if any(c["visible"] and c["type"] == "file" for c in snap["controls"]):
         out.append(RESUME_READ)
     if start_box(snap):
-        out.append("click Next yourself - your email goes to this employer then. What follows (sign in, a "
-                   "password, a new account with them) is unmeasured - every password and account is yours")
+        out.append("Next: their click, or fill's with continue_on_apply - their email goes to this employer then. What "
+                   "follows (sign in, a password, a new account with them) is unmeasured - every password and account "
+                   "is yours")
     return out
 
 
@@ -199,7 +231,12 @@ def holds(page, q: dict) -> bool:
     """The answer still shows, read off the page once the form had time to keep it (form.recheck), as
     icims.md "Read back (2026-10)" records it: dom.holds in the start box's own frame - the email box by
     its exact value. The privacy tick is the applicant's (never filled, never read as ours)."""
-    return not signs(q["title"]) and dom.holds(page, q)
+    if signs(q["title"]):
+        return False
+    if WIDGET_LINK.match(q["id"]):
+        found = dom.find(page, q["id"])
+        return bool(found) and dom.norm(found[2][0].inner_text()).casefold() == str(q.get("answer") or "").strip().casefold()
+    return dom.holds(page, q)
 
 
 def put_widget(frame, el, value) -> str:
@@ -229,15 +266,52 @@ def put_widget(frame, el, value) -> str:
     return "ok" if got.casefold() == want.casefold() else f"FAIL shows '{got}'"
 
 
+def put_resume(page, q: dict, resume_file: str | None) -> str:
+    """The resume box, then the wait while the form reloads with what the site read off the file: any box
+    typed before that is lost. No reload within RESUME_WAIT: goes on."""
+    moved = []
+
+    def note(_frame):
+        moved.append(time.monotonic())
+
+    page.on("framenavigated", note)
+    try:
+        said = dom.fill(page, q, resume_file, later=True)
+        if said != "ok":
+            return said
+        end = time.monotonic() + RESUME_WAIT
+        while time.monotonic() < end:
+            page.wait_for_timeout(250)
+            if moved and time.monotonic() - moved[-1] > RESUME_QUIET and boxes(page):
+                break
+    finally:
+        page.remove_listener("framenavigated", note)
+    return said
+
+
+def shows(el) -> str:
+    """What a box holds now; a list's placeholder (no value) is nothing."""
+    return dom.norm(el.evaluate("e => !e.value ? '' : e.tagName === 'SELECT' ? e.options[e.selectedIndex].text : e.value"))
+
+
 def fill(page, q: dict, resume_file: str | None) -> str:
-    if q.get("native", "").startswith("dom:select") and not signs(q["title"]) and q.get("answer") not in (None, ""):
-        found = dom.find(page, q["id"])
-        if found and found[2][0].get_attribute(WIDGET) == "1":
-            frame, info, members = found
-            if answers.fold(dom.title(info["label"])) != answers.fold(q["title"]):
-                return f"FAIL box label changed ('{dom.title(info['label'])}') - read the page again"
-            value = q["answer"]
-            if q["kind"] == "yesno":
-                value = "Yes" if dom.yes(value) else "No"
-            return put_widget(frame, members[0], value)
+    if q["kind"] == "file" and q.get("key") == "resume" and q.get("answer") is True and resume_file:
+        return put_resume(page, q, resume_file)
+    if q.get("answer") in (None, "") or signs(q["title"]):
+        return dom.fill(page, q, resume_file, later=True)
+    found = dom.find(page, q["id"])
+    if found is None:
+        return dom.fill(page, q, resume_file, later=True)
+    frame, info, members = found
+    linked = WIDGET_LINK.match(q["id"])
+    widget = linked or (q.get("native", "").startswith("dom:select") and members[0].get_attribute(WIDGET) == "1")
+    # rows the site filled from the resume come first, in its order: the answer was written for another row
+    if ROW.search(q["id"]) and (held := shows(members[0])) and held != dom.norm(str(q["answer"])):
+        return f"ASK iCIMS filled this row from the resume (shows '{held}') - left as it is, check it on the page"
+    if widget:
+        if answers.fold(dom.title(info["label"])) != answers.fold(q["title"]):
+            return f"FAIL box label changed ('{dom.title(info['label'])}') - read the page again"
+        value = "Yes" if q["kind"] == "yesno" and dom.yes(q["answer"]) else "No" if q["kind"] == "yesno" else q["answer"]
+        el = frame.query_selector(f'select[id="{linked.group(1)}"]') if linked else members[0]
+        return put_widget(frame, el, value) if el else f"FAIL the list behind '{q['title']}' isn't on the page"
     return dom.fill(page, q, resume_file, later=True)

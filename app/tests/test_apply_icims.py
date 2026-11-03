@@ -84,7 +84,7 @@ def test_start_box_read_in_its_frame_tick_captcha_next_left_to_the_applicant(at,
     out = capsys.readouterr().out
     assert "tick 'Yes, I agree to Acme Candidate Data Privacy Policy' yourself" in out
     assert "security check (captcha) - yours to do" in out
-    assert "click Next yourself - your email goes to this employer" in out and "every password and account is yours" in out
+    assert "their email goes to this employer then" in out and "every password and account is yours" in out
     assert icims.UNMEASURED not in out
 
 
@@ -120,7 +120,7 @@ def test_page_after_next_read_generically_password_consent_left(at, capsys):
     assert [q["title"] for q in qs if q["kind"] != "yesno"] == ["First Name"] and qs[0]["page"] == "Create Your Account"
     out = capsys.readouterr().out
     assert icims.UNMEASURED in out and "password box 'Password' - yours to type" in out
-    assert "(agreeing or consenting)" in out and "click Next yourself" not in out
+    assert "(agreeing or consenting)" in out and "their email goes to this employer" not in out
 
 
 def test_lists_marked_combobox_read_and_picked_as_lists(at, capsys):
@@ -138,6 +138,81 @@ def test_lists_marked_combobox_read_and_picked_as_lists(at, capsys):
     assert icims.holds(page, state | {"answer": "Ohio"})
     assert icims.fill(page, state | {"answer": "Ontario"}, None).startswith("ASK no option 'Ontario'")
     assert page.locator('[id="-1_PersonProfileFields.AddressState"] option:checked').inner_text() == "Ohio"
+
+
+def test_list_with_its_select_hidden_is_picked_through_its_link(at):
+    """Only the link reads as a box (2026-11-03): typed-into it failed 5 of 5 ("not an input")."""
+    page = at("profile-reload.html")
+    q = next(q for q in icims.read(page) if q["title"] == "Country")
+    assert q["native"] == "dom:a:combobox"
+    assert icims.fill(page, q | {"answer": "United States"}, None) == "ok"
+    assert page.locator('[id="-1_PersonProfileFields.AddressCountry"]').evaluate("e => e.options[e.selectedIndex].text") == "United States"
+    assert icims.holds(page, q | {"answer": "United States"})
+    assert not icims.holds(page, q | {"answer": "Canada"})
+    assert icims.fill(page, q | {"answer": "Peru"}, None).startswith("ASK no option 'Peru'")
+
+
+def test_reference_block_never_gets_the_applicants_own_name(at):
+    by = {q["title"]: q for q in icims.read(at("profile-reload.html"))}
+    assert by["Legal First Name"]["key"] == "legal_first"
+    assert by["First Name"]["key"] is None and by["Last Name"]["key"] is None
+    drafted = {a["title"]: a for a in questions.draft(list(by.values()), {"name": "Ada Lovelace", "email": "a@example.com"})}
+    assert questions.blank(drafted["First Name"].get("answer")) and questions.blank(drafted["Last Name"].get("answer"))
+
+
+def test_boxes_wait_for_the_reload_a_chosen_resume_brings(at, tmp_path, monkeypatch):
+    """Boxes typed before the reload were lost, and a row's answer landed on a row the site had filled."""
+    resume = tmp_path / "resume.pdf"
+    resume.write_bytes(b"%PDF-1.4")
+    page = at("profile-reload.html")
+    by = {q["title"]: q for q in icims.read(page)}
+    monkeypatch.setattr(icims, "RESUME_QUIET", 0.5)
+    assert icims.fill(page, by["Please upload your resume"] | {"answer": True}, str(resume)) == "ok"
+    assert "uploadResume=1" in page.url
+    assert icims.fill(page, by["Preferred First Name"] | {"answer": "Ada"}, None) == "ok"
+    page.wait_for_timeout(800)
+    assert page.locator("#pref").input_value() == "Ada"
+    # the row the site filled stays as it read it
+    said = icims.fill(page, by["Employer"] | {"answer": "Acme"}, None)
+    assert said.startswith("ASK iCIMS filled this row from the resume (shows 'Beta Corp')")
+    assert page.locator('[id="emp-1234"]').input_value() == "Beta Corp"
+
+
+def test_next_pressed_only_on_the_start_box_never_a_later_page(at):
+    from apply import form
+    start = at("start-box.html")
+    button = form.next_button(start, icims)
+    assert button is not None and button.get_attribute("value") == "Next"
+    assert icims.step(start) == icims.START
+    later = at("profile-reload.html")
+    assert form.next_button(later, icims) is None  # Submit Profile stays theirs
+    assert icims.step(later) == "after the start box"
+    assert form.next_button(at("next.html"), icims) is None
+
+
+def test_go_on_presses_next_on_the_start_box_and_waits_for_the_form(at):
+    from apply import form
+    page = at("start-box.html")
+    frame = page.frame_locator("#icims_content_iframe")
+    frame.locator("#enterEmailSubmitButton").evaluate(
+        "b => b.addEventListener('click', e => { e.preventDefault(); document.getElementById('email').name = 'moved'; })")
+    assert form.go_on(page, icims) is None
+    assert not icims.start_box(icims.dom.snapshot(page))
+    assert form.go_on(page, icims) == form.NO_WAY_ON
+
+
+def test_jibe_careers_site_names_the_form_behind_apply():
+    """Jibe pages carry the posting as data: its apply_url (7 of 7 that showed one, 2026-11-03)."""
+    from apply import careers_page
+
+    class Page:
+        status_code, url = 200, "https://acme.jibeapply.com/careers-home/jobs/12345"
+        text = '<script>{"req_id":"12345","apply_url":"https://careers-acme.icims.com/jobs/12345/login?utm_source=x","ats_code":"icims"}</script>'
+
+    assert careers_page.links(Page.text) == ["https://careers-acme.icims.com/jobs/12345/login?utm_source=x"]
+    assert careers_page.apply_link(Page.url, get=lambda *a, **k: Page) == Page.text.split('"apply_url":"')[1].split('"')[0]
+    Page.text = "<p>no posting here</p>"
+    assert careers_page.apply_link(Page.url, get=lambda *a, **k: Page) is None
 
 
 # --- read back ---
