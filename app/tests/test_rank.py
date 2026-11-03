@@ -829,11 +829,44 @@ def test_short_skill_read_off_tags_only():
 def test_avoided_skill_ranks_below_and_says_why():
     config = cfg.load(cfg.PROFILES / "frontend.yml")
     config["rank"]["avoid_skills"] = ["Java"]
-    java = _asking("java", "Strong Java and Spring Boot")
-    java.update(salary_min=300000, salary_currency="USD", salary_period="year")
-    ranked = rank.rank([java, _asking("react", "Strong React")], config)
-    assert [j["public_slug"] for j in ranked] == ["react", "java"]
+    asks = _asking("asks", "Strong Java and Spring Boot")
+    asks.update(salary_min=300000, salary_currency="USD", salary_period="year")
+    ranked = rank.rank([asks, _asking("react", "Strong React")], config)
+    assert [j["public_slug"] for j in ranked] == ["react", "asks"]
     assert "asks Java" in rank.reasons(ranked[1], config)
+
+
+@pytest.mark.parametrize("title, said", [
+    ("Java Full Stack Developer", "Java"), ("Sr. Software Engineer (Java/React)", "Java"), ("Core JAVA Engineer", "Java"),
+    ("JavaScript Engineer", None), ("Java Script Developer", None), ("Senior React Engineer", None)])
+def test_title_naming_avoided_skill(title, said):
+    job = dict(_asking("a", "Strong React"), title=title)
+    assert rank.title_avoided(job, ["Java"]) == said
+    assert rank.avoided(job, ["Java"]) == ([f"title says {said}"] if said else [])
+
+
+def test_title_avoided_never_on_a_short_name():
+    assert rank.title_avoided(dict(_asking("a"), title="Go-to-Market Engineer"), ["Go"]) is None
+
+
+def test_title_avoided_below_every_other_job_never_hidden():
+    config = cfg.load(cfg.PROFILES / "frontend.yml")
+    config["rank"]["avoid_skills"] = ["Java"]
+    java = dict(_asking("java", "Strong React"), title="Java Full Stack Developer",
+                salary_min=300000, salary_currency="USD", salary_period="year")
+    other = _asking("kafka", "Strong Kafka", "Strong Java and Spring Boot", "Strong Oracle")
+    ranked = rank.rank([java, other, _asking("react", "Strong React")], config)
+    assert [j["public_slug"] for j in ranked][-1] == "java"
+    assert "title says Java" in rank.reasons(ranked[-1], config)
+
+
+def test_age_limit_not_filled_by_acted_on_or_avoided_titles():
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 3, "age_min_jobs": 2, "age_widen_to": [7], "avoid_skills": ["Java"]}})
+    jobs = [make_job("ok", work_mode="remote", reality={"age_days": 1}),
+            make_job("sent", company="B", work_mode="remote", acting=1, reality={"age_days": 1}),
+            make_job("java", company="C", title="Java Developer", work_mode="remote", reality={"age_days": 1}),
+            make_job("older", company="D", work_mode="remote", reality={"age_days": 6})]
+    assert rank.age_limits(rank.collapse(rank.unaged(jobs, config, NOW)), config["rank"], NOW)["remote"] == 7
 
 
 @pytest.mark.parametrize("line, flagged", [

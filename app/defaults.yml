@@ -144,10 +144,12 @@ rank:
   # "I don't want to see jobs older than 3 days ... if not enough jobs expand"
   max_age_days: 3
   # a list (remote, nearby - best.lists) holding fewer than age_min_jobs live jobs that pass every other
-  # filter at that age => its own limit widens to the next of age_widen_to, then no limit. 10 = one
-  # Today list. 0 = never widen. Owner's list 2026-10-27, remote / nearby at 1, 3, 7 days: 25/15,
-  # 45/34, 94/51 => a busy search stays at 3; a small one fills up from older jobs
-  age_min_jobs: 10
+  # filter at that age => its own limit widens to the next of age_widen_to, then no limit. 20 = one
+  # Today list (owner 2026-11-03: "20 for remote and 20 for nearby for everybody"); jobs they already acted
+  # on and titles naming an avoid_skills skill don't count, neither shows there. 0 = never widen. Owner's
+  # list 2026-10-27, remote / nearby at 1, 3, 7 days: 25/15, 45/34, 94/51 => a busy search stays at 3; a
+  # small one fills up from older jobs
+  age_min_jobs: 20
   age_widen_to: [5, 7, 14, 30]
   # freehire `reality`: relisted this often (earlier copies that closed = repost_count less
   # mass_posting_count; copies open at once are one role in several places), or listed this many
@@ -172,8 +174,8 @@ rank:
   # blocklist.software_kinds hides by title. [] = any. 2026-10-09, front-end + full-stack: 2,000 of
   # 2,000 titles in those categories kept, 97-99% of back-end / mobile / embedded flagged
   software_kinds: []
-  # skills they'd rather not work in, as they say them ([Java]): a job whose required lines name one
-  # sorts lower w/ "asks Java", never hidden - a line offering a choice ("Python, Node.js, or Java") and
+  # skills they'd rather not work in, as they say them ([Java]): a title naming one goes after every other
+  # job w/ "title says Java"; a job whose required lines name one sorts lower w/ "asks Java", never hidden - a line offering a choice ("Python, Node.js, or Java") and
   # a wish ("Java a plus") don't count; a posting listing no requirements counts on the job search's own
   # skill tags ("lists Java"). Whole names: Java never inside JavaScript. [] = none (rank.avoided)
   avoid_skills: []

@@ -462,14 +462,26 @@ def skill_named(skill: str) -> re.Pattern:
 CHOICE = re.compile(r"(?i)\bor\b|\bat least one\b|\bone or more\b|\bany of\b|\be\.g\.|\bsuch as\b|\blike\b|\bsimilar\b|\betc\b")
 
 
+def title_avoided(job: dict, skills: list[str] | None) -> str | None:
+    """The skill they'd rather not work in (rank.avoid_skills) that the title names: the job is that work, so
+    it goes after every other job - one demerit left "Java Full Stack Developer" at #7 and #8 of a React
+    user's remote list (2026-11-03, 9 of 11 asks met by word overlap, $128k-173k, posted today). Never hidden.
+    A name of two letters or less never counts: "Go-to-Market Engineer" isn't Go."""
+    title = job.get("title") or ""
+    return next((s for s in skills or [] if len(s) > 2 and skill_named(s).search(title)), None)
+
+
 def avoided(job: dict, skills: list[str] | None) -> list[str]:
-    """One reason when the job asks a skill they'd rather not work in (rank.avoid_skills): a required line
+    """One reason when the job asks a skill they'd rather not work in (rank.avoid_skills): its title naming it,
+    a required line
     naming it, wishes cut ("Java a plus" asks nothing) and never one offering a choice - or, no required
     lines, the job search's skill tags. A name of two letters or less ("Go", "R") is read off the tags
     only: "go to market" isn't Go. 2026-10-12, a front-end list, Java: 31 of 161 open jobs flagged, 17 of
     them only on a choice ("Python, Node.js, or Java") - those cut; no JavaScript line ever read as Java."""
     if not skills:
         return []
+    if named := title_avoided(job, skills):
+        return [f"title says {named}"]
     import best  # imports this module
     listed = required_lines(job)
     lines = [a for t in listed if (a := best.asked(t)) and not CHOICE.search(a)]
@@ -944,6 +956,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
     #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
+    # title naming a skill they avoid - that work is the job, so below any job that isn't;
     # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one /
     #   a clearance the user can't hold / a required licence their resume never names:
     #   a trustworthy fitting job beats any pay;
@@ -956,6 +969,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept.sort(key=lambda j: (
         tiers.get(j["tier"], len(tiers)),
         bool(j["stale"]),
+        bool(title_avoided(j, rc.get("avoid_skills"))),
         # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
         # reposted, many copies open, "always hiring" text), so they count once
         demerits(j, config),
@@ -998,14 +1012,15 @@ def list_of(job: dict) -> str:
 def age_limits(jobs: list[dict], rc: dict, now: datetime) -> dict[str, int | None]:
     """Each list's age cutoff: rank.max_age_days, widened through age_widen_to (then none) while the
     list holds fewer than age_min_jobs live jobs the pay filter keeps - a thin search still fills
-    up, a busy one stays fresh (owner 2026-10-27). jobs = rows past every other filter, collapsed."""
+    up, a busy one stays fresh (owner 2026-10-27). Jobs already acted on (`acting`) and titles naming an
+    avoided skill don't fill it: neither shows on a Today list. jobs = rows past every other filter, collapsed."""
     limit, want = rc.get("max_age_days"), rc.get("age_min_jobs") or 0
     if limit is None:
         return {}
     steps = [limit, *[d for d in rc.get("age_widen_to") or [] if d > limit], None] if want else [limit]
     ages = defaultdict(list)
     for j in jobs:
-        if not j["stale"] and not pay_hidden(j, rc):
+        if not j["stale"] and not j.get("acting") and not pay_hidden(j, rc) and not title_avoided(j, rc.get("avoid_skills")):
             ages[list_of(j)].append(age(j, now))
     return {k: next((s for s in steps if s is None or sum(d is None or d <= s for d in v) >= want), steps[-1])
             for k, v in {"remote": ages["remote"], "nearby": ages["nearby"]}.items()}

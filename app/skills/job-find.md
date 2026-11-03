@@ -64,8 +64,8 @@ missing -> `job-setup` skill instead.
      coders", "I'm not hands-on") -> `rank.engineer_background: false`: those sort lower w/ "asks an
      engineer's background", never hidden (`job-setup` #Project + program management); confirm in one line
    - jobs asking a skill they don't want ("no Java jobs", "every job wants Java") -> `rank.avoid_skills`
-     (their word, e.g. `[Java]`): a required line naming it sorts the job lower w/ "asks Java", never
-     hidden; whole names only, so JavaScript never counts as Java. Count first: `rank --best` before and
+     (their word, e.g. `[Java]`): a required line naming it sorts the job lower w/ "asks Java", a title
+     naming it goes after every other job w/ "title says Java", never hidden; whole names only, so JavaScript never counts as Java. Count first: `rank --best` before and
      after, say "N of M open jobs sort lower"
    - "too many irrelevant jobs" -> group the open titles by kind of work (back-end, data / AI,
      managers, mobile, testing), count each w/ `rank --would-hide`, ONE clickable multiSelect w/

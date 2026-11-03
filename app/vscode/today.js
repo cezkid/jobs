@@ -26,7 +26,7 @@ const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
 const BLOCKERS = new Set(["import", "morning"]);
 // sections past this many jobs draw as one-line rows; new jobs always do, 10 shown, rest in the chat
 const ROWS_AFTER = 4;
-const BEST_SHOWN = 10;
+const BEST_SHOWN = 20;
 // best-next lists: one ("best"), or Today's two - remote + near them (app/today.py BEST_LISTS); each its own "more" words
 const BEST_MORE = { best: "more_best", best_remote: "more_remote", best_nearby: "more_nearby" };
 const isBest = (id) => Object.prototype.hasOwnProperty.call(BEST_MORE, id);

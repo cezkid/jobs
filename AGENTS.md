@@ -65,7 +65,7 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   closest come back, marked); no-pay-listed stays unless they choose. Changing it = narrowing:
   `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
 - Jobs first seen over 3 days ago are hidden (`rank.max_age_days`) unless a list (remote / nearby)
-  holds under 10 - then that list alone widens to 5, 7, 14, 30 days, then all (`age_min_jobs`,
+  holds under 20 - then that list alone widens to 5, 7, 14, 30 days, then all (`age_min_jobs`,
   `age_widen_to`). "Show older jobs" / "only today's" -> set `max_age_days` in their search settings.
 - Jobs a staffing firm posted say "staffing firm" + sort lower; "hide recruiters" -> count first
   (`rank --staffing`), then `blocklist.staffing: true` (`job-find`). One not naming the employer

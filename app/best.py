@@ -656,8 +656,18 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None, by_
         out.append(dict(j, best=round(total, 6), best_parts=parts,
                         best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config, facts),
                                     "years_only": years_only(j, facts, counted), "office": office}))
-    group = windows(out, now, bn["fresh_windows"], bn["fresh_enough"])
-    out.sort(key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
+    # a title naming a skill they avoid goes after every other job, whatever its score (rank.title_avoided):
+    # taken out before the freshest window's lead picks, or it can hold one
+    skills = config["rank"].get("avoid_skills")
+    last = [j for j in out if rank.title_avoided(j, skills)]
+    keep = [j for j in out if not rank.title_avoided(j, skills)]
+    return in_order(keep, now, bn) + in_order(last, now, bn)
+
+
+def in_order(jobs: list[dict], now: datetime, bn: dict) -> list[dict]:
+    """Scored jobs: freshest window first (`windows`), best first inside it, employers spread (`spread`)."""
+    group = windows(jobs, now, bn["fresh_windows"], bn["fresh_enough"])
+    out = sorted(jobs, key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
     repeat, twin = bn.get("repeat", 0), bn.get("twin", 0)
     if lead := bn.get("fresh_first"):
         # the first picks come from the freshest window, the rest by score at any age (2026-10-12): with

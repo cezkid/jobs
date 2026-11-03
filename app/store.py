@@ -222,7 +222,8 @@ def drop_closed(conn: sqlite3.Connection, before: str) -> int:
 
 def all_jobs(conn: sqlite3.Connection, include_closed: bool = False) -> list[dict]:
     sql = ("SELECT jobs.*, seen.alerted_at, companies.nonprofit AS company_nonprofit,"
-           " companies.staffing AS company_staffing FROM jobs"
+           " companies.staffing AS company_staffing,"
+           " jobs.public_slug IN (SELECT public_slug FROM applications) AS acting FROM jobs"
            " LEFT JOIN seen USING (public_slug) LEFT JOIN companies ON companies.slug = jobs.company_slug")
     if not include_closed:
         sql += " WHERE closed_at IS NULL"

@@ -109,6 +109,14 @@ def test_seniority_two_rungs_up_halves_asks():
 
 
 # their "remote first" ignored: an onsite job topped the list
+def test_title_naming_avoided_skill_goes_last_and_takes_no_lead_pick():
+    config = cfg.merge(CONFIG, {"rank": {"avoid_skills": ["Java"]}})
+    java = job("java", ["Strong Java"], days=0, title="Java Full Stack Developer", salary_min=400000, salary_max=500000,
+               salary_currency="USD", salary_period="year")
+    others = [job(f"o{i}", days=1 + i, company=f"Co {i}") for i in range(6)]
+    assert order([java, *others], config=config)[-1] == "java"
+
+
 def test_where_follows_their_own_tier_order():
     remote, local = job("remote"), job("local", tier="local", work_mode="onsite", cities=["Springfield"])
     assert best.where(remote, cfg.tier_order(CONFIG)) == 1.0 and best.where(local, cfg.tier_order(CONFIG)) == 0.0
