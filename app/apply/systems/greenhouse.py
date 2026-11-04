@@ -75,6 +75,7 @@ EDUCATION_ENTRIES = True
 SEARCHED_AS_TYPED = ("school", "degree", "discipline")
 # the page's Add another for schools (the Employment section has its own)
 ADD_SCHOOL = ".education--container .add-another-button"
+EDUCATION_ROW = ".education--container .education--form"
 # how long a list gets to show options; a searched one, to show the answer once the whole words are in
 LIST_WAIT_MS = 8000
 
@@ -231,6 +232,19 @@ def by_id(page, id: str):
     return page.locator(f'[id="{id}"]').first
 
 
+def box_for(page, q: dict):
+    """The question's box. Education: by its school's place in the section, never its number - signed in to
+    MyGreenhouse, the first focus on any box rebuilds the rows from the saved profile as --1, --2 (a fresh page:
+    --0, --1; measured 2026-11-04), and the id would put the second school in the first row."""
+    if q.get("native") == "education":
+        rows = page.locator(EDUCATION_ROW)
+        entry = q.get("entry") or 0
+        prefix = q["id"].rsplit("--", 1)[0]
+        if rows.count() > entry and (box := rows.nth(entry).locator(f'input[id^="{prefix}--"]').first).count():
+            return box
+    return by_id(page, q["id"])
+
+
 def digits(s: str) -> str:
     return re.sub(r"\D", "", s)
 
@@ -346,7 +360,7 @@ def holds(page, q: dict) -> bool:
     if boxes.count():
         want = wanted(value)
         return all((n in want) == t for n, t in zip(box_names(boxes), boxes.evaluate_all("bs => bs.map(b => b.checked)")))
-    field = by_id(page, q["id"])
+    field = box_for(page, q)
     if not field.count():
         return False
     if field.get_attribute("role") == "combobox":
@@ -365,7 +379,7 @@ def add_school(page, entry: int) -> None:
     """School `entry`'s boxes come with the Education section's own Add another, one entry a click."""
     more = page.locator(ADD_SCHOOL).first
     for _ in range(entry):
-        if page.locator(".education--container .education--form").count() > entry or not more.count():
+        if page.locator(EDUCATION_ROW).count() > entry or not more.count():
             return
         more.click()
         page.wait_for_timeout(300)
@@ -391,9 +405,9 @@ def fill(page, q: dict, resume_file: str | None) -> str:
         if not page.locator(f'input[type=file][id="{q["id"]}"]').count():
             return "FAIL question not on page"
         return put_file(page, q, resume_file) if value is True and resume_file else "skipped - upload not approved"
-    field = by_id(page, q["id"])
-    if not field.count() and q.get("native") == "education" and q.get("entry"):
+    if q.get("native") == "education" and q.get("entry"):
         add_school(page, q["entry"])
+    field = box_for(page, q)
     if not field.count():
         # Race shows only after Hispanic/Latino = No; others only for some answers
         return "skipped - not shown for the other answers" if q.get("native") == "self-id" else "FAIL question not on page"
