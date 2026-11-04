@@ -247,6 +247,31 @@ def test_greenhouse_dropdown_the_page_empties_is_filled_again_or_flagged(page, m
     assert shown == [["Canada"], ["No"], []]
 
 
+def test_greenhouse_education_rows_renumbered_by_mygreenhouse(page, monkeypatch):
+    """Signed in to MyGreenhouse, the first focus rebuilds the rows as --1, --2 (measured 2026-11-04): each school
+    still goes in its own row, by place. By id, the first school's boxes were "not on page" and the second's went in
+    row one over what the profile had put there."""
+    monkeypatch.setattr(form, "SETTLE_MS", 500)
+    page.goto("https://acme.example/greenhouse-education.html")
+    page.locator(greenhouse.ADD_SCHOOL).first.click()
+    page.evaluate("""() => { for (const i of [1, 0]) for (const b of document.querySelectorAll(`[data-entry="${i}"] [id$="--${i}"]`))
+        b.id = b.id.replace(/--\\d+$/, `--${i + 1}`) }""")
+    lists = {"degree": ["Associate's Degree", "Bachelor's Degree"]}
+    asked = [questions.question(f"{box}--{i}", f"Education {i + 1}: {title}", "choice", False, lists.get(key, []), key,
+                                "education", entry=i)
+             for i in (0, 1) for box, title, key in (("school", "School", "school"), ("degree", "Degree", "degree"))]
+    drafted = questions.draft(asked, {}, schools=[
+        {"institution": "University of California, Berkeley", "degree": "BA", "field": "Economics"},
+        {"institution": "Massachusetts Institute of Technology", "degree": "AA", "field": "Other"}])
+    report, _ = form.fill_page(page, greenhouse, drafted, None, None)
+    assert report == [(q["id"], "ok") for q in drafted]
+    rows = page.locator(greenhouse.EDUCATION_ROW)
+    assert rows.count() == 2
+    shown = [[greenhouse.picked(rows.nth(i).locator(f'input[id^="{b}--"]').first) for b in ("school", "degree")] for i in (0, 1)]
+    assert shown == [[["University of California - Berkeley"], ["Bachelor's Degree"]],
+                     [["Massachusetts Institute of Technology"], ["Associate's Degree"]]]
+
+
 def test_greenhouse_education_filled_per_school_from_resume_details(page, monkeypatch):
     """Education boxes drafted from Resume details, filled in Chrome (the window runs the same greenhouse.fill,
     plan-29g.26): the school picked off Greenhouse's searched list by its words ("..., Berkeley" = "... -
