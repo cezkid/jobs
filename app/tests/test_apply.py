@@ -16,8 +16,9 @@ def master() -> dict:
 
 
 def test_degree_tries_the_spelled_out_name_then_the_generic_entry():
-    assert profile.degree("BA") == ["Bachelor of Arts", "BA", "Bachelor's degree"]
-    assert profile.degree("Associate of Arts") == ["Associate of Arts", "Associate's degree"]
+    assert profile.degree("BA") == ["Bachelor of Arts", "BA", "Bachelor's degree", "Bachelors"]
+    assert profile.degree("Associate of Arts") == ["Associate of Arts", "Associate's degree", "Associates"]
+    assert "Masters" in profile.degree("Master of Science")
     assert profile.degree("GED") == ["GED"]
 
 

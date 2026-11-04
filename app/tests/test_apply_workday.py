@@ -558,3 +558,74 @@ def test_a_passed_steps_box_is_later_never_filled_on_the_next_step(page):
     workday.inject(page)
     assert workday.fill(page, passed, None).startswith("LATER")
     assert page.input_value("#q--pay") == ""
+
+
+# --- a Workday tenant (2026-11-04): popups that stay in the page, questions drawn after the step's name, a date's error ---
+
+STEP_2 = '<div data-automation-id="progressBarActiveStep">current step 5 of 7 Application Questions 2 of 2</div>'
+STAYING_MENUS = STEP_2 + """
+<div data-jf-id="a"><button id="a">Select One</button></div>
+<div data-jf-id="b"><button id="b">Select One</button></div>
+<script>
+  const list = {a: ["Bloomberg", "Yes"], b: ["Yes", "No"]};
+  for (const id of ["a", "b"]) document.getElementById(id).onclick = () => {
+    const l = document.createElement("div");
+    l.setAttribute("role", "listbox");
+    l.innerHTML = list[id].map((o) => `<div role="option">${o}</div>`).join("");
+    l.querySelectorAll("[role=option]").forEach((o) => o.onclick = () => { document.getElementById(id).textContent = o.textContent; l.dataset.from = id; });
+    document.body.append(l);
+  };
+</script>"""
+
+
+def test_a_menus_options_never_the_popups_left_from_menus_before(page):
+    page.set_content(STAYING_MENUS)
+    assert workday.menu_options(page, {"id": "a"}) == ["Bloomberg", "Yes"]
+    assert workday.menu_options(page, {"id": "b"}) == ["Yes", "No"]
+
+
+def test_a_menu_answer_clicked_in_its_own_popup_never_a_left_one(page):
+    page.set_content(STAYING_MENUS)
+    workday.menu_options(page, {"id": "a"})
+    assert workday.put_menu(page, workday.box(page, "b"), "Yes") == "ok"
+    assert page.inner_text("#b") == "Yes" and page.inner_text("#a") == "Select One"
+
+
+def test_a_menu_reusing_its_popup_still_reads(page, monkeypatch):
+    monkeypatch.setattr(workday, "MENU_NEW_MS", 200)
+    page.set_content('<div data-jf-id="a"><button>Select One</button></div>'
+                     '<div role="listbox"><div role="option">Yes</div><div role="option">No</div></div>')
+    assert workday.menu_options(page, {"id": "a"}) == ["Yes", "No"]
+
+
+def test_a_step_whose_questions_draw_after_its_name_is_read_whole(page):
+    page.set_content(STEP_2 + """<div id="q"></div><script>setTimeout(() => { document.getElementById("q").innerHTML =
+        '<div data-automation-id="formField-a"><label for="a">Are you 18 years of age or older?</label><input id="a"></div>'; }, 600);</script>""")
+    assert [q["title"] for q in workday.read(page)] == ["Are you 18 years of age or older?"]
+
+
+def date_page(page, clears_after: int):
+    """A date's month + year boxes, "Invalid Date" under it until left `clears_after` times. Keys replace what a
+    box holds, as Workday's spin boxes took them on the hand retype (2026-11-04)."""
+    page.set_content(f"""<div data-automation-id="formField-endDate">
+      <input id="m" data-automation-id="dateSectionMonth-input"><input id="y" data-automation-id="dateSectionYear-input">
+      <div id="e">Error: Invalid Date: /2013</div></div><button id="after">x</button>
+      <script>window.left = 0;
+        for (const b of [m, y]) {{ b.onfocus = () => b.select(); b.onclick = () => b.select(); }}
+        m.oninput = () => {{ if (m.value.length === 2) y.focus(); }};
+        y.onblur = () => {{ if (++window.left >= {clears_after}) e.textContent = ""; }};</script>""")
+    page.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    page.evaluate("""() => { window.__jf.S.dates = [{area: 'Work 6', name: 'To', keys: '122013',
+                                                     get: () => document.getElementById('m')}]; }""")
+
+
+def test_a_date_showing_an_error_typed_again(page):
+    date_page(page, clears_after=2)
+    assert workday.type_dates(page) == []
+    assert page.input_value("#m") == "12" and page.input_value("#y") == "2013"
+    assert page.inner_text("#e") == "" and page.evaluate("window.left") == 2
+
+
+def test_a_date_still_in_error_is_named(page):
+    date_page(page, clears_after=99)
+    assert workday.type_dates(page) == ["FAIL Work 6 > To: shows '122013' - type it by hand"]

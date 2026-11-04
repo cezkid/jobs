@@ -44,6 +44,7 @@ READY = f"{STEP}, {APPLY}"
 NEXT = '[data-automation-id="pageFooterNextButton"]'
 # the start choices after Apply (tenant G 2026-10-14, tenant H 2026-10-22)
 STARTS = ["Autofill with Resume", "Apply Manually", "Use My Last Application"]
+MENU_WAIT_MS, MENU_NEW_MS, SETTLE_MS, DATE_RETRIES = 4000, 1500, 5000, 2
 START, EXPERIENCE, RESUME, AUTOFILL_RESUME = "workday-start", "workday-experience", "workday-resume", "workday-autofill-resume"
 SIGN_IN = re.compile(r"create account|sign in", re.I)
 REVIEW = re.compile(r"^review$", re.I)
@@ -200,13 +201,28 @@ def box(page, id: str):
     return page.locator(f'[data-jf-id="{id}"]').first
 
 
+def open_menu(page, btn):
+    """Click a menu open -> its own options. Lists already showing stay out: an earlier menu's popup stays in the
+    page (Yes, No, Yes, No; How Did You Hear's options under State, a Workday tenant 2026-11-04), a picked pill is
+    an option too. No new list -> the one this menu reused, the last shown."""
+    page.evaluate("() => document.querySelectorAll('[role=listbox]').forEach((l) => l.getClientRects().length"
+                  " ? l.setAttribute('data-jf-old', '') : l.removeAttribute('data-jf-old'))")
+    btn.click()
+    fresh = page.locator('[role="listbox"]:not([data-jf-old]) [role="option"]:visible')
+    try:
+        fresh.first.wait_for(timeout=MENU_NEW_MS)
+        return fresh
+    except Exception:
+        reused = page.locator('[role="listbox"]:visible').last.locator('[role="option"]:visible')
+        reused.first.wait_for(timeout=MENU_WAIT_MS - MENU_NEW_MS)
+        return reused
+
+
 def menu_options(page, f: dict) -> list[str]:
     """A menu's options exist only while it is open: opened (a real click), read, closed with Escape."""
     btn = box(page, f["id"]).locator("button").first
     try:
-        btn.click()
-        opts = page.locator('[role="listbox"] [role="option"]:visible')
-        opts.first.wait_for(timeout=4000)
+        opts = open_menu(page, btn)
         return [t.strip() for t in opts.all_inner_texts() if t.strip() and not PLACEHOLDER.match(t.strip())]
     except Exception:
         return []
@@ -258,6 +274,19 @@ def as_question(page, f: dict, on: str, options: bool) -> dict:
     return question(f["id"], title, kind, f["required"], opts, key, native=f["kind"], page=on)
 
 
+def settled_fields(page) -> None:
+    """A step's name shows before its questions draw: read then, the step had none and `fill` pressed Save and
+    Continue on it, blank (a Workday tenant, Application Questions 2 of 2, 2026-11-04). Wait for the same count
+    twice; a step with none really gets SETTLE_MS."""
+    last = -1
+    for _ in range(SETTLE_MS // 250):
+        n = len(shown_fields(page))
+        if n and n == last:
+            return
+        last = n
+        page.wait_for_timeout(250)
+
+
 def read(page) -> list[dict]:
     """The step the user's tab is on. Before the steps (posting page: the start choice; the sign-in) and
     the Review step, nothing else is the program's to fill."""
@@ -287,6 +316,7 @@ def read(page) -> list[dict]:
                          "(Workday keeps them once the user clicks Save and Continue)", "yesno", False, ["Yes", "No"],
                          native="experience", page=on)] + \
                ([question(RESUME, "Resume/CV", "file", True, key="resume", native="file", page=on)] if resume else [])
+    settled_fields(page)
     return [as_question(page, f, on, options=True) for f in shown_fields(page)]
 
 
@@ -443,9 +473,22 @@ def type_dates(page) -> list[str]:
         page.keyboard.type(t["keys"], delay=40)
         page.wait_for_timeout(150)
     page.keyboard.press("Tab")
+    # Save said "Invalid Date: /2013" over a date that showed 12/2013 until it was typed again (tenant P; a
+    # Workday tenant 2026-11-04): typed over, as it stands, with no clearing first
+    for _ in range(DATE_RETRIES):
+        targets = json.loads(page.evaluate("() => window.__jf.dateTargets()"))
+        bad = [t for t in targets if not t.get("missing") and page.evaluate("(i) => window.__jf.dateError(i)", t["i"])]
+        if not bad:
+            break
+        for t in bad:
+            t = json.loads(page.evaluate("() => window.__jf.dateTargets()"))[t["i"]]
+            page.mouse.click(t["x"], t["y"])
+            page.keyboard.type(t["keys"], delay=40)
+            page.keyboard.press("Tab")
+            page.wait_for_timeout(300)
     for t in json.loads(page.evaluate("() => window.__jf.dateTargets()")):
         shown = page.evaluate("(i) => window.__jf.dateShown(i)", t["i"])
-        if not t.get("missing") and shown != t["keys"]:
+        if not t.get("missing") and (shown != t["keys"] or page.evaluate("(i) => window.__jf.dateError(i)", t["i"])):
             out.append(f"FAIL {t['area']} > {t['name']}: shows '{shown}' - type it by hand")
     return out
 
@@ -464,11 +507,9 @@ def put_text(page, b, value: str) -> str:
 
 def put_menu(page, b, value: str) -> str:
     btn = b.locator("button").first
-    btn.click()
-    option = page.locator('[role="listbox"] [role="option"]:visible').filter(
-        has_text=re.compile(rf"^\s*{re.escape(value)}\s*$"))
     try:
-        option.first.wait_for(timeout=4000)
+        option = open_menu(page, btn).filter(has_text=re.compile(rf"^\s*{re.escape(value)}\s*$"))
+        option.first.wait_for(timeout=MENU_WAIT_MS)
     except Exception:
         page.keyboard.press("Escape")
         return f"ASK no option '{value}'"

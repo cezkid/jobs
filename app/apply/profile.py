@@ -18,8 +18,9 @@ from resume import render, schema, tailor
 FILLER = Path(__file__).with_name("workday.js")
 # spelled-out degree -> the generic entry forms list when the exact one is missing
 # (tenant A lists "A. - Associate's degree", no "Associate of Arts")
-DEGREE_FAMILY = {"Associate": ["Associate's degree"], "Bachelor": ["Bachelor's degree"],
-                 "Master": ["Master's degree", "Masters degree"], "Doctor": ["Doctorate", "Professional Doctorate"],
+# (a Workday tenant lists bare "Associates" / "Bachelors" / "Masters", 2026-11-04)
+DEGREE_FAMILY = {"Associate": ["Associate's degree", "Associates"], "Bachelor": ["Bachelor's degree", "Bachelors"],
+                 "Master": ["Master's degree", "Masters degree", "Masters"], "Doctor": ["Doctorate", "Professional Doctorate"],
                  "Juris": ["Doctor of Jurisprudence"]}
 # level words forms offer, each tier = interchangeable wordings. A missing level falls back only
 # inside its own tier: never lower (tenant A offers only Conversational or Fluent; Native -> Fluent)
