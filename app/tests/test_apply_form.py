@@ -265,6 +265,49 @@ def test_work_permit_only_for_the_same_us_question():
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
 
 
+# a Workday form, 2026-11-04: green card holder asked on every form; its yes/no questions are menus, kind "choice"
+def test_work_permit_any_wording_of_the_us_question():
+    free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
+    menu = ["Yes", "No", "Yes", "No"]
+    asked = [q("Are you eligible to work in the US?", "yesno"),
+             q("Do you have the legal right to work in the United States?", "yesno"),
+             q("Will you now or in the future require sponsorship to legally work in the US for the position?", "choice", options=menu)]
+    assert [a["answer"] for a in questions.draft(asked, CONTACT, config=free)] == ["Yes", "Yes", "No"]
+    visa = {"work_authorization": {"authorized_us": True, "needs_sponsorship": True}}
+    assert questions.draft(asked[:2], CONTACT, config=visa)[0]["answer"] is None
+    student = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False, "student_visa": True}}
+    assert questions.draft(asked[:2], CONTACT, config=student)[1]["answer"] is None
+    other = [q("Are you eligible to work in Canada?", "yesno"), q("Are you authorized to work for this employer only?", "yesno"),
+             q("Are you authorized to work? Tell us about it", "yesno"),
+             q("Are you authorized to work in the US on a visa?", "yesno")]
+    assert [a["answer"] for a in questions.draft(other, CONTACT, config=free)] == [None] * 4
+
+
+def test_country_the_job_is_in_is_the_us_question_only_for_a_us_job():
+    free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
+    asked = [q("Are you eligible to work in the country in which this position is located?", "yesno"),
+             q("Are you legally authorized to work in the country where the job is located without any restrictions?", "yesno"),
+             q("Will you now, or in the future, require sponsorship to work in the country where the job is located?", "yesno")]
+    assert [a["answer"] for a in questions.draft(asked, CONTACT, config=free, job_in_us=True)] == ["Yes", "Yes", "No"]
+    assert [a["answer"] for a in questions.draft(asked, CONTACT, config=free)] == [None] * 3
+    student = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False, "student_visa": True}}
+    assert questions.draft(asked[:1], CONTACT, config=student, job_in_us=True)[0]["answer"] is None
+
+
+def test_job_in_us_reads_the_job_list(tmp_path, monkeypatch):
+    import cfg
+    import store
+    db = tmp_path / "jobs.db"
+    conn = store.connect(db)
+    rows = [("here", ["ca", "us"]), ("away", ["ca"]), ("unknown", [])]
+    store.upsert(conn, [{"public_slug": s, "tier": "1", "title": "T", "url": f"https://x/{s}", "countries": c} for s, c in rows],
+                 "2026-11-04T00:00:00Z")
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(cfg, "db_path", lambda config: db)
+    assert [form.job_in_us({}, s) for s in ("here", "away", "unknown", "pasted")] == [True, False, False, False]
+
+
 # a Greenhouse form, 2026-10-27: filled "No" from needs_sponsorship: false - its Yes is the opposite
 def test_authorized_without_sponsorship_is_yes_when_none_needed():
     title = ("Are you legally authorized to work in the United States for Acme on a full-time basis, without "

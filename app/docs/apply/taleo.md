@@ -71,7 +71,7 @@ select is a yes/no question once it's left out).
 | Country, State/Province, Nearest Metropolitan Area/City (selects), Street (line 1), line 2, City, Zip | `home_address` in search settings (named to the user), else asked. Plain text boxes: known by their words (`CONTACT`) - no type or autocomplete on them |
 | Email Address | resume |
 | Employer's own questions (conflict of interest `[COI1A]` ... `[COI6B]`, `[LEGAL1-3]`) | Yes/No selects + "If this does not apply, type NA" boxes; codes in brackets stripped from the words. Asked |
-| Work permit: "legally authorized to work in the country where the job is located without any restrictions", "now, or in the future, require sponsorship to work in the country where the job is located" | not the US question word for word ("country where the job is located") -> asked with choices, never filled from setup (job-apply hard limits) |
+| Work permit: "legally authorized to work in the country where the job is located without any restrictions", "now, or in the future, require sponsorship to work in the country where the job is located" | the US question when the job search lists the job in the US -> filled from setup; any other job, a pasted posting or a visa holder -> asked with choices (job-apply hard limits) |
 | A tick set ("Choose all applicable fields" - Deloitte / Baker Tilly / KPMG / None of the above) | no legend: its words are the smallest block around it (`TITLES`) |
 
 ### 3 Education and Experience

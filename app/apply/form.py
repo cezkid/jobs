@@ -266,7 +266,7 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
         asked = readahead.as_questions(form)
     else:  # one set of Education boxes per school on the resume (Greenhouse's Add another)
         asked = system.questions(url, len(schools)) if getattr(system, "EDUCATION_ENTRIES", False) else system.questions(url)
-    answers = drafted(config, master, asked, before, reads)
+    answers = drafted(config, master, asked, before, reads, slug)
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
     where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
@@ -303,12 +303,26 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
           f"there; one the user chooses to type on the page: blank, source '{questions.SIGN_ON_PAGE}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}{flag if system else ''}")
 
 
-def drafted(config: dict, master: dict, asked: list[dict], before: list[dict], reads: bool) -> list[dict]:
+def job_in_us(config: dict, slug: str) -> bool:
+    """The job search lists this job in the US. A pasted posting has no row: False, its country stays asked."""
+    import store
+    conn = store.connect(cfg.db_path(config))
+    try:
+        row = conn.execute("SELECT countries FROM jobs WHERE public_slug = ?", (store.key_for(conn, slug),)).fetchone()
+    except LookupError:
+        return False
+    finally:
+        conn.close()
+    return bool(row and row["countries"]) and "us" in json.loads(row["countries"])
+
+
+def drafted(config: dict, master: dict, asked: list[dict], before: list[dict], reads: bool, slug: str) -> list[dict]:
     """The form's questions answered from the resume, search settings and saved answers; a system read
     page by page keeps the pages read before (questions.merge)."""
     keeping = config.get("saved_answers")
     answers = questions.draft(asked, master["contact"], before, config, master.get("career_break"),
-                              saved_answers.load() if keeping else [], master.get("education") or [])
+                              saved_answers.load() if keeping else [], master.get("education") or [],
+                              any(questions.JOB_COUNTRY.search(q["title"].casefold()) for q in asked) and job_in_us(config, slug))
     return questions.merge(before, answers) if reads else answers
 
 
@@ -447,7 +461,7 @@ def fill(slug: str, in_window: bool = False) -> None:
             moved += 1
             questions.save(saved, data)
             if master is not None:  # the next page's questions, answered from what's on file
-                data["questions"] = drafted(config, master, system.read(page), data["questions"], True)
+                data["questions"] = drafted(config, master, system.read(page), data["questions"], True, slug)
                 questions.save(saved, data)
             now = set(system.ids_on_page(page))
             print(f"pressed Next / Continue - on to the next page ({len(now)} question(s) on it)")

@@ -400,16 +400,18 @@ def form_roles(master: dict, tailored: dict | None = None, complete: bool = Fals
     return [], ASK_JOBS.format(page=len(page), all=len(roles), left=len(roles) - len(page), years=tailor.OLD_ROLE_YEARS)
 
 
-def work_permit(q: dict, config: dict):
-    """Setup's work-permit answers, only for the same US question asked the same way."""
+def work_permit(q: dict, config: dict, job_in_us: bool = False):
+    """Setup's work-permit answers, for the same US question however it is worded. "The country where the job is
+    located" is that question when the job's on the US list (`job_in_us`); any other country stays asked."""
     wa, title = config.get("work_authorization") or {}, q["title"].casefold()
-    us = "u.s." in title or "us" in title.split() or "united states" in title
-    if q["kind"] != "yesno":
+    us = bool(US_NAMED.search(title) or re.search(r"\bUS\b", q["title"]) or (job_in_us and JOB_COUNTRY.search(title)))
+    # Workday's yes/no questions are menus: kind "choice", options Yes + No
+    if q["kind"] != "yesno" and {str(o).strip().casefold() for o in q.get("options") or []} != {"yes", "no"}:
         return None
-    if "authorized to work in the u" in title and "without restriction" in title:
+    if WORK_RIGHT.search(title) and us and not OTHER_PERMIT.search(title):
         # a visa holder's permit has limits - CPT/OPT their field and dates, H-1B one employer - and
-        # international offices (CMU, UCI) say "No" here: asked every time, even over a Yes saved
-        # before this rule (setup's old "allowed now, sponsorship later" option saved one)
+        # international offices (CMU, UCI) say "No" to "without restriction": asked every time, even over a
+        # Yes saved before this rule (setup's old "allowed now, sponsorship later" option saved one)
         if wa.get("needs_sponsorship") or wa.get("student_visa"):
             return None
         return wa.get("authorized_us")
@@ -432,6 +434,11 @@ def work_permit(q: dict, config: dict):
     return None
 
 
+US_NAMED = re.compile(r"\bu\.s\b|\busa\b|united states|\bin (?:the )?us\b")
+JOB_COUNTRY = re.compile(r"\bcountry (?:where|in which) (?:the|this) (?:position|job|role) (?:is|will be) (?:located|based)")
+WORK_RIGHT = re.compile(r"(?:authori[sz]ed|eligible|legally (?:able|permitted|entitled)) to (?:legally )?work\b|"
+                        r"have (?:the )?(?:legal )?(?:right|authori[sz]ation) to work\b|\blegally work\b")
+OTHER_PERMIT = re.compile(r"sponsor|\bonly\b|\bvisa\b")
 WITHOUT_SPONSORSHIP = re.compile(r"\bwithout\b(?:\W+[\w-]+){0,5}?\W+sponsorship")
 CAN_GET_CLEARANCE = re.compile(r"eligib\w* (?:to obtain|for (?:a |an )?(?:u\.?s\.? |us )?(?:security |government )?clearance)|"
                                r"(?:able|ability) to obtain")
@@ -623,7 +630,7 @@ def texts_off(q: dict, config: dict) -> bool:
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
           breaks: list[dict] | None = None, saved: list[dict] | None = None,
-          schools: list[dict] | None = None) -> list[dict]:
+          schools: list[dict] | None = None, job_in_us: bool = False) -> list[dict]:
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
     same id and same question only; on a sensitive question only the user's own, never one the
     program filled. The one sensitive kind the program fills: a work break, from words the user
@@ -684,7 +691,7 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             offer = f" - offer saved answer {hit[1]['answer']!r} ({answers.named(hit[1])})" if hit else ""
             out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}{offer}"})
             continue
-        permit = work_permit(q, config or {})
+        permit = work_permit(q, config or {}, job_in_us)
         if permit is not None:
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
             continue
