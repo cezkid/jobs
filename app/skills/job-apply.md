@@ -79,9 +79,10 @@ form over, fix the program after.
   `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way -
   a filled disability answer as a sensitive question, its wording read back.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only
-  when the form asks that same thing about the US (without restriction; sponsorship now or in the
-  future; US citizen or permanent resident / green card), and name the choice you picked so they
-  check it before Save. Other wording (another
+  when the form asks that same thing about the US (authorized or eligible to work, without restriction
+  or not; sponsorship now or in the future; US citizen or permanent resident / green card; "the country
+  where the job is located" for a job on the US list - `prepare` fills these), and name the choice so
+  they check it before Save. Other wording (another
   country, this employer only, which visa, "are you on OPT?") or `not set` -> ask with choices,
   offer to save a new answer to `work_authorization` in search settings. Never pick the answer
   that gets past a filter: employers check it on Form I-9 in the first days of the job, and a
@@ -255,7 +256,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    before Submit - say so in the yes; earlier files still ticked Relevant are named, the user
    decides. `taleo-history` (make work history + education match the resume): Taleo keeps them on
    their account once they Save - say so, then ask. Its work-permit questions say "the country where
-   the job is located": asked with choices, never filled from setup. eSignature: they type their
+   the job is located": filled from setup for a job on the US list, else asked with choices. eSignature: they type their
    name themselves. `app/docs/apply/taleo.md`.
    Paylocity: email goes to the site as its box is left (its own email check), resume as the
    file is picked - both before Submit; say so before `fill`. Start date: they pick it in the
