@@ -544,5 +544,6 @@ window.__jf = (() => {
     const m = S.dates[i]?.get(), y = m && box(m)?.querySelector('input[data-automation-id*="Year" i]');
     return m && y ? m.value.padStart(2, '0') + y.value : '';
   }
-  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, spot, dateShown, fields, resumeInput, takeClick, clicked, R, S };
+  const dateError = (i) => { const m = S.dates[i]?.get(); return !!m && /invalid date/i.test(box(m)?.textContent || ''); };
+  return { run, status, errors, uploaded, closed, snapshot, dateTargets, aim, spot, dateShown, dateError, fields, resumeInput, takeClick, clicked, R, S };
 })();
