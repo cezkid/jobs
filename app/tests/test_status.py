@@ -27,6 +27,46 @@ def make_folder(jobs_dir, name, url, company, title, slug, made=True):
     return d
 
 
+def test_tagged_and_bare_link_are_one_record(conn, tmp_path):
+    """The job search tags its links, a folder's may be bare: the same job, one record - the status said for one reaches
+    the folder, so it files under it and Today stops listing it as waiting."""
+    bare, tagged = PASTED_URL, PASTED_URL + "?utm_source=freehire.me"
+    d = make_folder(tmp_path, "12 - Globex - Dev", bare, "Globex", "Dev", "dev-globex")
+    status.record_made(conn, d, NOW)
+    status.set_state(conn, {"key": status.job_key(tagged, "globex", "Dev"), "url": tagged, "company": "globex", "title": "Dev",
+                            "public_slug": "dev-globex"}, "applied", LATER)
+    assert [(r["key"], r["state"]) for r in status.all_statuses(conn)] == [(bare, "applied")]
+    assert status.get(conn, status.folder_key(status.folder(d)))["state"] == "applied"
+
+
+def test_old_copies_of_a_link_merge_and_keep_what_was_said(conn):
+    """Records made before links were keyed as one: past-resume-made wins whatever its date, history + pause + number kept."""
+    bare, tagged = PASTED_URL, PASTED_URL + "?utm_source=freehire.me"
+    for key, company, state, at in ((bare, "Globex", "resume_made", LATER), (tagged, "globex", "applied", NOW)):
+        conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (key, key, company, "Dev", None, state, at, at))
+        conn.execute("INSERT INTO application_log VALUES (?, ?, ?)", (key, state, at))
+        conn.execute("INSERT INTO score_snapshots VALUES (?, ?, ?, 1, 1, 1)", (key, state, at))
+    conn.execute("INSERT INTO asked VALUES (?, ?)", (tagged, NOW))
+    conn.execute("INSERT INTO asked VALUES (?, ?)", (bare, LATER))
+    low, high = store.number(conn, tagged), store.number(conn, bare)
+    other = "https://jobs.lever.co/globex/456"
+    alone = store.number(conn, other + "?utm_source=freehire.me")
+    conn.commit()
+    assert low < high
+    store.merge_link_copies(conn)
+    rows = status.all_statuses(conn)
+    assert [(r["key"], r["company"], r["state"], r["state_at"], r["added_at"]) for r in rows] == [(bare, "globex", "applied", NOW, NOW)]
+    assert sorted(r[0] for r in conn.execute("SELECT state FROM application_log WHERE key = ?", (bare,))) == ["applied", "resume_made"]
+    assert conn.execute("SELECT COUNT(*) FROM score_snapshots WHERE key = ?", (bare,)).fetchone()[0] == 2
+    assert [tuple(r) for r in conn.execute("SELECT key, at FROM asked")] == [(bare, LATER)]
+    assert store.number(conn, bare) == low  # the lower number stays the job's ...
+    assert store.key_for(conn, str(high)) == tagged  # ... the other still names it, through its own link
+    assert store.number(conn, other) == alone
+    before = conn.total_changes
+    store.merge_link_copies(conn)
+    assert conn.total_changes == before  # nothing left: no write
+
+
 def test_state_words_the_user_says():
     assert status.state_key("resume made") == "resume_made"
     assert status.state_key("Heard-back") == "heard_back"

@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS seen (
     public_slug TEXT PRIMARY KEY,
     alerted_at TEXT NOT NULL
 );
--- where each job the user acts on stands (status.py). Keyed by posting link, not slug: pasted
--- postings + jobs applied outside Job Finder have no jobs row
+-- where each job the user acts on stands (status.py). Keyed by posting link (`link_key`: tracking
+-- tags aside), not slug: jobs pasted in + jobs applied outside Job Finder have no jobs row
 CREATE TABLE IF NOT EXISTS applications (
     key TEXT PRIMARY KEY,
     url TEXT,
@@ -140,7 +140,51 @@ def connect(path: Path | str) -> sqlite3.Connection:
     conn.executescript(SCHEMA)
     conn.create_function("link_key", 1, link_key, deterministic=True)
     add_columns(conn)
+    merge_link_copies(conn)
     return conn
+
+
+# stages before anything was sent: a record past these outranks one still here, whatever its date
+NOT_SENT = ("saved", "resume_made")
+
+
+def merge_link_copies(conn: sqlite3.Connection) -> None:
+    """Records keyed by a link as it was written -> keyed by `link_key`, copies of one job merged into one. Runs at
+    connect: reads only, once none is left. Each table's rows move with it, so history, the "did you send it?" pause
+    and the job's number are kept."""
+    def left() -> tuple[list, list]:
+        nums = {r["key"]: r["num"] for r in conn.execute("SELECT key, num FROM numbers WHERE key LIKE 'http%'")}
+        return ([r for r in conn.execute("SELECT * FROM applications") if link_key(r["key"]) != r["key"]],
+                # a tagged key whose bare link holds a lower number is done: it stays, naming the job by its own link
+                [k for k, n in nums.items() if (c := link_key(k)) != k and nums.get(c, n + 1) > n])
+    if left() == ([], []):
+        return
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")  # another chat may be merging: read what it left, not what it merged
+        stale, numbers = left()
+        for old in stale:
+            new = link_key(old["key"])
+            kept = conn.execute("SELECT * FROM applications WHERE key = ?", (new,)).fetchone()
+            conn.execute("DELETE FROM applications WHERE key = ?", (old["key"],))
+            winner = max((r for r in (old, kept) if r), key=lambda r: (r["state"] not in NOT_SENT, r["state_at"]))
+            conn.execute("INSERT OR REPLACE INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                         (new, old["url"] or (kept and kept["url"]), winner["company"], winner["title"],
+                          old["public_slug"] or (kept and kept["public_slug"]), winner["state"], winner["state_at"],
+                          min(r["added_at"] for r in (old, kept) if r)))
+            for table in ("application_log", "score_snapshots"):
+                conn.execute(f"UPDATE {table} SET key = ? WHERE key = ?", (new, old["key"]))
+            conn.execute("INSERT INTO asked SELECT ?, at FROM asked WHERE key = ? ON CONFLICT (key) DO UPDATE SET"
+                         " at = MAX(at, excluded.at)", (new, old["key"]))
+            conn.execute("DELETE FROM asked WHERE key = ?", (old["key"],))
+        for old in numbers:
+            new = link_key(old)
+            if not conn.execute("UPDATE numbers SET key = ? WHERE key = ? AND NOT EXISTS"
+                                " (SELECT 1 FROM numbers WHERE key = ?)", (new, old, new)).rowcount:
+                # both numbered: the lower stays the job's; the other keeps naming it through its own link
+                low, high = sorted(conn.execute("SELECT num FROM numbers WHERE key IN (?, ?)", (old, new)).fetchall(), key=lambda r: r[0])
+                conn.execute("UPDATE numbers SET key = ? WHERE num = ?", ("\0swap", low[0]))
+                conn.execute("UPDATE numbers SET key = ? WHERE num = ?", (old, high[0]))
+                conn.execute("UPDATE numbers SET key = ? WHERE num = ?", (new, low[0]))
 
 
 def add_columns(conn: sqlite3.Connection) -> None:
