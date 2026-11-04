@@ -75,7 +75,9 @@ def outside_key(company: str, title: str) -> str:
 
 
 def job_key(url: str | None, company: str, title: str) -> str:
-    return url.strip() if url and url.strip() else outside_key(company, title)
+    """One job, one record: a link keys as both its copies read (`store.link_key`), the job search's tagged link and
+    the employer's bare one alike (4 jobs held two records each, one stuck at resume made, 2026-11-04)."""
+    return store.link_key(url) if url and url.strip() else outside_key(company, title)
 
 
 def _same(a: str | None, b: str | None) -> bool:
