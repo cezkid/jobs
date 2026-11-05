@@ -133,6 +133,9 @@ Modelled in `fixtures/workday/tenant-w.html` (`test_apply_workday.py`).
 | tenant G | Languages | own section: Language menu, "I am fluent in this language." box, Comprehension / Overall / Reading / Speaking / Writing menus `1 - Beginner` ... `5 - Fluent`. Native -> 5 - Fluent + box ticked |
 | tenant G | Field of Study | a long program name found by its first words only; a niche media program absent - nearest a broad digital media field (user chose) |
 | tenant G | Degree | short forms (BA, AA) listed as written |
+| tenant L | Languages | own section like tenant G, but no English on the Language menu (American Sign Language first, Spanish ...). A menu closed with no pick kept the first language: English became American Sign Language, levels and all (2026-11-05). A language not on the list -> its row deleted, ASK names it (`drop()`); English left off a US form is common |
+| tenant L | Skills | searched nothing on a value set + synthetic Enter (33 of 33 "none"); typed key by key + a real Enter found 29 of 33. Search words typed with the real keyboard when the driver runs (`search()`, `drive()`) |
+| tenant L | Field of Study | "New Media Technology" / "New Media" absent; Art Education listed |
 
 ## Closed posting
 

@@ -432,6 +432,10 @@ def drive(page, limit_s: float = RUN_LIMIT_S) -> dict:
         if want := page.evaluate("() => window.__jf.takeClick()"):
             w = json.loads(want)
             page.mouse.click(w["x"], w["y"])
+            if "keys" in w:  # a search box: its words typed key by key, then Enter (workday.js search())
+                page.keyboard.type(w["keys"], delay=30)
+                if w.get("enter"):
+                    page.keyboard.press("Enter")
             page.evaluate("(n) => window.__jf.clicked(n)", w["n"])
             continue
         status = json.loads(page.evaluate("() => window.__jf.status()"))
