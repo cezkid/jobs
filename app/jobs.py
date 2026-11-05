@@ -46,7 +46,7 @@ COMMANDS = {
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
-    "open": (None, "open file or link for user: VS Code tab (PDF too); link as a tab in the Job Finder window, browser when it's closed; --outside: browser always"),
+    "open": (None, "open file or link for user: VS Code tab (PDF too); link as a tab in the Job Finder window, browser when it's closed; --outside: browser always; several (resume + posting): files first, links last - the page stays in front"),
     "clear-signins": (None, "empty sign-ins + site data of pages opened in the Job Finder window (VS Code keeps them outside this folder) - before removing the app"),
     "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
     "window-update": (None, "after update: the new window extension into Job Finder's profile now; says when the open window must restart"),
@@ -183,6 +183,16 @@ def clear_signins(wait: float = LINK_WAIT, answer_wait: float = CLEAR_WAIT) -> N
     print(CLEARED)
 
 
+def open_targets(args: list[str]) -> list[str]:
+    """`open`'s words -> what to show, in order. Several, each a file here or a link: files first,
+    links last - whatever opens last is in front, and a resume opened after the posting covered it
+    (window tab and browser alike: app/docs/app-window.md #w). Else one target, words joined (a
+    path with spaces given unquoted)."""
+    if len(args) > 1 and all(web_link(a) or Path(a).exists() for a in args):
+        return sorted(args, key=web_link)  # stable: files keep their order, then links
+    return [" ".join(args)]
+
+
 def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -> None:
     import cfg
     import launch
@@ -242,7 +252,8 @@ def main() -> None:
     elif name == "check-settings":
         check_settings()
     elif name == "open":
-        open_for_user(" ".join(a for a in args if a != "--outside"), outside="--outside" in args)
+        for target in open_targets([a for a in args if a != "--outside"]):
+            open_for_user(target, outside="--outside" in args)
     elif name == "clear-signins":
         clear_signins()
     elif name == "window-setup":

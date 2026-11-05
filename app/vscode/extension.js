@@ -1014,7 +1014,7 @@ function readWindow() {
   return vscode.window.tabGroups.all.map((group) => ({
     viewColumn: group.viewColumn,
     isActive: group.isActive,
-    tabs: group.tabs.map((tab) => ({ label: tab.label, isActive: tab.isActive, ...tabInput(tab.input) })),
+    tabs: group.tabs.map((tab) => ({ label: tab.label, isActive: tab.isActive, isPreview: tab.isPreview, ...tabInput(tab.input) })),
   }));
 }
 

@@ -1,0 +1,123 @@
+{
+ "what": "w: link then file, both through jobs.py open",
+ "uniq": "867ddf67",
+ "at": "2026-11-05T18:55:02Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "files": {
+  "yml": "$D/f/My Settings/probe-w.yml",
+  "pdf": "$D/f/My Jobs/1 To apply/1 - Probe - Engineer/First_Last_Resume.pdf"
+ },
+ "launch": {
+  "rc": 0,
+  "stdout": "on: checks for jobs daily at 08:00, again at 10:00 12:00 14:00 16:00 18:00 20:00 22:00; tells you about new ones once a day"
+ },
+ "up": [
+  {
+   "group": 1,
+   "tabs": [
+    "Today.md*"
+   ]
+  }
+ ],
+ "steps": {
+  "link": {
+   "open": {
+    "rc": 0,
+    "stdout": "opened in the Job Finder window"
+   },
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "Today.md",
+      "alone*"
+     ]
+    }
+   ]
+  },
+  "link-yml": {
+   "open": [
+    {
+     "rc": 0,
+     "stdout": "opened in the Job Finder window"
+    },
+    {
+     "rc": 0,
+     "stdout": ""
+    }
+   ],
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "then-yml",
+      "probe-w.yml*"
+     ]
+    }
+   ]
+  },
+  "yml-link": {
+   "open": [
+    {
+     "rc": 0,
+     "stdout": ""
+    },
+    {
+     "rc": 0,
+     "stdout": "opened in the Job Finder window"
+    }
+   ],
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "probe-w.yml",
+      "after-yml*"
+     ]
+    }
+   ]
+  },
+  "link-pdf": {
+   "open": [
+    {
+     "rc": 0,
+     "stdout": "opened in the Job Finder window"
+    },
+    {
+     "rc": 0,
+     "stdout": ""
+    }
+   ],
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "then-pdf",
+      "1 resume*"
+     ]
+    }
+   ]
+  },
+  "pdf-link": {
+   "open": [
+    {
+     "rc": 0,
+     "stdout": ""
+    },
+    {
+     "rc": 0,
+     "stdout": "opened in the Job Finder window"
+    }
+   ],
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "1 resume",
+      "after-pdf*"
+     ]
+    }
+   ]
+  }
+ }
+}

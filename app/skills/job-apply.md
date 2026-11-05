@@ -212,8 +212,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    the employer's own posting on the job search ("the posting is a copy - the employer's own posting
    is ...") and goes on with that; none found -> it says so: `jobs.py open` the posting, ask the user
    for the employer's link. Himalayas + startup.jobs the same. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
-   own form: `jobs.py open` the posting, they sign in to Built In there, click Apply + choose the tailored
-   resume (it reaches Built In + the employer then) - say where the file is.
+   own form: `jobs.py open "<tailored PDF>" "<posting link>"` (one call: the posting opens last, in front -
+   opened before the resume, it was hidden behind it), they sign in to Built In there, click Apply + choose the
+   tailored resume (it reaches Built In + the employer then) - say where the file is.
    Workday (`app/docs/apply/workday.md` #Job Finder's Chrome): one step per page. On the posting,
    `prepare` asks how to start (Autofill with Resume / Apply Manually / Use My Last Application -
    ask which, clickable); `fill` clicks Apply + that choice; the user signs in or creates the account

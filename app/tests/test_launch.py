@@ -770,6 +770,32 @@ def test_open_two_links_at_once_both_reach_the_window(tmp_path, monkeypatch):
     assert results == {u: True for u in links} and sorted(window.opened) == sorted(links) and browser == []
 
 
+def test_open_resume_and_posting_shows_the_posting_last(tmp_path, monkeypatch):
+    # owner 2026-11-05: the posting "opened but then closed" - the resume opened after it covered
+    # its tab (and VS Code covered the browser); one call, any order => the link last (#w)
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    resume = tmp_path / "My Jobs" / "1 To apply" / "12 - Acme - Engineer" / "First_Last_Resume.pdf"
+    resume.parent.mkdir(parents=True)
+    resume.write_bytes(b"%PDF-1.4")
+    shown = []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs, "opens_as_tab", lambda path: True)
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: shown.append(args[-1]))
+    monkeypatch.setattr(jobs, "send_to_window", lambda url, root, wait: shown.append(url) or True)
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", POSTING, str(resume)])
+    jobs.main()
+    assert shown == [str(resume.resolve()), POSTING] and browser == []
+
+
+def test_open_words_of_one_unquoted_path_still_join(tmp_path):
+    import jobs
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    words = str(page).split(" ")
+    assert len(words) > 1 and jobs.open_targets(words) == [str(page)]
+    assert jobs.open_targets([POSTING]) == [POSTING]
+
+
 def test_open_refuses_what_is_not_a_file_or_web_link(tmp_path, monkeypatch):
     # a posting's hidden text can ask the AI to open a link to another program
     jobs, browser = link_setup(tmp_path, monkeypatch)
