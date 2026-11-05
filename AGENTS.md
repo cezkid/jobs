@@ -30,7 +30,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link as a tab in the Job Finder window (their browser when the window is closed; it prints
   which - say that). Add `--outside` for their own browser: a site that won't work inside (Google
-  sign-in) or they ask. Today's job + company links open in the window too.
+  sign-in) or they ask. Today's job + company links open in the window too. Posting + its
+  resume: ONE call, both targets (`open "<resume>" "<link>"`) - links open last, so the page
+  stays in front (a resume opened after it hid the posting's tab + the browser: measured).
 - Need file from user (resume PDF or Word file): ask them to drag it onto My Resume in the file
   list, then use the file just added there (not the made `First_Last_Resume.pdf`). Dropped in
   Copilot's chat instead: a PDF reaches Claude / GPT-5+ models only, w/o its path; a Word file
