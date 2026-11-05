@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Workday "My Experience" as tenant L showed it (2026-11-05): the Languages menu lists no English
+     (American Sign Language first), a menu closed without a pick keeps its first language, each
+     entry has its own Delete; the Skills box searches only on keys really typed - a set value and a
+     synthetic Enter find nothing. -->
+<div data-automation-id="progressBarActiveStep">My Experience</div>
+<section>
+  <h3>Languages</h3>
+  <div class="entry">
+    <h4>Languages 1</h4><button class="del">Delete</button>
+    <div data-automation-id="formField-language"><label for="lang1">Language*</label><button id="lang1" class="menu" data-list="langs">Select One</button></div>
+    <div data-automation-id="formField-native"><label for="nat1">I am fluent in this language.</label><input type="checkbox" id="nat1"></div>
+    <div data-automation-id="formField-comp"><label for="comp1">Comprehension*</label><button id="comp1" class="menu" data-list="levels">Select One</button></div>
+  </div>
+  <button id="addLang">Add Another</button>
+</section>
+<section>
+  <h3>Skills</h3>
+  <div data-automation-id="formField-skills"><label for="skills">Type to Add Skills</label>
+    <div data-automation-id="selectedItemList" role="listbox" id="skillPills"></div><input id="skills"></div>
+</section>
+<div id="menu" role="listbox" hidden></div>
+<div id="prompt" hidden></div>
+<script>
+  const lists = { langs: ['Select One', 'American Sign Language', 'Spanish'], levels: ['Select One', '3 - Intermediate', '5 - Fluent'] };
+  const catalog = ['JavaScript', 'JavaScript API', 'Node.js', 'Docker (Software)'];
+  let open = null, n = 1;
+  window.searches = 0;
+  document.addEventListener('click', (e) => {
+    const el = e.target, menu = document.getElementById('menu');
+    if (el.matches('button.menu')) {
+      open = el;
+      menu.innerHTML = lists[el.dataset.list].map((o) => `<div role="option">${o}</div>`).join('');
+      menu.hidden = false;
+    } else if (el.matches('#menu [role=option]')) {
+      open.textContent = el.textContent; menu.hidden = true; open = null;
+    } else if (el.matches('#prompt [data-automation-id=promptOption]')) {
+      document.getElementById('skillPills').insertAdjacentHTML('beforeend',
+        `<div data-automation-id="selectedItem" role="option"><div data-automation-id="promptOption">${el.textContent}</div></div>`);
+      document.getElementById('prompt').hidden = true;
+    } else if (el.matches('button.del')) {
+      el.closest('.entry').remove();
+    } else if (el.id === 'addLang') {
+      n++;
+      const entry = document.querySelector('.entry').cloneNode(true);
+      entry.querySelector('h4').textContent = `Languages ${n}`;
+      entry.querySelectorAll('[id]').forEach((x) => { x.id = x.id.replace(/\d+$/, n); });
+      entry.querySelectorAll('label').forEach((l) => { l.htmlFor = l.htmlFor.replace(/\d+$/, n); });
+      entry.querySelectorAll('button.menu').forEach((b) => { b.textContent = 'Select One'; });
+      entry.querySelector('input').checked = false;
+      el.before(entry);
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    const menu = document.getElementById('menu');
+    if (e.key === 'Escape' && open) { open.textContent = lists[open.dataset.list][1]; menu.hidden = true; open = null; return; }
+    if (e.target.id !== 'skills' || e.key !== 'Enter' || !e.isTrusted) return;
+    window.searches++;
+    const typed = e.target.value.toLowerCase();
+    const prompt = document.getElementById('prompt');
+    prompt.innerHTML = catalog.filter((c) => c.toLowerCase().startsWith(typed.slice(0, 4)))
+      .map((c) => `<div data-automation-id="promptOption">${c}</div>`).join('');
+    prompt.hidden = false;
+  });
+</script>
+</body></html>

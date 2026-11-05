@@ -44,7 +44,11 @@ class NoRequirements(ValueError):
     Not a bug and not rare - some real listings carry only prose. It is separate from the other
     ValueError here so a caller can tell "this posting cannot be tailored automatically, offer
     the pasted-text path" apart from "this response is malformed", and say so instead of dying.
+    `job` = the posting as parse() read it (its text included) when one came back, so the caller can
+    hand that text to the pasted-posting path itself.
     """
+
+    job: dict | None = None
 
 
 def checked(slug: str, requirements: list[dict], where: str) -> list[dict]:
@@ -101,8 +105,7 @@ def parse(raw: dict) -> dict:
     requirements = [
         {"text": clean(r["text"], markup=True), "priority": r["priority"]} for r in enrichment.get("requirements") or []
     ]
-    checked(slug, requirements, "enrichment.requirements")
-    return {
+    job = {
         "public_slug": slug,
         "title": clean(raw["title"]),
         "company": clean(raw.get("company")),
@@ -114,6 +117,12 @@ def parse(raw: dict) -> dict:
         "reality": raw.get("reality") or {},
         HIDDEN: clean.count,
     }
+    try:
+        checked(slug, requirements, "enrichment.requirements")
+    except NoRequirements as e:
+        e.job = job
+        raise
+    return job
 
 
 def main() -> None:

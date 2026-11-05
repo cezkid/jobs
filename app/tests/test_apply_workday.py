@@ -629,3 +629,43 @@ def test_a_date_showing_an_error_typed_again(page):
 def test_a_date_still_in_error_is_named(page):
     date_page(page, clears_after=99)
     assert workday.type_dates(page) == ["FAIL Work 6 > To: shows '122013' - type it by hand"]
+
+
+# --- tenant L (2026-11-05): no English on the Languages menu, a Skills box searching only on real keys ---
+
+def tenant_l(chrome, real: bool):
+    context = chrome.new_context()
+    context.route("**/*", lambda route: route.fulfill(path=str(FIXTURES / "tenant-l.html"))
+                  if urlsplit(route.request.url).path == "/tenant-l.html" else route.abort())
+    pg = context.new_page()
+    pg.goto(HOME + "tenant-l.html")
+    pg.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    data = {"work": [], "education": [], "skills": ["JavaScript", "Node.js", "Docker"],
+            "languages": [{"name": "English", "levels": ["Native", "Fluent"]}, {"name": "Spanish", "levels": ["Native", "Fluent"]}]}
+    pg.evaluate("(args) => { window.__jf.R.on = args.real; window.__jf.run(args.data); }", {"real": real, "data": data})
+    status = workday.drive(pg, limit_s=60) if real else (pg.wait_for_function("window.__jf.S.done", timeout=60000)
+                                                          and json.loads(pg.evaluate("window.__jf.status()")))
+    return context, pg, status
+
+
+@pytest.fixture(scope="module")
+def tenant_l_real(chrome):
+    context, pg, status = tenant_l(chrome, real=True)
+    yield pg, status
+    context.close()
+
+
+def test_language_not_on_the_list_row_taken_off_never_another_language(tenant_l_real):
+    pg, status = tenant_l_real
+    shown = pg.evaluate("[...document.querySelectorAll('.entry button.menu')].map(b => b.textContent)")
+    assert shown == ["Spanish", "5 - Fluent"]  # never "American Sign Language" for English
+    assert any(p.startswith("ASK Language 1 > Language: English is not on this form's list - its row taken off")
+               for p in status["problems"])
+
+
+def test_search_box_words_typed_with_real_keys(tenant_l_real):
+    pg, status = tenant_l_real
+    pills = pg.evaluate("[...document.querySelectorAll('#skillPills [data-automation-id=promptOption]')].map(p => p.textContent.trim())")
+    assert pills == ["JavaScript", "Node.js", "Docker (Software)"]
+    assert not [p for p in status["problems"] if p.startswith("ASK Skills > JavaScript")]
+

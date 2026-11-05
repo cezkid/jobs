@@ -1031,3 +1031,28 @@ def test_never_mention_warns_only_for_posting_company_locked_or_bare_note(master
     monkeypatch.setattr("about.load", lambda: NEVER("migration"))
     fails, warns = tailor.never_mention(master, JOB, tailored)
     assert fails == [] and warns
+
+
+def test_prepare_on_a_listed_posting_without_requirements_reads_them_off_its_text(tmp_path, monkeypatch, capsys):
+    """The job search sent the posting's text but no requirement list: that text becomes a pasted
+    posting - the AI's next task - instead of asking the user to copy the page (2026-11-05)."""
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    master_path = cfg.resume_path(config, "master")
+    master_path.parent.mkdir(parents=True, exist_ok=True)
+    master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
+
+    def no_requirements(*_args):
+        e = jd.NoRequirements("senior-payroll-analyst: enrichment.requirements empty")
+        e.job = {"public_slug": "senior-payroll-analyst", "title": "Senior Payroll Analyst", "company": "Acme",
+                 "url": "https://acme.example/jobs/1?utm_source=x", "text": "Requirements: 5 years of payroll."}
+        raise e
+
+    monkeypatch.setattr(jd, "fetch", no_requirements)
+    monkeypatch.setattr(tailor.readahead, "fetch", lambda *_a: None)
+    tailor.prepare(config, "senior-payroll-analyst", None, "")
+    out = capsys.readouterr().out
+    saved = tmp_path / ".data" / "postings" / "senior-payroll-analyst.txt"
+    assert saved.read_text(encoding="utf-8") == "Senior Payroll Analyst - Acme\n\nRequirements: 5 years of payroll.\n"
+    assert "AI task written" in out
+    assert f'tailor prepare --posting "{saved}" --url "https://acme.example/jobs/1?utm_source=x"' in out

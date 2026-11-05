@@ -8,6 +8,8 @@ Never values / personal here (`AGENTS.md` #About me).
 1. Source:
    - job by number ("job 12" - from any chat, the email or the Today page):
      `uv run app/jobs.py tailor prepare 12`; slug works too
+     - prints "lists no requirements ... saved as a pasted posting" -> the job search sent the text without its
+       list: do the task it wrote, then the `tailor prepare --posting` it prints (same job number)
    - pasted text: write it to `.data/postings/<company-title>.txt` (own file per posting - another
      chat may be on a different one), then
      `uv run app/jobs.py tailor posting "<that file>" --url "<link if given>"`; do printed

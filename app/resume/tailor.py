@@ -854,6 +854,18 @@ def posting(text_file: Path, url: str) -> None:
     say_hidden(hidden)
 
 
+def from_listing(job: dict) -> None:
+    """A listed posting w/o a requirement list: its own text saved as a pasted posting, the AI reads
+    the requirements off it (`posting`). The row's own link => `prepare --posting` keeps its job number."""
+    text_file = cfg.ROOT / ".data" / "postings" / f"{job['public_slug']}.txt"
+    text_file.parent.mkdir(parents=True, exist_ok=True)
+    head = " - ".join(filter(None, [job.get("title"), job.get("company")]))
+    text_file.write_text(f"{head}\n\n{job['text']}\n", encoding="utf-8")
+    print("the job search lists no requirements for this posting - its text is saved as a pasted posting, "
+          "read them off it:")
+    posting(text_file, job.get("url") or "")
+
+
 def by_number(config: dict, job: str) -> str:
     """Job number ("12", "job 12") -> its slug; slug or link as is. Numbers are stored, so any
     chat, the email and the Today page name the same job by the same number."""
@@ -907,10 +919,14 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
             form = readahead.fetch(client, config["api"]["base"], slug)
             try:
                 job = jd.fetch(client, config["api"]["base"], slug)
-            except jd.NoRequirements:
+            except jd.NoRequirements as e:
                 # every gate downstream scores against requirements, so there is no degraded
                 # tailoring to fall back to - only the pasted-posting path, which reads them
-                # off the page the listing links to. Say that; never hand the user a traceback.
+                # off the posting's text. The job search's copy of that text came back with it
+                # => handed to that path here (2026-11-05: 13 KB of posting, no list);
+                # none => the user's page. Never a traceback.
+                if e.job and e.job.get("text"):
+                    return from_listing(e.job)
                 sys.exit(f"{slug}: this posting lists no requirements, so there is nothing to "
                          f"tailor against. Save the posting page's text to a file, then run:\n"
                          f'  uv run app/jobs.py tailor posting "<text file>" --url "<posting url>"')

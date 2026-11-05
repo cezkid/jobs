@@ -130,3 +130,10 @@ def test_from_text_empty_requirements_rejected():
 def test_from_text_unknown_priority_rejected():
     with pytest.raises(ValueError, match="unknown requirement priorities"):
         jd.from_text("posting", "", extracted(requirements=[{"text": "Vue", "priority": "nice"}]))
+
+
+def test_no_requirements_carries_the_posting_read():
+    """The caller can still hand the posting's text to the pasted-posting path."""
+    with pytest.raises(jd.NoRequirements) as e:
+        jd.parse(raw_job(enrichment={}))
+    assert e.value.job["public_slug"] == raw_job()["public_slug"] and "text" in e.value.job

@@ -30,17 +30,26 @@ window.__jf = (() => {
   // options ignored synthetic clicks while a real click on the same option took every time (tenant H,
   // 2026-10-22). The driver polls takeClick(), clicks at x/y with the mouse, then calls clicked(n)
   const R = { on: false, want: null, done: 0 };
+  async function real(el, more = {}) {
+    clear(el);
+    const r = el.getBoundingClientRect(), n = R.done + 1;
+    R.want = { n, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2), ...more };
+    for (const t = Date.now() + 10000 + 100 * (more.keys?.length || 0); R.done < n && Date.now() < t;) await sleep(50);
+    R.want = null;
+  }
   async function click(el) {
     el.scrollIntoView({ block: 'center' });
-    if (R.on) {
-      clear(el);
-      const r = el.getBoundingClientRect(), n = R.done + 1;
-      R.want = { n, x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2) };
-      for (const t = Date.now() + 10000; R.done < n && Date.now() < t;) await sleep(50);
-      R.want = null;
-      return;
-    }
+    if (R.on) return real(el);
     ['mousedown', 'mouseup'].forEach((t) => el.dispatchEvent(new MouseEvent(t, { bubbles: true }))); el.click();
+  }
+  // a search box's words + Enter: typed with the real keyboard when a driver takes it - one tenant's
+  // Skills box searched nothing on a set value + synthetic Enter (33 of 33 skills "none"), while the same
+  // words typed key by key found 29 (tenant L, 2026-11-05)
+  async function search(input, w) {
+    if (!R.on) { put(input, w); key(input, 'Enter', 13); return; }
+    input.scrollIntoView({ block: 'center' });
+    put(input, '');
+    await real(input, { keys: w, enter: true });
   }
   // a real click lands on whatever is on top: the fixed footer (Save and Continue) over a skill option near
   // the page's end took it - "click did not register" on 14 skills (a Workday tenant, 2026-10-23). The page
@@ -62,7 +71,8 @@ window.__jf = (() => {
     pad.id = 'jf-room'; pad.style.height = `${innerHeight}px`;
     document.body.appendChild(pad);
   }
-  const takeClick = () => (R.want ? JSON.stringify(R.want) : '');
+  // a request is handed out once: polled again before run() saw clicked(n), it was clicked (or typed) twice
+  const takeClick = () => (R.want && R.want.n > R.done ? JSON.stringify(R.want) : '');
   const clicked = (n) => { R.done = n; };
   // where the form is: a synthetic Enter must never move it on (that is a Save the user never clicked)
   const where = () => `${location.href}|${txt(document.querySelector('[data-automation-id="progressBarActiveStep"]'))}`;
@@ -203,7 +213,7 @@ window.__jf = (() => {
       // footer (a Workday tenant, 2026-10-23) - the box goes mid-screen first
       input.scrollIntoView({ block: 'center' });
       if (input.getBoundingClientRect().bottom > innerHeight / 2 + 60) { room(); input.scrollIntoView({ block: 'center' }); }
-      put(input, w); key(input, 'Enter', 13); await sleep(600);
+      await search(input, w); await sleep(600);
       if (where() !== at || !document.contains(input)) throw new Error('Enter moved the form to another step - stopped filling; tell the user to check the page');
       // Enter picked the only match itself (a Workday tenant's School and Field of Study, 2026-10-23)
       if (has(w)) { put(input, ''); key(input, 'Escape', 27); out(input); keep(area, name, () => has(w)); return note(area, name, w === wanted[0] ? 'OK' : 'ASK', `picked "${w}"`); }
@@ -323,15 +333,29 @@ window.__jf = (() => {
   async function languageSection(list) {
     const anchor = /^language$/i, level = /^(comprehension|overall|reading|speaking|writing|proficiency|level)/i;
     await grow('Languages', LANGUAGES, anchor, list.length);
-    for (const [i, g] of list.entries()) {
+    let i = 0;
+    for (const g of list) {
       const e = entries(anchor)[i], a = `Language ${i + 1}`;
       if (!e) break;
       const f = within(anchor, i, field, anchor);
       if (f()?.tagName === 'BUTTON') await menu(a, 'Language', f, [g.name]); else await pick(a, 'Language', f, [g.name], 'exact');
-      if (!g.levels.length) { note(a, 'levels', 'ASK', `no level on the resume for ${g.name}`); continue; }
+      // not on the form's list: the row is taken off. Left in place, the page put the list's first language
+      // in it - "American Sign Language" for English, levels and all (tenant L, 2026-11-05)
+      if (!shows(f(), g.name)) { await drop(a, anchor, i, g.name); continue; }
+      if (!g.levels.length) { note(a, 'levels', 'ASK', `no level on the resume for ${g.name}`); i++; continue; }
       await check(a, 'I am fluent', within(anchor, i, fieldBox, /fluent in this language/i), /^(native|fluent)$/i.test(g.levels[0]));
       for (const l of labels(e).filter((x) => level.test(said(x)))) await menu(a, said(l), within(anchor, i, field, new RegExp(`^${said(l)}$`, 'i')), g.levels);
+      i++;
     }
+  }
+  // the box holds this language: a menu button's text, or a search box's pill
+  const shows = (el, name) => !!el && (el.tagName === 'BUTTON' ? norm(txt(el)).includes(norm(name)) : pills(el).some((p) => norm(txt(p)) === norm(name)));
+  async function drop(a, anchor, i, name) {
+    const before = entries(anchor).length;
+    const del = [...(entries(anchor)[i]?.querySelectorAll('button') || [])].find((b) => /^delete$/i.test(txt(b)));
+    if (del) { await click(del); await until(() => entries(anchor).length < before); }
+    if (entries(anchor).length < before) return note(a, 'Language', 'ASK', `${name} is not on this form's list - its row taken off (US forms often leave English off)`);
+    note(a, 'Language', 'FAIL', `${name} is not on this form's list and the row would not delete - delete it by hand`);
   }
   // one box per profile site (tenant H: "Social Network URLs" > "Please provide the URL to your LinkedIn
   // profile."): the link written as its check takes it - "https://linkedin.com/in/x" got "Invalid LinkedIn
