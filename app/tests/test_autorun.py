@@ -45,12 +45,12 @@ def test_powershell_never_opens_a_window_on_windows(monkeypatch):
     assert seen["creationflags"] == 0x08000000
 
 
-def schedule_launch(monkeypatch, stamp: str | None, on: bool) -> list:
+def schedule_launch(monkeypatch, stamp: str | None, owner: Path | None) -> list:
     if stamp is not None:
         autorun.STAMP.write_text(stamp + "\n", encoding="utf-8")
     calls = []
     monkeypatch.setattr(autorun.cfg, "load", lambda: CONFIG)
-    monkeypatch.setattr(autorun, "is_on", lambda: on)
+    monkeypatch.setattr(autorun, "installed_root", lambda: owner)
     monkeypatch.setattr(autorun, "turn_on", lambda config: calls.append("on"))
     autorun.ensure_current()
     return calls
@@ -58,14 +58,46 @@ def schedule_launch(monkeypatch, stamp: str | None, on: bool) -> list:
 
 def test_launch_brings_an_old_schedule_up_to_the_settings_times(monkeypatch):
     # installed before the later checks: one 08:00 run a day until a launch re-installs it
-    assert schedule_launch(monkeypatch, None, on=True) == ["on"]
-    assert schedule_launch(monkeypatch, "08:00", on=True) == ["on"]
+    assert schedule_launch(monkeypatch, None, cfg.ROOT) == ["on"]
+    assert schedule_launch(monkeypatch, "08:00", cfg.ROOT) == ["on"]
 
 
 def test_launch_leaves_a_current_or_switched_off_schedule_alone(monkeypatch):
-    assert schedule_launch(monkeypatch, autorun.label(autorun.times(CONFIG)), on=True) == []
-    assert schedule_launch(monkeypatch, "off", on=True) == []
+    assert schedule_launch(monkeypatch, autorun.label(autorun.times(CONFIG)), cfg.ROOT) == []
+    assert schedule_launch(monkeypatch, "off", cfg.ROOT) == []
     autorun.STAMP.unlink()
     # never turned on: asked once, remembered as off
-    assert schedule_launch(monkeypatch, None, on=False) == []
+    assert schedule_launch(monkeypatch, None, None) == []
     assert autorun.STAMP.read_text(encoding="utf-8").strip() == "off"
+
+
+def make_copy(tmp_path: Path) -> Path:
+    other = tmp_path / "other copy"
+    (other / "app").mkdir(parents=True)
+    (other / "app" / "daily.py").write_text("", encoding="utf-8")
+    return other
+
+
+def test_launch_never_takes_the_schedule_another_copy_runs(monkeypatch, tmp_path):
+    # 2026-11-05: a scratch copy's launch (no stamp) re-installed the one schedule on this Mac
+    # for itself => two days of checks ran in /tmp, none in the user's folder
+    other = make_copy(tmp_path)
+    assert schedule_launch(monkeypatch, None, other) == []
+    assert not autorun.STAMP.exists()  # asked again next launch: that copy may be gone by then
+    assert schedule_launch(monkeypatch, "08:00", other) == []
+
+
+def test_launch_takes_over_from_a_folder_that_is_gone(monkeypatch, tmp_path):
+    # folder moved or deleted: its schedule starts nothing, so this one takes it
+    assert schedule_launch(monkeypatch, None, tmp_path / "gone") == ["on"]
+
+
+def test_installed_root_reads_the_plist(monkeypatch, tmp_path):
+    monkeypatch.setattr(autorun.sys, "platform", "darwin")
+    assert autorun.installed_root() is None
+    other = make_copy(tmp_path)
+    autorun.PLIST.write_bytes(autorun.mac_plist("/u/uv", other, [(8, 0)]))
+    assert autorun.installed_root() == other
+    assert autorun.elsewhere() == other and not autorun.is_on()
+    autorun.PLIST.write_bytes(autorun.mac_plist("/u/uv", cfg.ROOT, [(8, 0)]))
+    assert autorun.elsewhere() is None and autorun.is_on()

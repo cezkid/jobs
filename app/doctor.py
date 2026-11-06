@@ -32,6 +32,7 @@ class Env:
     data: Path = field(default_factory=lambda: cfg.DATA)
     now: Callable[[], datetime] = datetime.now
     autorun_on: Callable[[], bool] = lambda: __import__("autorun").is_on()
+    schedule_elsewhere: Callable[[], Path | None] = lambda: __import__("autorun").elsewhere()
     scheduled_program: Callable[[], str | None] = lambda: scheduled_program()
     window_behind: Callable[[], bool] = lambda: __import__("launch").window_behind()
     ai_extension: Callable[[str], bool] = lambda name: ai_extension_installed(name)
@@ -103,6 +104,10 @@ def day_word(when: datetime) -> str:
 
 def morning_check(env: Env) -> Result:
     name = "Morning check"
+    if other := env.schedule_elsewhere():
+        # checked first: is_on is False then, which would read as "switched off"
+        return Result(name, False, "The daily check runs another copy of Job Finder, not this one - so no new jobs come in here.",
+                      "Switch the daily check on again from this folder: `uv run app/jobs.py autorun on`.", str(other))
     if not env.autorun_on():
         return Result(name, True, "Switched off - you asked for no daily check, or it was never set up.")
     import daily

@@ -117,7 +117,10 @@ def write_stamp(text: str) -> None:
 
 def ensure_current() -> None:
     """At launch: the schedule on this computer runs at the settings' times. Off stays off; no
-    stamp = installed before it existed => asked once (Windows: one hidden powershell)."""
+    stamp = installed before it existed => asked once (Windows: one hidden powershell). One
+    schedule per computer: a schedule another Job Finder folder runs is that folder's - only
+    `autorun on` here moves it (a scratch copy's launch took the owner's on 2026-11-05: two days
+    of checks ran in /tmp, none in their folder)."""
     try:
         was = STAMP.read_text(encoding="utf-8").strip()
     except OSError:
@@ -127,16 +130,52 @@ def ensure_current() -> None:
     config = cfg.load()
     if was == label(times(config)):
         return
-    if was is None and not is_on():
+    owner = installed_root()
+    if owner is not None and other_copy(owner):
+        return
+    if was is None and owner is None:
         write_stamp("off")
         return
     turn_on(config)
 
 
-def is_on() -> bool:
+def installed_root() -> Path | None:
+    """Folder the installed schedule runs; None = no schedule; unreadable = this folder (as before)."""
     if sys.platform == "win32":
-        return powershell(f"Get-ScheduledTask -TaskName '{TASK_NAME}' -ErrorAction Stop").returncode == 0
-    return PLIST.exists()
+        result = powershell(f"(Get-ScheduledTask -TaskName '{TASK_NAME}' -ErrorAction Stop).Actions[0].WorkingDirectory")
+        if result.returncode:
+            return None
+        root = (result.stdout or "").strip().strip('"')
+    elif sys.platform == "darwin":
+        if not PLIST.exists():
+            return None
+        try:
+            root = plistlib.loads(PLIST.read_bytes()).get("WorkingDirectory") or ""
+        except (OSError, ValueError):
+            root = ""
+    else:
+        return None
+    return Path(root) if root else cfg.ROOT
+
+
+def other_copy(root: Path) -> bool:
+    """Another Job Finder folder, still there. A folder moved or deleted leaves its schedule to us."""
+    try:
+        same = root.resolve() == cfg.ROOT.resolve()
+    except OSError:
+        same = False
+    return not same and (root / "app" / "daily.py").exists()
+
+
+def elsewhere() -> Path | None:
+    """Folder of another Job Finder copy the schedule runs instead of this one, if any."""
+    owner = installed_root()
+    return owner if owner is not None and other_copy(owner) else None
+
+
+def is_on() -> bool:
+    owner = installed_root()
+    return owner is not None and not other_copy(owner)
 
 
 def status() -> None:
@@ -146,6 +185,8 @@ def status() -> None:
         print(result.stdout.strip() or "off")
     elif sys.platform == "darwin":
         print("on" if PLIST.exists() else "off")
+    if other := elsewhere():
+        print(f"runs another Job Finder folder, not this one: {other}")
     if cfg.DAILY_LOG.exists():
         print("\n".join(cfg.DAILY_LOG.read_text(encoding="utf-8").splitlines()[-LOG_TAIL_LINES:]))
 

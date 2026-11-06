@@ -76,6 +76,8 @@ def no_real_schedule(monkeypatch, tmp_path):
     # the stamp lives in the checkout's .data, never written from a test
     import autorun
     monkeypatch.setattr(autorun, "STAMP", tmp_path / ".schedule-stamp")
+    # ... nor the computer's real schedule read: a test sees none installed
+    monkeypatch.setattr(autorun, "PLIST", tmp_path / "no-launch-agent.plist")
 
 
 def pytest_configure(config):

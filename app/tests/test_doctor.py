@@ -9,7 +9,8 @@ NOW = datetime(2026, 10, 15, 8, 0, 0)
 
 def env(tmp_path, **over):
     base = dict(
-        data=tmp_path, now=lambda: NOW, autorun_on=lambda: True, scheduled_program=lambda: None,
+        data=tmp_path, now=lambda: NOW, autorun_on=lambda: True, schedule_elsewhere=lambda: None,
+        scheduled_program=lambda: None,
         window_behind=lambda: False, ai_extension=lambda name: True, settings_path=lambda: tmp_path / "s.yml",
         resume_path=tmp_path / "r.yml", fonts_installed=lambda: ["Caladea"], email_env=tmp_path / "email.env")
     base.update(over)
@@ -32,6 +33,14 @@ def test_doctor_morning_check_ok_and_off(tmp_path):
     log(tmp_path, f"ok {(NOW - timedelta(hours=5)).isoformat()} 10 jobs")
     assert doctor.morning_check(env(tmp_path)).ok
     assert doctor.morning_check(env(tmp_path, autorun_on=lambda: False)).ok
+
+
+def test_doctor_names_a_schedule_another_copy_runs(tmp_path):
+    # a scratch copy's launch took the schedule: checks ran in /tmp, doctor said "Worked on" off the last ok here
+    log(tmp_path, f"ok {(NOW - timedelta(hours=5)).isoformat()} 10 jobs")
+    result = doctor.morning_check(env(tmp_path, autorun_on=lambda: False, schedule_elsewhere=lambda: tmp_path / "copy"))
+    assert not result.ok and "another copy" in result.say and "autorun on" in result.fix
+    assert str(tmp_path / "copy") not in result.say
 
 
 def test_doctor_last_ok_from_store_with_z(tmp_path):
