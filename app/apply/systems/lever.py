@@ -243,6 +243,12 @@ def box_type(field) -> str:
     return field.first.evaluate("e => e.tagName === 'SELECT' ? 'select' : e.type")
 
 
+def ticks(page, name: str, type: str):
+    """The ticks of one question only: Pronouns' hidden "Custom" text box shares their name and has no
+    value (it shows once Custom is ticked) - left out, it is the user's to type."""
+    return page.locator(f'#application-form [name="{name}"][type={type}]')
+
+
 def wanted(q: dict) -> list[str]:
     """The option texts an answer picks: a yes / no as the page words it."""
     value = q["answer"]
@@ -262,7 +268,8 @@ def holds(page, q: dict) -> bool:
     type = box_type(field)
     if type in ("radio", "checkbox"):
         want = wanted(q)
-        return all((m.get_attribute("value").strip() in want) == m.evaluate("e => e.checked") for m in field.all())
+        return all((m.get_attribute("value").strip() in want) == m.evaluate("e => e.checked")
+                   for m in ticks(page, q["id"], type).all())
     field = field.first
     if type == "file":
         return bool(field.evaluate("e => e.files[0] ? e.files[0].name : ''"))
@@ -292,7 +299,7 @@ def fill(page, q: dict, resume_file: str | None) -> str:
     type = box_type(field)
     if type in ("radio", "checkbox"):
         # options are radios / ticks whose value is the option text, often under a styled label
-        members = field.all()
+        members = ticks(page, name, type).all()
         names = [m.get_attribute("value").strip() for m in members]
         return dom.put_ticks(members, names, wanted(q), role=False, single=type == "radio")
     field = field.first

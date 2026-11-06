@@ -363,3 +363,29 @@ def test_lever_location_on_a_saved_page_needs_lever_own_pick(saved_page):
     assert not lever.holds(page, answer)  # typed, no place picked from Lever's list
     page.evaluate("() => { document.getElementById('selected-location').value = '{\"name\": \"Springfield\"}'; }")
     assert lever.holds(page, answer)
+
+
+PRONOUNS = """<form id="application-form"><ul>
+<li><label><input type="checkbox" name="pronouns" value="He/him" class="standardPronounsOption" /><span>He/him</span></label></li>
+<li><label><input type="checkbox" name="pronouns" value="She/her" class="standardPronounsOption" /><span>She/her</span></label></li>
+<li><label><input type="checkbox" name="pronouns" value="Use name only" id="useNameOnlyPronounsOption" /><span>Use name only</span></label></li>
+<li><label><input type="checkbox" value="Custom" id="customPronounsOption" /><span>Custom</span></label>
+<input class="card-field-input" style="display:none;" id="customPronounsTextField" type="text" maxlength="40" name="pronouns" /></li>
+</ul></form>"""
+
+
+def test_lever_pronouns_ticks_skip_the_custom_text_box_sharing_their_name(chrome):
+    """Lever's Pronouns: a hidden "Custom" text box (no value) carries the ticks' name - it crashed the
+    tick read ('NoneType' has no 'strip', GoodLeap 2026-11-05). Ticks only; the text box stays empty."""
+    page = chrome.new_page()
+    try:
+        page.set_default_timeout(3000)
+        page.set_content(PRONOUNS)
+        answer = q("pronouns", "multichoice", ["He/him"])
+        assert lever.fill(page, answer, None) == "ok"
+        assert lever.holds(page, answer)
+        assert page.eval_on_selector_all('[name="pronouns"][type=checkbox]', "es => es.map(e => e.checked)") == \
+            [True, False, False]
+        assert page.input_value("#customPronounsTextField") == ""
+    finally:
+        page.close()
