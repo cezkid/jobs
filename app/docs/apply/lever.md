@@ -83,6 +83,7 @@ Plain HTML form - no framework ids; every box found by `name` (stable, same both
 | multiple-choice card | radios `name="cards[..][fieldN]"`, `value` = option text (some with a trailing space, "Other "), `ul[data-qa=multiple-choice]` | check the radio whose trimmed value is exactly the answer |
 | dropdown card | native `<select>`, first option "Select..." | `select_option` by exact text |
 | multiple-select card | checkboxes same `name`, `ul[data-qa=checkboxes]` | check each by exact value |
+| Pronouns | checkboxes `name=pronouns`, `value` = option text; a hidden `#customPronounsTextField` (text, no `value`) shares the name, shown once Custom (`#customPronounsOption`, no name) is ticked (GoodLeap, 2026-11-05) | ticks found by name + `type`, so the text box is never read as a tick (crashed the fill once); Custom's words are the user's |
 | EEO | selects (gender, veteran, disability; race as select tenant B) or radios (race tenant A, each w/ a description under it) | exact option text. Disability signature boxes labelled plain "Name" / "Date" (tenant A): titled as a signature, the applicant's own |
 | Apply with LinkedIn | `script[type="IN/AwliWidget"]` row at the top, tenants A + B | left alone - it signs in to LinkedIn |
 
