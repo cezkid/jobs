@@ -283,6 +283,29 @@ def test_work_permit_any_wording_of_the_us_question():
     assert [a["answer"] for a in questions.draft(other, CONTACT, config=free)] == [None] * 4
 
 
+# Octane's Greenhouse form, 2026-11-09: a green card holder asked "Do you require work authorization?" + a required
+# context box under it - both from setup's answers, a US job only
+def test_require_work_authorization_is_no_for_someone_free_to_work():
+    free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False, "citizen_or_permanent_resident": True}}
+    asked = [q("Do you require work authorization?\n", "yesno"),
+             q("If applicable, please provide additional context to the previous question.", "longtext")]
+    got = questions.draft(asked, CONTACT, config=free, job_in_us=True)
+    assert [a["answer"] for a in got] == ["No", questions.PERMIT_CONTEXT_ANSWER]
+    assert [a["answer"] for a in questions.draft(asked, CONTACT, config=free)] == [None, None]
+    us = [q("Will you require work authorization to work in the United States?", "yesno")]
+    assert questions.draft(us, CONTACT, config=free)[0]["answer"] == "No"
+    for wa in ({"authorized_us": True, "needs_sponsorship": True}, {"authorized_us": True, "needs_sponsorship": False,
+               "student_visa": True}, {"authorized_us": None}):
+        assert [a["answer"] for a in questions.draft(asked, CONTACT, config={"work_authorization": wa}, job_in_us=True)] \
+            == [None, None]
+    other = [q("Do you require work authorization in Canada?", "yesno"), q("Do you need a work visa?", "yesno"),
+             q("Do you require work authorization sponsorship?", "yesno")]
+    assert [a["answer"] for a in questions.draft(other, CONTACT, config=free, job_in_us=True)] == [None] * 3
+    # a context box after any other question stays asked
+    alone = [q("What is your strongest language?"), asked[1]]
+    assert questions.draft(alone, CONTACT, config=free, job_in_us=True)[1]["answer"] is None
+
+
 def test_country_the_job_is_in_is_the_us_question_only_for_a_us_job():
     free = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
     asked = [q("Are you eligible to work in the country in which this position is located?", "yesno"),
