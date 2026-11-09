@@ -400,6 +400,9 @@ def form_roles(master: dict, tailored: dict | None = None, complete: bool = Fals
     return [], ASK_JOBS.format(page=len(page), all=len(roles), left=len(roles) - len(page), years=tailor.OLD_ROLE_YEARS)
 
 
+PERMIT_SOURCE = "search settings - name it to the user"
+
+
 def work_permit(q: dict, config: dict, job_in_us: bool = False):
     """Setup's work-permit answers, for the same US question however it is worded. "The country where the job is
     located" is that question when the job's on the US list (`job_in_us`); any other country stays asked."""
@@ -423,6 +426,12 @@ def work_permit(q: dict, config: dict, job_in_us: bool = False):
         return wa["authorized_us"] and not wa["needs_sponsorship"]
     if "sponsorship" in title and "future" in title and us:
         return wa.get("needs_sponsorship")
+    # "Do you require work authorization?" (Octane's Greenhouse form, 2026-11-09): no country named = the
+    # job's, so a US job only. No for someone free to work here (green card, citizen); a visa holder's
+    # answer is theirs - "require" may mean a transfer, an extension or a new permit
+    if REQUIRE_PERMIT.search(title) and (us or (job_in_us and not OTHER_COUNTRY.search(title))) \
+            and not OTHER_PERMIT.search(title):
+        return False if free_to_work(wa) else None
     # another country's "citizen or permanent resident" is a different question
     if "citizen" in title and ("green card" in title or ("permanent resident" in title and us)):
         return wa.get("citizen_or_permanent_resident")
@@ -434,6 +443,19 @@ def work_permit(q: dict, config: dict, job_in_us: bool = False):
     return None
 
 
+def free_to_work(wa: dict) -> bool:
+    """Setup says they work in the US with no sponsorship ever and no student visa: a citizen or green card."""
+    return wa.get("authorized_us") is True and wa.get("needs_sponsorship") is False and not wa.get("student_visa")
+
+
+# the box after a work-permit question, asking about it: "If applicable, please provide additional context to
+# the previous question." (Octane's Greenhouse form, 2026-11-09)
+PERMIT_CONTEXT = re.compile(r"\b(?:context|explain|details?|elaborate)\b.*\bprevious question\b")
+PERMIT_CONTEXT_ANSWER = "Authorized to work in the US. I don't need sponsorship now or in the future."
+REQUIRE_PERMIT = re.compile(r"\b(?:require|need)\b(?:\W+[\w-]+){0,2}?\W+(?:work authori[sz]ation|work permit|"
+                            r"authori[sz]ation to work)\b")
+OTHER_COUNTRY = re.compile(r"\b(?:canada|mexico|uk|united kingdom|england|ireland|europe|eu|germany|france|spain|"
+                           r"netherlands|poland|portugal|india|australia|singapore|japan|brazil|israel|philippines)\b")
 US_NAMED = re.compile(r"\bu\.s\b|\busa\b|united states|\bin (?:the )?us\b")
 JOB_COUNTRY = re.compile(r"\bcountry (?:where|in which) (?:the|this) (?:position|job|role) (?:is|will be) (?:located|based)")
 WORK_RIGHT = re.compile(r"(?:authori[sz]ed|eligible|legally (?:able|permitted|entitled)) to (?:legally )?work\b|"
@@ -691,9 +713,14 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             offer = f" - offer saved answer {hit[1]['answer']!r} ({answers.named(hit[1])})" if hit else ""
             out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}{offer}"})
             continue
+        if out and out[-1]["source"] == PERMIT_SOURCE and q["kind"] in ("text", "longtext") and \
+                PERMIT_CONTEXT.search(" ".join(q["title"].casefold().split())) and \
+                free_to_work((config or {}).get("work_authorization") or {}):
+            out.append({**q, "answer": PERMIT_CONTEXT_ANSWER, "source": PERMIT_SOURCE})
+            continue
         permit = work_permit(q, config or {}, job_in_us)
         if permit is not None:
-            out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
+            out.append({**q, "answer": "Yes" if permit else "No", "source": PERMIT_SOURCE})
             continue
         if (site := own_site(q)) is not None:
             out.append({**q, "answer": site, "source": f"{LIKELY} - name it to the user"})

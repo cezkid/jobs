@@ -81,7 +81,8 @@ form over, fix the program after.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only
   when the form asks that same thing about the US (authorized or eligible to work, without restriction
   or not; sponsorship now or in the future; US citizen or permanent resident / green card; "the country
-  where the job is located" for a job on the US list - `prepare` fills these), and name the choice so
+  where the job is located" for a job on the US list; "do you require work authorization?" - No for a
+  citizen or green card holder, plus the "context to the previous question" box under it - `prepare` fills these), and name the choice so
   they check it before Save. Other wording (another
   country, this employer only, which visa, "are you on OPT?") or `not set` -> ask with choices,
   offer to save a new answer to `work_authorization` in search settings. Never pick the answer
