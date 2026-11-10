@@ -629,3 +629,26 @@ def test_two_lists_place_pay_among_every_job():
     lists = best.lists(jobs, CONFIG, NOW, None)
     assert lists["remote"][0]["best_parts"]["pay"] == 0.0
     assert [j["best_parts"]["pay"] for j in lists["nearby"]] == [1.0, 0.5]
+
+
+def test_a_copy_of_a_posting_acted_on_under_another_name_sinks_and_says_so(conn):
+    # 2026-11-10: a job board's copy under the parent's name (PPLSI) of a posting sent 5 days back
+    # (LegalShield) sat first on the remote list - other company, so the title check missed it
+    f = facts()
+    now = NOW.strftime(store.ISO)
+    posting = dict(title="Software Engineer II", description="<p>Scope of the role: build the apps that run the company.</p>")
+    store.upsert(conn, [job("sent", STRONG, company="LegalShield", company_slug="legalshieldcorp", **posting)], now)
+    apply_row(conn, "LegalShield", "Software Engineer II", "applied", 5, slug="sent")
+    board = job("board", STRONG, days=0, company="PPLSI", company_slug="pplsi", source="himalayas", **posting)
+    # same title, other text + asks: another opening, as `posting_keys` reads it
+    sibling = job("sibling", WEAK, company="PPLSI", company_slug="pplsi", title="Software Engineer II", description="other")
+    other = job("other", STRONG[:3] + WEAK[:2], company="Gamma", company_slug="gamma", title="Software Engineer", description="gamma")
+    rows = {j["public_slug"]: j for j in best.acted(conn, [board, sibling, other], CONFIG, NOW)}
+    assert rows["board"]["acted_role"] == "you applied for this same posting under LegalShield 5 days ago"
+    assert rows["board"]["acted_copy"]
+    assert not {"acted_role", "acted_copy"} & (set(rows["sibling"]) | set(rows["other"]))
+    assert "you applied for this same posting under LegalShield" in best.reasons(
+        best.score([rows["board"]], CONFIG, NOW, f)[0], CONFIG, NOW)
+    # a strong match still drops below a weaker job: a demerit + `twin`, never hidden
+    assert order([rows["board"], other], f) == ["other", "board"]
+    assert order([board, other], f) == ["board", "other"]
