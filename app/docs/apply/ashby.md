@@ -47,6 +47,9 @@ Counts only. Required = `isRequired`.
 
 - Url: link boxes (LinkedIn, GitHub, website, work samples) - keyed by title like a String; fixture
   `app/tests/fixtures/ashby/survey-kinds.json`.
+- Phone as a String (2026-11-10, January): an employer's own required "Phone" box typed String, not
+  Phone - keyed `phone` by title (`questions.key_from_title`: every word about their number; "Reference
+  phone", "Phone interview availability" stay questions). Before: asked the user for a number on file.
 - EducationHistory (`_systemfield_education_history`): one block per school - school (required),
   degree, major, start, end (optional), repeatable, min 1. Filled from Resume details since plan-nko.24:
   Education History below.

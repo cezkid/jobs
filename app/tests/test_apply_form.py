@@ -143,6 +143,13 @@ def test_link_questions_recognised_by_title():
     assert questions.key_from_title("Why LinkedIn?", "longtext") is None
 
 
+def test_phone_box_recognised_by_title():
+    want = {"Phone": "phone", "Phone Number": "phone", "Mobile phone number": "phone", "Cell": "phone",
+            "Your best contact phone": "phone", "Reference phone": None, "Do you have a phone?": None,
+            "Phone interview availability": None, "Emergency contact phone": None}
+    assert {t: questions.key_from_title(t, "text") for t in want} == want
+
+
 NAME_BOXES = [q("Name", key="name"), q("First name", key="first_name"), q("Last name", key="last_name")]
 
 
