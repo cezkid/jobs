@@ -385,6 +385,11 @@ its history (`scan.mjs`) and keeps same-role cooldowns. Here, for `again_days` (
   a sibling opening shares the title. Same title = the same set of words, `detect-reposts.mjs`' title identity: its fuzzy match read "Solutions Engineer - Munich" vs "- Berlin"
   as one. 2026-11-02, one user's 72 acted jobs vs 2,436 open: 4, one a "no" 11 days back; with bracket parts left out, 2 more that were other teams, so they stay in.
 - any other job there starts one `repeat` down: 122 open rows. Spreads the bet, as #Employers spread. A job marked closed says nothing about the next.
+- the same posting under another company name (`posting_keys`, #Employers spread: a job board's copy, a brand + its parent):
+  one demerit + `twin`, the why names the name they acted under ("you applied for this same posting under LegalShield 5 days ago").
+  2026-11-10: a Himalayas copy under PPLSI of a LegalShield Workday posting sent 5 days back sat #1 on the remote list - other
+  name, so the title check missed it, and its own copy was off the list (acted on), so `twin` had nothing above it. With it: #52 of
+  63; one more caught on the same 101 open jobs (Disney / Disney Entertainment and ESPN, 40 days). Never hidden, as above.
 
 The morning email reads it too (`alert.unseen_ranked`): a relisted job never arrives as new without saying so. Fit ratings can't show this: their resumes have no history.
 

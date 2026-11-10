@@ -591,8 +591,8 @@ def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = Non
     """Best first, less `repeat` per job from the same employer already placed above and `twin`
     per copy of the same posting above (one employer filled 2-4 of the top 10, the same posting
     sat twice under two names - 2026-10-11, 1,200 live rows). A job board's copy takes `twin` from the
-    start when the employer's own is here too; an employer they acted on lately starts one `repeat` down
-    (`acted`). `seen` = counts from jobs placed before these, updated. Order only: `best` stays as scored."""
+    start when the employer's own is here too, and so does a copy of a posting they acted on lately
+    (`acted_copy`); an employer they acted on lately starts one `repeat` down (`acted`). `seen` = counts from jobs placed before these, updated. Order only: `best` stays as scored."""
     seen = {} if seen is None else seen
     keyed = [(j, posting_keys(j)) for j in sorted(jobs, key=lambda j: (-j["best"], j["public_slug"]))]
     own = {k for j, postings in keyed if not rank.board_copy(j) for k in postings}
@@ -605,7 +605,7 @@ def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = Non
 
     def entry(employer):
         j, postings = queues[employer][0]
-        copy = any(k in seen or rank.board_copy(j) and k in own for k in postings)
+        copy = j.get("acted_copy") or any(k in seen or rank.board_copy(j) and k in own for k in postings)
         return (-(j["best"] - repeat * (seen.get(employer, 0) + (employer in busy)) - twin * copy),
                 j["public_slug"], employer)
 
@@ -696,16 +696,25 @@ ACTED_WORDS = {"applied": "you applied for this title here", "heard_back": "you 
                "saved": "you saved this title here", "resume_made": "you made a resume for this title here"}
 
 
+COPY_WORDS = {"applied": "you applied for this same posting", "heard_back": "you applied for this same posting",
+              "interview": "you applied for this same posting", "offer": "you applied for this same posting",
+              "no": "they said no to this same posting", "not_sending": "you chose not to send this same posting",
+              "saved": "you saved this same posting", "resume_made": "you made a resume for this same posting"}
+
+
 def acted(conn, jobs: list[dict], config: dict, now: datetime) -> list[dict]:
     """Jobs + what they already did at that employer in the last `again_days`: the same title (`acted_role`,
     the row's words, one demerit - a relisted job, a new link so nothing else catches it) or any job there
     (`acted_employer`, `spread`). Sorted lower, never hidden: a sibling opening shares the title too. A job
-    they marked closed says nothing about the next one. Why: app/docs/jobs/best-next.md #Acted on before."""
+    they marked closed says nothing about the next one. The same posting under another company name (a job
+    board's copy, a brand + its parent: LegalShield / PPLSI, `posting_keys`) says so too and takes `twin`
+    (`acted_copy`). Why: app/docs/jobs/best-next.md #Acted on before."""
     days = config["rank"]["best_next"].get("again_days")
     if not days:
         return jobs
-    roles, employers = {}, set()
-    for r in conn.execute("SELECT a.company, a.title, a.state, a.state_at, j.company_slug FROM applications a"
+    roles, employers, copies = {}, set(), {}
+    for r in conn.execute("SELECT a.company, a.title, a.state, a.state_at, j.company_slug, j.title AS job_title,"
+                          " j.description, j.enrichment FROM applications a"
                           " LEFT JOIN jobs j USING (public_slug) ORDER BY a.state_at"):
         since = (now - datetime.strptime(r["state_at"][:19], store.ISO[:17]).replace(tzinfo=timezone.utc)).days
         if r["state"] not in ACTED_WORDS or since > days or not r["company"]:
@@ -713,11 +722,17 @@ def acted(conn, jobs: list[dict], config: dict, now: datetime) -> list[dict]:
         company = rank.norm_company(r["company"])
         employers |= {company, r["company_slug"] or company}
         roles[company, title_identity(r["title"])] = f"{ACTED_WORDS[r['state']]} {ago_days(since)}"
+        if r["description"] or r["enrichment"]:
+            row = store._decode(r)
+            for k in posting_keys({**row, "title": row["job_title"] or row["title"]}):
+                copies[k] = f"{COPY_WORDS[r['state']]} under {r['company']} {ago_days(since)}"
     out = []
     for j in jobs:
         company = rank.norm_company(j.get("company"))
         said = roles.get((company, title_identity(j.get("title"))))
+        copy = None if said or not copies else next((copies[k] for k in posting_keys(j) if k in copies), None)
         out.append({**j, **({"acted_role": said} if said else {}),
+                    **({"acted_role": copy, "acted_copy": True} if copy else {}),
                     **({"acted_employer": True} if company in employers or j.get("company_slug") in employers else {})})
     return out
 
