@@ -252,6 +252,12 @@ def key_from_title(title: str, kind: str) -> str | None:
         return "resume"
     if kind == "text" and (key := name_key(title)):
         return key
+    # a phone box the employer added as its own plain text question (Ashby "Phone", a user's application
+    # 2026-11-10): only when its words are all about their number - "Reference phone", "Do you have a
+    # phone?" or "Phone interview availability" stay questions
+    words = set(re.findall(r"[a-z]+", t))
+    if kind == "text" and words & PHONE_WORDS and words <= PHONE_WORDS | PHONE_FILLER:
+        return "phone"
     if kind in ("text", "url"):
         for key in ("linkedin", "github"):
             if key in t:
@@ -265,6 +271,8 @@ def key_from_title(title: str, kind: str) -> str | None:
     return None
 
 
+PHONE_WORDS = {"phone", "telephone", "mobile", "cell", "cellphone"}
+PHONE_FILLER = {"number", "no", "your", "primary", "contact", "best", "personal", "home", "work", "us", "e"}
 WORK_LINK = re.compile(r"\b(?:demo |show)?reel\b|\bwork samples?\b|\bsamples? of (?:your )?work\b|"
                        r"\bexamples? of (?:your )?work\b|\byour work\b|\bvimeo\b", re.I)
 
