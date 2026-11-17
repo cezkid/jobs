@@ -82,6 +82,18 @@ def no_real_schedule(monkeypatch, tmp_path):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "real_vscode: test may find the real code command (still only w/ --user-data-dir)")
+    config.addinivalue_line("markers", "live: test reaches the internet (job search API, job sites)")
+    config.addinivalue_line("markers", "gui: test runs a macOS tool that needs the desktop (osascript render, textutil)")
+    config.addinivalue_line("markers", "loopback: test serves on a local port")
+    if config.getoption("--sandboxed"):
+        # no Chrome starts in a sandbox (Chromium: ProcessSingleton, kill EPERM): every browser test finds Chrome here,
+        # so it skips there; a test that fakes chrome() still runs
+        from apply import browser
+
+        def no_chrome() -> str:
+            pytest.skip("--sandboxed: Chrome cannot start in a sandbox")
+
+        browser.chrome = no_chrome
 
 
 def pytest_addoption(parser):
@@ -93,6 +105,9 @@ def pytest_addoption(parser):
     # flags, not --part <name>: a separate word is read as a test path before this file loads (option unknown)
     parser.addoption("--app", action="store_true", help="all but the website's tests (affected.SITE_TESTS)")
     parser.addoption("--site", action="store_true", help="only the website's tests (docs/, app/web/)")
+    parser.addoption("--sandboxed", action="store_true",
+                     help="only tests that run in an agent sandbox (no internet, no local port, no Chrome, no desktop): "
+                          "live, loopback + gui tests left out, browser tests skipped. Checks still run the full suite")
     parser.addoption("--touched", action="store_true",
                      help="--app, --site or both: the parts this branch changed since main (affected.parts)")
 
@@ -128,6 +143,13 @@ def pytest_collection_modifyitems(config, items):
             gone = set(dropped)
             items[:] = [i for i in items if i not in gone]
         reporter and reporter.write_line(f"parts: {' + '.join(sorted(chosen))}: {len(items)} tests")
+    if config.getoption("--sandboxed"):
+        out = [i for i in items if any(i.get_closest_marker(m) for m in ("live", "gui", "loopback"))]
+        if out:
+            config.hook.pytest_deselected(items=out)
+            gone = set(out)
+            items[:] = [i for i in items if i not in gone]
+        reporter and reporter.write_line(f"--sandboxed: {len(out)} live/gui/loopback tests left out, browser tests skip")
     xdist_groups(items)
     ref = config.getoption("--changed")
     if ref is None:

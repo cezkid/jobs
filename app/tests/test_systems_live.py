@@ -9,6 +9,8 @@ import pytest
 
 from apply import systems
 
+pytestmark = pytest.mark.live  # reaches the job search API and job sites
+
 SEARCH = "https://freehire.me/api/v1/jobs/search"
 CONTACT = {"email", "name", "first_name", "resume"}
 

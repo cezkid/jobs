@@ -101,6 +101,7 @@ def test_splash_missing_icon_and_look_still_build(tmp_path):
 
 
 @mac
+@pytest.mark.gui
 @pytest.mark.parametrize("look", ["light", "dark"])
 def test_splash_render_draws_the_look_into_a_png_without_showing_it(tmp_path, look):
     home, png = root(tmp_path, look), tmp_path / "splash.png"
@@ -114,6 +115,7 @@ def test_splash_render_draws_the_look_into_a_png_without_showing_it(tmp_path, lo
 
 
 @mac
+@pytest.mark.gui
 def test_splash_log_says_when_it_closed_and_why(tmp_path):
     home, log = root(tmp_path), tmp_path / "log.json"
     (home / ".data" / "window-ready").write_text("")

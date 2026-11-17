@@ -11,6 +11,8 @@ from ingest import freehire
 from resume import jd
 from text import html_to_text
 
+pytestmark = pytest.mark.live  # reaches the job search API and job sites
+
 SENIOR_PLUS = {"senior", "staff", "lead", "principal"}
 
 

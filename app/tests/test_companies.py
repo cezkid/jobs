@@ -104,6 +104,7 @@ def test_link_none_without_a_website(conn):
 
 
 # live: the job search still answers with a website for a well-known company (Notion, 2026-10-03)
+@pytest.mark.live
 def test_live_companies_endpoint_has_a_website():
     with httpx.Client(timeout=30) as c:
         ok, site, nonprofit, staffing = companies.ask(c, "https://freehire.me/api/v1", "notion")
@@ -112,6 +113,7 @@ def test_live_companies_endpoint_has_a_website():
 
 
 # live: the record still calls a well-known charity a nonprofit (American Red Cross, 2026-10-09)
+@pytest.mark.live
 def test_live_companies_endpoint_names_a_nonprofit():
     with httpx.Client(timeout=30) as c:
         ok, _, nonprofit, _ = companies.ask(c, "https://freehire.me/api/v1", "american-red-cross")
@@ -143,6 +145,7 @@ def test_company_cached_before_nonprofit_column_is_asked_again(conn):
 
 
 # live: the record still calls a staffing firm one (System One, 2026-10-13)
+@pytest.mark.live
 def test_live_companies_endpoint_names_a_staffing_firm():
     with httpx.Client(timeout=30) as c:
         ok, _, _, staffing = companies.ask(c, "https://freehire.me/api/v1", "system-one")
