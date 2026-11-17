@@ -127,6 +127,7 @@ def test_tab_stop_definitions_add_no_tab(tmp_path):
 
 
 @pytest.mark.skipif(sys.platform != "darwin" or not shutil.which("textutil"), reason="macOS textutil only")
+@pytest.mark.gui
 def test_older_word_file_read_on_a_mac(tmp_path):
     source = docx(tmp_path, p(r("Alex Rivera")) + p(r("alex.rivera@example.com")) +
                   p(r("Scheduled 40 drivers across two depots")))
@@ -138,6 +139,7 @@ def test_older_word_file_read_on_a_mac(tmp_path):
 
 
 @pytest.mark.skipif(sys.platform != "darwin" or not shutil.which("textutil"), reason="macOS textutil only")
+@pytest.mark.gui
 def test_contact_in_page_header_lost_by_textutil_gets_save_as_step(tmp_path):
     contact = p(r("Alex Rivera")) + p(r("alex.rivera@example.com"))
     source = docx(tmp_path, p(r("Scheduled 40 drivers across two depots")), headers=[contact])

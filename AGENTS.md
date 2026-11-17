@@ -392,6 +392,10 @@ for the parts the branch changed (`--app`: program, `--site`: website `docs/` + 
 ~5 min, live gates hit freehire API). Before any suite run: look for a speed-up first (slow
 setup repeated per test, fixed waits, a cache) - owner allows merging, combining or dropping
 tests for dev speed, coverage kept (`pytest --durations=30` shows where time goes).
+In a sandbox (cronling worker, `CRONLING_WORKER` set: no internet, no local port, no Chrome, no
+desktop): add `--sandboxed` to every run - live, loopback + desktop-tool tests left out, browser tests
+skip. Task checks still run the full suite outside it. New test that needs one: mark it `live`,
+`loopback` or `gui`; a browser test gets Chrome from `browser.chrome()`, which skips there.
 
 ## Students
 

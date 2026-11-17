@@ -1101,9 +1101,9 @@ def test_in_window_let_go_not_clean_tells_the_user_to_close_the_tab_before_submi
 
 @pytest.mark.parametrize("running, attach, said", [
     (False, None, "not filled: the Job Finder window isn't open"),
-    (True, {"error": "untrusted"}, "not filled: the Job Finder window is in Restricted Mode"),
-    (True, {"error": "picker"}, "not filled: the window couldn't tell which tab to use"),
-    (True, ["ok"], "not filled: the window could not reach the tab"),
+    pytest.param(True, {"error": "untrusted"}, "not filled: the Job Finder window is in Restricted Mode", marks=pytest.mark.loopback),
+    pytest.param(True, {"error": "picker"}, "not filled: the window couldn't tell which tab to use", marks=pytest.mark.loopback),
+    pytest.param(True, ["ok"], "not filled: the window could not reach the tab", marks=pytest.mark.loopback),
 ])
 def test_in_window_page_at_stops_plainly_and_names_the_chrome_way(tmp_path, monkeypatch, running, attach, said):
     window_setup(tmp_path, monkeypatch, running)
