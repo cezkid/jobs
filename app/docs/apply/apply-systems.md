@@ -162,7 +162,17 @@ A live form must never get an applicant record, anything typed, or the user's wi
 
 Chrome starts as a normal window on Job Finder's profile (`.data/apply-browser`), fixed debugging
 port Job Finder picks + records (`job-finder-port` in the profile). Filler attaches, fills,
-disconnects; window stays open. Measured 2026-09, Chrome 154, reading `navigator.webdriver` (what
+disconnects; window stays open.
+
+Mac: user closes the last window -> the app keeps running (seen 2026-11-20, Chrome 157: no page
+targets, only extension workers). It is the same app as the user's own Chrome: the Dock's Chrome
+went to it, no window came up, their own Chrome could not start - one sat ~10 days, relaunched by
+Chrome's update on 2026-11-10 with `--no-startup-window` and a new process id. So every `page_at`
+starts a watcher (`apply-form chrome-watch`, one at a time via flock on `job-finder-watch`): finds
+Chrome by profile each 5 s, quits it (`restart`) after 3 polls in a row with no tab, under the
+open lock. Windows: closing the last window quits Chrome itself, no watcher.
+
+Measured 2026-09, Chrome 154, reading `navigator.webdriver` (what
 an employer's spam check sees at Submit):
 
 | Launch | webdriver |
