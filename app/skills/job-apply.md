@@ -209,10 +209,12 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    resume or search settings) or `NEEDED`. Rerun keeps answers already written. The job list's
    link may be the employer's own careers page (a Radancy or Jibe careers site): pass it as is -
    `prepare` reads that page once and follows its Apply ("the posting's Apply leads to ...").
+   `prepare` ends "<system>: ... - nothing read" -> the posting is gone or its page refused the read: say so in one
+   line, ask (clickable), `status set <job> closed` after their yes.
    A job board's copy (EchoJobs: its Apply shows only to its own signed-in users): `prepare` finds
    the employer's own posting on the job search ("the posting is a copy - the employer's own posting
    is ...") and goes on with that; none found -> it says so: `jobs.py open` the posting, ask the user
-   for the employer's link. Himalayas + startup.jobs the same. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
+   for the employer's link. Himalayas, startup.jobs + Wellfound the same. Built In (`builtin.com/job/...`) the same; none found -> its Apply is Built In's
    own form: `jobs.py open "<tailored PDF>" "<posting link>"` (one call: the posting opens last, in front -
    opened before the resume, it was hidden behind it), they sign in to Built In there, click Apply + choose the
    tailored resume (it reaches Built In + the employer then) - say where the file is.

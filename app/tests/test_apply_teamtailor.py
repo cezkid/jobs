@@ -44,7 +44,8 @@ def test_links_freehire_lists_land_on_the_application_form():
 def test_other_links_refused():
     for url in ("https://acme.teamtailor.com/jobs", "https://acme.teamtailor.com/jobs/123-x",
                 "https://acme.teamtailor.com/careers/jobs/700001-x", "https://acme.teamtailor.com/jobs/700001-x/extra",
-                "https://job-boards.greenhouse.io/acme/jobs/1234567", "https://jobs.smartrecruiters.com/Acme/744000012345-x"):
+                "https://job-boards.greenhouse.io/acme/jobs/1234567", "https://jobs.smartrecruiters.com/Acme/744000012345-x",
+                "https://wellfound.com/jobs/3700001-senior-software-engineer?utm_source=freehire.me"):  # a job board, same shape
         assert not teamtailor.matches(url), url
     with pytest.raises(ValueError):
         teamtailor.parse_url("https://jobs.lever.co/acme/1b2c")
