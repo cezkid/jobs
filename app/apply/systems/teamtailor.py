@@ -19,6 +19,8 @@ NAME = "Teamtailor"
 # the tell - /jobs/<5-8 digits>-<slug> at the root - and the page's Teamtailor assets confirm it (questions, closed)
 POSTING_URL = re.compile(r"(https?)://([\w.-]+)/jobs/(\d{5,8})-([\w-]+?)(?:/applications/new)?/?(?=[?#]|$)", re.I)
 SOURCES = ("teamtailor",)
+# a job board with the same path shape (wellfound.com/jobs/<7 digits>-<slug>): a board's copy, apply/listing_copy.py
+BOARDS = re.compile(r"https?://(?:www\.)?wellfound\.com/", re.I)
 EXAMPLES = ("https://acme.na.teamtailor.com/jobs/700001-software-engineer",
             "https://acme.na.teamtailor.com/jobs/700001-software-engineer?utm_source=freehire.me",
             "https://jobs.acme.com/jobs/8400001-software-engineer/applications/new")
@@ -57,7 +59,7 @@ VOID = {"input", "br", "img", "meta", "link", "hr", "source", "area", "base", "c
 
 
 def matches(url: str) -> bool:
-    return bool(POSTING_URL.match(url.strip()))
+    return bool(POSTING_URL.match(url.strip())) and not BOARDS.match(url.strip())
 
 
 def parse_url(url: str) -> tuple[str, str, str]:

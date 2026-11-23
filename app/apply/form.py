@@ -28,6 +28,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import httpx
+
 import about
 import cfg
 import status
@@ -265,7 +267,10 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     elif system is None:
         asked = readahead.as_questions(form)
     else:  # one set of Education boxes per school on the resume (Greenhouse's Add another)
-        asked = system.questions(url, len(schools)) if getattr(system, "EDUCATION_ENTRIES", False) else system.questions(url)
+        try:
+            asked = system.questions(url, len(schools)) if getattr(system, "EDUCATION_ENTRIES", False) else system.questions(url)
+        except (ValueError, httpx.HTTPError) as e:  # posting taken down, or its page refused the read
+            sys.exit(f"{system.NAME}: {e} - nothing read; ask the user, then status set <job> closed if it is")
     answers = drafted(config, master, asked, before, reads, slug)
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
     where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"

@@ -23,8 +23,13 @@ Himalayas (`himalayas`, `himalayas.app/companies/<co>/jobs/...`; its pages sit b
 never read) and startup.jobs (`startupjobs`): the row keeps the employer's own title, no <h1> - the Built In
 way. Measured 2026-10-30 on random open rows: Himalayas 14 of 60 resolved (Zoho Recruit 5, Teamtailor 3,
 Workday, Greenhouse, Lever, Manatal, SmartRecruiters, UKG 1 each), startup.jobs 10 of 15 (Ashby 4, Lever 3,
-Workday, Greenhouse, Rippling 1 each); each hit checked: same employer (or its parent company's careers site). Wellfound matched only other Wellfound pages, whatjobs, betterteam and adzuna none -
+Workday, Greenhouse, Rippling 1 each); each hit checked: same employer (or its parent company's careers site). Whatjobs, betterteam and adzuna matched none -
 not added.
+
+Wellfound (`wellfound`, `wellfound.com/jobs/<id>-<slug>`): its Apply is Wellfound's own, behind a Wellfound sign-in, and its
+pages answer 403 to a plain read. That sample matched only other Wellfound pages, so few resolve - it is here so `prepare`
+says the board's-copy line: its link has Teamtailor's shape, and read as one it crashed on the 403 (2026-11-23, a posting
+the employer's own Greenhouse board had already closed).
 """
 import html
 import re
@@ -33,10 +38,10 @@ import httpx
 
 from apply import systems
 
-LINK = re.compile(r"https?://(?:www\.)?(?:(?:echojobs\.io|builtin\.com)/job/|himalayas\.app/companies/[^/]+/jobs/|startup\.jobs/)",
+LINK = re.compile(r"https?://(?:www\.)?(?:(?:echojobs\.io|builtin\.com)/job/|himalayas\.app/companies/[^/]+/jobs/|startup\.jobs/|wellfound\.com/jobs/)",
                   re.I)
-SOURCES = ("echojobs", "builtin", "himalayas", "startupjobs")
-TITLED = ("builtin", "himalayas", "startupjobs")  # boards whose row title is the employer's own (no <h1> in the description)
+SOURCES = ("echojobs", "builtin", "himalayas", "startupjobs", "wellfound")
+TITLED = ("builtin", "himalayas", "startupjobs", "wellfound")  # boards whose row title is the employer's own (no <h1> in the description)
 TITLE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.I | re.S)
 TAG = re.compile(r"<[^>]+>")
 SAME = 0.6

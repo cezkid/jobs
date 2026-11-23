@@ -5,6 +5,7 @@ import importlib
 import inspect
 import pkgutil
 
+import httpx
 import pytest
 
 from apply import browser, form, questions, systems
@@ -296,3 +297,25 @@ def test_required_question_the_user_types_on_the_page_does_not_block(job, capsys
     mine = {**q("b", None), "source": "yours to do on the page"}
     job(OnePage, [q("a", None, "x"), mine], None)
     assert "still to do on the page: Question b" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("error", [ValueError("posting not found - it may have closed"),
+                                   httpx.HTTPStatusError("403 Forbidden", request=None, response=None)])
+def test_prepare_says_a_posting_gone_or_refused_in_one_line(tmp_path, monkeypatch, error):
+    # 2026-11-23: a closed Greenhouse posting and a page answering 403 each ended prepare in a traceback
+    monkeypatch.setattr(form.cfg, "load", lambda: {})
+    monkeypatch.setattr(form.cfg, "resume_path", lambda c, k: tmp_path / "r.yml")
+    monkeypatch.setattr(form.schema, "load", lambda p: {"contact": {"name": "Jane Doe"}})
+    monkeypatch.setattr(form, "job_dir", lambda config, slug: tmp_path)
+
+    class Gone:
+        NAME = "Fake"
+        application_url = staticmethod(lambda url: url)
+
+        def questions(url):
+            raise error
+    monkeypatch.setattr(form.systems, "for_url", lambda url: Gone)
+    with pytest.raises(SystemExit) as stop:
+        form.prepare("7", "https://jobs.example/1")
+    assert str(stop.value).startswith("Fake: ") and "nothing read" in str(stop.value)
+    assert not (tmp_path / ".data" / questions.FILE).exists()

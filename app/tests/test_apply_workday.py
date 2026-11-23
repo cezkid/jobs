@@ -106,6 +106,9 @@ def test_echojobs_links_known():
     assert listing_copy.matches("https://builtin.com/job/software-engineer/11934125?utm_source=freehire.me")
     assert listing_copy.matches("https://himalayas.app/companies/acme/jobs/software-engineer-ii-8184144146?utm_source=freehire.me")
     assert listing_copy.matches("https://startup.jobs/frontend-architect-tripactions-10464073?utm_source=freehire.me")
+    wellfound = "https://wellfound.com/jobs/3700001-senior-software-engineer?utm_source=freehire.me"
+    assert listing_copy.matches(wellfound) and systems.for_url(wellfound) is None  # Teamtailor's link shape, never read as one
+    assert "wellfound" in listing_copy.TITLED and "wellfound" in listing_copy.SOURCES
     assert not listing_copy.matches("https://himalayas.app/companies/acme")
     assert not listing_copy.matches(POSTING)
 
