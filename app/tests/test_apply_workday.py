@@ -672,3 +672,18 @@ def test_search_box_words_typed_with_real_keys(tenant_l_real):
     assert pills == ["JavaScript", "Node.js", "Docker (Software)"]
     assert not [p for p in status["problems"] if p.startswith("ASK Skills > JavaScript")]
 
+
+
+def test_a_board_whose_apply_is_its_own_form_says_its_steps():
+    # owner 2026-11-24 ("apply for me. if new system. figure it out"): Wellfound's Apply sends the resume on the
+    # Wellfound profile - one over 5 years old would have gone - and its signed-out form checks a typed email at once
+    link = "https://wellfound.com/jobs/3700001-senior-software-engineer?utm_source=freehire.me"
+    said = listing_copy.own_form(link)
+    assert "https://wellfound.com/jobs/3700001-senior-software-engineer?autoOpenApplication=true" in said
+    assert "utm_source" not in said and listing_copy.WELLFOUND_RESUME in said
+    for words in ("--outside", "never type their email", "resume on their Wellfound profile", "ask once", "They click Send application"):
+        assert words in said, words
+    assert "Built In's own form" in listing_copy.own_form("https://builtin.com/job/software-engineer/11934125?utm_source=freehire.me")
+    # a board that only hides the employer's link: no form of its own to describe
+    assert listing_copy.own_form("https://echojobs.io/job/acme-engineer-abc") is None
+    assert listing_copy.own_form("https://wellfound.com/company/acme") is None

@@ -49,7 +49,7 @@ the row's own title + its whole text (19 of 41 found one, 2026-10-29); none foun
 In's own form behind a Built In sign-in: the user signs in + applies there with the tailored resume. Himalayas (`himalayas`, `himalayas.app/companies/<co>/jobs/...`,
 pages behind a Cloudflare check) and startup.jobs (`startupjobs`) the same way, by the row's own title (Himalayas 14 of
 60, startup.jobs 10 of 15 found one, 2026-10-30); none found -> the user finds the employer's own posting. Wellfound (`wellfound`,
-`wellfound.com/jobs/<id>-<slug>`: Teamtailor's link shape, never Teamtailor; pages answer 403) the same way - few resolve, its Apply is behind a Wellfound sign-in.
+`wellfound.com/jobs/<id>-<slug>`: Teamtailor's link shape, never Teamtailor; pages answer 403) the same way - few resolve, its Apply is behind a Wellfound sign-in. None found -> `prepare` says its steps (`listing_copy.own_form`, [wellfound.md](wellfound.md)): no filler - its form can't be measured in the lab.
 A posting the system says is gone, or a page that refuses the read: `prepare` ends on one line ("<system>: ... - nothing read"), never a traceback.
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead

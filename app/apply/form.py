@@ -228,11 +228,9 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
         if found := copied_from(config, url):
             print(f"the posting is a copy - the employer's own posting is {found}")
             url, system = found, systems.for_url(found)
-        elif "builtin.com" in url.casefold():
-            sys.exit("this posting is on Built In and the job search lists no copy from the employer's own site - its "
-                     "Apply is Built In's own form, behind a Built In sign-in, not filled here: open the posting in the "
-                     "window (jobs.py open); the user signs in, clicks Apply and chooses the tailored resume themselves "
-                     "(it reaches Built In and the employer then) - or ask for the employer's own posting link")
+        elif own := listing_copy.own_form(url):
+            # the board's Apply is its own form behind its sign-in (Built In, Wellfound): its steps, the user's
+            sys.exit(own)
         else:
             sys.exit("this posting is a job board's copy (its Apply shows only to that board's signed-in users, or "
                      "behind its bot check), and the job search lists no copy from the employer's own site - ask the user to open the posting "
