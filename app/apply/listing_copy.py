@@ -29,7 +29,7 @@ not added.
 Wellfound (`wellfound`, `wellfound.com/jobs/<id>-<slug>`): its Apply is Wellfound's own, behind a Wellfound sign-in, and its
 pages answer 403 to a plain read. That sample matched only other Wellfound pages, so few resolve - it is here so `prepare`
 says the board's-copy line: its link has Teamtailor's shape, and read as one it crashed on the 403 (2026-11-23, a posting
-the employer's own Greenhouse board had already closed).
+the employer's own Greenhouse board had already closed). None found -> `own_form` says its steps (app/docs/apply/wellfound.md).
 """
 import html
 import re
@@ -46,6 +46,35 @@ TITLE = re.compile(r"<h1[^>]*>(.*?)</h1>", re.I | re.S)
 TAG = re.compile(r"<[^>]+>")
 SAME = 0.6
 WORDS = 150
+
+
+WELLFOUND = re.compile(r"https?://(?:www\.)?wellfound\.com/jobs/\d+-[^/?#]+", re.I)
+# where the profile's resume is changed; the application sends that one, never a file chosen on the form
+WELLFOUND_RESUME = "https://wellfound.com/profile/edit/resume"
+
+
+def own_form(url: str) -> str | None:
+    """A board whose Apply is its own form, behind its own sign-in, when the job search lists no copy from the
+    employer's site: what `prepare` says instead of filling - the steps as measured, each the user's (None:
+    another board). Built In 2026-10-29; Wellfound 2026-11-24 (app/docs/apply/wellfound.md)."""
+    if "builtin.com" in url.casefold():
+        return ("this posting is on Built In and the job search lists no copy from the employer's own site - its "
+                "Apply is Built In's own form, behind a Built In sign-in, not filled here: open the posting in the "
+                "window (jobs.py open); the user signs in, clicks Apply and chooses the tailored resume themselves "
+                "(it reaches Built In and the employer then) - or ask for the employer's own posting link")
+    if m := WELLFOUND.match(url.strip()):
+        return ("this posting is on Wellfound and the job search lists no copy from the employer's own site - its Apply is "
+                "Wellfound's own, behind a Wellfound sign-in, not filled here. Steps, each the user's: "
+                f"1. jobs.py open --outside \"{m.group(0)}?autoOpenApplication=true\" (their own browser: Google sign-in) - "
+                "they sign in. Signed out, the page shows a new-account form instead: never type their email there (it is "
+                "checked with Wellfound as its box is left, measured). "
+                "2. Signed in, the form is one optional note + Send application, and Wellfound sends the resume on their "
+                f"Wellfound profile, never a file chosen on the form: {WELLFOUND_RESUME} says how old that one is - ask once, "
+                "naming the file, whether to put the tailored resume there (it replaces the profile's resume for every "
+                "recruiter on Wellfound, at once); they upload it there, or say which to keep. "
+                "3. Note: empty unless they want one (cover_letter). They click Send application. "
+                "A posting marked \"Reposted: N years ago\" may be stale - say so")
+    return None
 
 
 def matches(url: str) -> bool:
