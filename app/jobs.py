@@ -193,6 +193,50 @@ def open_targets(args: list[str]) -> list[str]:
     return [" ".join(args)]
 
 
+# `open <file> <link>`: the window shows the files itself and answers once their tabs are up; the
+# link opens only then. `code <file>` returns before its tab exists, so the link reached the window
+# first and the file covered the page - 3 of 3, PDF or text (app/docs/app-window.md #x; owner
+# 2026-11-23 "browser windows don't open anymore": the posting sat behind the resume)
+SHOW_REQUEST = "show-files"
+# first window extension that answers it; an older one takes the request and shows nothing
+SHOW_SINCE = (0, 38, 0)
+# a cold PDF viewer took ~1 s; past this the window never answered => `code` shows them
+SHOW_WAIT = 15.0
+# its record says a window that answers is up in this folder => longer than a link's wait before
+# giving up on it: under load (test suite on every core) a claim took over 2 s, both fell back (#x)
+SHOW_CLAIM_WAIT = 6.0
+
+
+def show_in_window(files: list[str], wait: float | None = None, answer_wait: float | None = None) -> bool:
+    """Files as tabs in Job Finder's own window, every one up before this returns. False: no
+    window, one from before SHOW_SINCE, or it never answered - the caller opens them as before."""
+    import cfg
+    import launch
+    if not launch.vscode_running() or (launch.window_running_version() or (0,)) < SHOW_SINCE:
+        return False
+    name = send_request({"do": SHOW_REQUEST, "files": [str(Path(f).resolve()) for f in files]}, cfg.ROOT,
+                        SHOW_CLAIM_WAIT if wait is None else wait)
+    if not name:
+        return False
+    try:
+        answer = window_answer(name, cfg.ROOT, SHOW_WAIT if answer_wait is None else answer_wait)
+    except TimeoutError:
+        return False
+    return isinstance(answer, dict) and answer.get("ok") is True
+
+
+def open_all(targets: list[str], outside: bool = False) -> None:
+    """`open`'s targets in order. Files followed by a link: the files' tabs are up before the link
+    opens (show_in_window), so the page - window tab or browser - is what stays in front."""
+    files = [t for t in targets if Path(t).exists()]
+    links = targets[len(files):]
+    tabs = [f for f in files if opens_as_tab(Path(f))] if links else []
+    if tabs and show_in_window(tabs):
+        files = [f for f in files if f not in tabs]
+    for target in [*files, *links]:
+        open_for_user(target, outside=outside)
+
+
 def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -> None:
     import cfg
     import launch
@@ -252,8 +296,7 @@ def main() -> None:
     elif name == "check-settings":
         check_settings()
     elif name == "open":
-        for target in open_targets([a for a in args if a != "--outside"]):
-            open_for_user(target, outside="--outside" in args)
+        open_all(open_targets([a for a in args if a != "--outside"]), outside="--outside" in args)
     elif name == "clear-signins":
         clear_signins()
     elif name == "window-setup":

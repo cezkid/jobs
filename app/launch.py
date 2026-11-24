@@ -1053,6 +1053,16 @@ def record_window_installed(data: Path | None = None) -> None:
         pass  # no record => the window just shows no restart line
 
 
+def window_running_version(data: Path | None = None) -> tuple[int, ...] | None:
+    """Window extension version the open Job Finder window runs (its RUNNING_RECORD); None: no
+    record, or the window that wrote it is gone."""
+    try:
+        record = json.loads(((data or cfg.ROOT / ".data") / RUNNING_RECORD).read_text(encoding="utf-8"))
+        return version_tuple(record["version"]) if process_alive(int(record["pid"])) else None
+    except (OSError, TypeError, ValueError, KeyError):
+        return None
+
+
 def window_behind(data: Path | None = None, paths: VSCodePaths | None = None) -> bool:
     """A running Job Finder window started on an older window extension than the one installed.
 
