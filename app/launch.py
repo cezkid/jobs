@@ -1180,6 +1180,19 @@ def main() -> None:
         raise
 
 
+def watch_chrome() -> None:
+    """Mac: Job Finder's Chrome running with no window keeps the user's own Chrome from opening
+    (apply/browser.py watch). Its watcher starts with each tab handed out - one left from before
+    (a restart ended the watcher, Chrome came back at login; started by an older release) never got
+    one: 2026-11-23, windowless ~4 h. So each start of the window + each job check starts it too;
+    it exits at once when no such Chrome runs. Never stops a launch."""
+    try:
+        from apply import browser
+        browser.start_watch()
+    except Exception:
+        pass
+
+
 def open_window() -> None:
     if sys.platform == "win32":
         register_protocol()
@@ -1215,6 +1228,8 @@ def open_window() -> None:
     ensure_quiet_vscode()
     # installs from before the day's later checks get them
     ensure_schedule()
+    # a Job Finder Chrome left windowless before this start (no watcher: restart, an older release)
+    watch_chrome()
     # before VS Code opens => Red Hat's telemetry popup never asks mid job search
     ensure_yaml_checker()
     # before VS Code opens => the window comes up with this user's chat (Copilot's built-in one
