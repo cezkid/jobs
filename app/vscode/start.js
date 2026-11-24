@@ -43,6 +43,12 @@ const LINK_GLOB = "*.json";
 const LINK_MAX_AGE_MS = 10 * 1000;
 // `jobs.py clear-signins`: same folder, {do: this} instead of a url; answered in <id>.done
 const CLEAR_REQUEST = "clear-signins";
+// `jobs.py open <file> <link>` (job-apply's handover): {do: this, files} - each file a tab here, in
+// order, answered in <id>.done once the last one shows; jobs.py opens the link only then, so the
+// page ends in front. `code <file>` returns before its tab exists: the link won the race and the
+// file covered it, 3 of 3 (app/docs/app-window.md #x)
+const SHOW_REQUEST = "show-files";
+const SHOW_MAX_FILES = 8;
 // `apply-form fill --in-window` (trial, app/apply/window.py): attach to the tab on jobs.py's own
 // holding page - only that loopback page, never a site's tab - then let it go by its session id
 const ATTACH_REQUEST = "attach-form";
@@ -108,6 +114,7 @@ function isLinkFile(name) {
 }
 
 // a request's text => {url} (a link to open), {clear: true} (empty the window's sign-ins),
+// {files} (files to show as tabs, in order),
 // {attach: holding page url} / {detach: session id} (the in-window fill trial), or null:
 // unreadable, not http(s), unknown, or a leftover. The link goes on as the same string (a rebuilt
 // link 404s)
@@ -120,6 +127,7 @@ function windowRequest(text, now) {
   }
   if (!req || typeof req.t !== "number" || !(Math.abs(now - req.t) <= LINK_MAX_AGE_MS)) return null;
   if (req.do === CLEAR_REQUEST) return { clear: true };
+  if (req.do === SHOW_REQUEST) return showFiles(req.files);
   if (req.do === ATTACH_REQUEST) return typeof req.url === "string" && HOLDING_PAGE.test(req.url) ? { attach: req.url } : null;
   if (req.do === DETACH_REQUEST) return typeof req.session === "string" && SESSION_ID.test(req.session) ? { detach: req.session } : null;
   if (req.do !== undefined || typeof req.url !== "string") return null;
@@ -130,6 +138,13 @@ function windowRequest(text, now) {
     return null;
   }
   return scheme === "https:" || scheme === "http:" ? { url: req.url } : null;
+}
+
+// files of a show-files request: 1-8 absolute paths, nothing else (a link is never a file here)
+function showFiles(files) {
+  const ok = Array.isArray(files) && files.length >= 1 && files.length <= SHOW_MAX_FILES
+    && files.every((f) => typeof f === "string" && !f.includes("\0") && (path.posix.isAbsolute(f) || path.win32.isAbsolute(f)) && !/^[a-z][\w+.-]+:\/\//i.test(f));
+  return ok ? { files: [...files] } : null;
 }
 
 // <id>.json => where the window answers a request: <id>.done, written whole
@@ -190,7 +205,7 @@ module.exports = {
   RUNNING, INSTALLED, RESTART_LINE, runningRecord, versionParts, restartLine,
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST, ATTACH_REQUEST, DETACH_REQUEST,
+  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST, SHOW_REQUEST, SHOW_MAX_FILES, ATTACH_REQUEST, DETACH_REQUEST,
   isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, windowRequest, answerFor, uvCandidates, runJobs, pageTabs,
   warmUpPlan,
 };

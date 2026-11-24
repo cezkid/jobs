@@ -678,8 +678,9 @@ POSTING = "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b"
 class FakeWindow:
     """Job Finder's window as jobs.py sees it: claims each request by renaming it, as extension.js does."""
 
-    def __init__(self, root, clear_answer=None):
+    def __init__(self, root, clear_answer=None, show_answer=None):
         import jobs
+        self.show_answer = {"ok": True} if show_answer is None else show_answer
         self.dir, self.opened, self.cleared, self.done = root / jobs.LINK_DIR, [], 0, None
         self.clear_answer = {"ok": True} if clear_answer is None else clear_answer
 
@@ -698,6 +699,12 @@ class FakeWindow:
                     if self.clear_answer != "silent":
                         temp = request.with_suffix(".done.tmp")
                         temp.write_text(json.dumps(self.clear_answer), encoding="utf-8")
+                        temp.rename(request.with_suffix(".done"))
+                elif req.get("do") == "show-files":
+                    self.opened.append(req["files"])
+                    if self.show_answer != "silent":
+                        temp = request.with_suffix(".done.tmp")
+                        temp.write_text(json.dumps(self.show_answer), encoding="utf-8")
                         temp.rename(request.with_suffix(".done"))
                 else:
                     self.opened.append(req["url"])
@@ -785,6 +792,63 @@ def test_open_resume_and_posting_shows_the_posting_last(tmp_path, monkeypatch):
     monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", POSTING, str(resume)])
     jobs.main()
     assert shown == [str(resume.resolve()), POSTING] and browser == []
+
+
+def resume_and_posting(tmp_path, monkeypatch, version="0.38.0"):
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    resume = tmp_path / "My Jobs" / "1 To apply" / "12 - Acme - Engineer" / "First_Last_Resume.pdf"
+    resume.parent.mkdir(parents=True)
+    resume.write_bytes(b"%PDF-1.4")
+    (tmp_path / ".data").mkdir(exist_ok=True)
+    if version:
+        (tmp_path / ".data" / launch.RUNNING_RECORD).write_text(json.dumps({"version": version, "pid": os.getpid()}), encoding="utf-8")
+    by_code = []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs, "opens_as_tab", lambda path: True)
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: by_code.append(args[-1]))
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", POSTING, str(resume)])
+    return jobs, browser, resume, by_code
+
+
+def test_open_resume_and_posting_waits_for_the_resume_tab_before_the_page(tmp_path, monkeypatch, capsys):
+    # owner 2026-11-23: "browser windows don't open anymore" - the posting's tab was there, behind
+    # the resume: `code <file>` returns before its tab exists, the link reached the window first
+    # (#x, 3 of 3). The window shows the files and answers; the link goes only after that answer
+    jobs, browser, resume, by_code = resume_and_posting(tmp_path, monkeypatch)
+    with FakeWindow(tmp_path) as window:
+        jobs.main()
+    assert window.opened == [[str(resume.resolve())], POSTING] and by_code == [] and browser == []
+    assert capsys.readouterr().out == f"{jobs.IN_WINDOW}\n"
+
+
+def test_open_resume_and_posting_outside_still_shows_the_resume_first(tmp_path, monkeypatch):
+    jobs, browser, resume, by_code = resume_and_posting(tmp_path, monkeypatch)
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", "--outside", str(resume), POSTING])
+    with FakeWindow(tmp_path) as window:
+        jobs.main()
+    assert window.opened == [[str(resume.resolve())]] and by_code == [] and browser == [POSTING]
+
+
+@pytest.mark.parametrize("version, answer", [("0.37.0", None), (None, None), ("0.38.0", "silent"), ("0.38.0", {"ok": False, "shown": []})])
+def test_open_resume_and_posting_falls_back_to_code_when_the_window_cannot_show_files(tmp_path, monkeypatch, version, answer):
+    # a window still on the extension from before (takes the request, shows nothing), one that
+    # never answers, or one that couldn't open the file: the resume still opens, once, then the page
+    jobs, browser, resume, by_code = resume_and_posting(tmp_path, monkeypatch, version)
+    monkeypatch.setattr(jobs, "SHOW_WAIT", 0.3)
+    monkeypatch.setattr(jobs, "SHOW_CLAIM_WAIT", 0.3)
+    with FakeWindow(tmp_path, show_answer=answer) as window:
+        jobs.main()
+    assert by_code == [str(resume.resolve())] and window.opened[-1] == POSTING and browser == []
+    assert window.opened[:-1] == ([] if version != "0.38.0" else [[str(resume.resolve())]])
+
+
+def test_one_file_or_one_link_opens_as_before(tmp_path, monkeypatch):
+    # nothing to order => no request for files, no wait on the window
+    jobs, browser, resume, by_code = resume_and_posting(tmp_path, monkeypatch)
+    with FakeWindow(tmp_path) as window:
+        jobs.open_all([str(resume)])
+        jobs.open_all([POSTING])
+    assert by_code == [str(resume.resolve())] and window.opened == [POSTING]
 
 
 def test_open_words_of_one_unquoted_path_still_join(tmp_path):

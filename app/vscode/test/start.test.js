@@ -146,6 +146,22 @@ test("open-link request: http(s) link from a fresh request file only", () => {
   }
 });
 
+// jobs.py open <file> <link>: the files' tabs first, shown by the window itself (the link waits
+// for its answer) - absolute paths only, a handful, fresh
+test("show-files request: absolute paths from a fresh request only", () => {
+  const show = (over) => JSON.stringify({ do: start.SHOW_REQUEST, files: ["/f/My Jobs/1 To apply/12 - Acme/First_Last_Resume.pdf"], t: NOW, ...over });
+  assert.equal(start.SHOW_REQUEST, "show-files");
+  assert.deepEqual(start.windowRequest(show(), NOW), { files: ["/f/My Jobs/1 To apply/12 - Acme/First_Last_Resume.pdf"] });
+  assert.deepEqual(start.windowRequest(show({ files: ["C:\\Users\\a\\jobs\\Today.md", "/f/a.yml"] }), NOW), { files: ["C:\\Users\\a\\jobs\\Today.md", "/f/a.yml"] });
+  assert.equal(start.windowRequest(show(), NOW + start.LINK_MAX_AGE_MS + 1), null);
+  const many = Array.from({ length: start.SHOW_MAX_FILES + 1 }, (_, i) => `/f/${i}.md`);
+  for (const files of [[], many, ["relative/a.md"], ["https://example.com/a"], ["vscode://x/y"], ["/f/a\0.md"], [42], "/f/a.md", null, undefined]) {
+    assert.equal(start.windowRequest(show({ files }), NOW), null, JSON.stringify(files));
+  }
+  // never a link along with it: the link is its own request, sent after the answer
+  assert.deepEqual(start.windowRequest(show({ url: "https://example.com" }), NOW), { files: ["/f/My Jobs/1 To apply/12 - Acme/First_Last_Resume.pdf"] });
+});
+
 // jobs.py clear-signins (before removing the app): same folder, fresh requests only, answered in
 // <id>.done written whole (jobs.py reads it the moment the name appears)
 test("clear-signins request: fresh only, answered beside it", () => {

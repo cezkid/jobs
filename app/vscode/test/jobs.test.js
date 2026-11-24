@@ -108,6 +108,9 @@ test("extension runs panel rows and page buttons through the one doAction", () =
   // links, files, status + chat words happen only inside doAction; links through openLink alone,
   // from doAction + takeLink (`jobs.py open "<link>"`, a request start.windowRequest checked)
   assert.match(body("takeLink"), /req = start\.windowRequest\([^\n]*\n[\s\S]*if \(url\) await openLink\(url\);$/);
+  // files of `jobs.py open <file> <link>`: shown here, answered once up (the link waits on it)
+  assert.match(body("takeLink"), /if \(req && req\.files\) return answer\(file, await showFiles\(req\.files\)\);/);
+  assert.match(body("showFiles"), /await vscode\.commands\.executeCommand\("vscode\.open", vscode\.Uri\.file\(file\), \{ preview: false \}\);/);
   // VS Code's clear only for `jobs.py clear-signins`, never from a click
   assert.match(body("takeLink"), /if \(req && req\.clear\) return clearSignins\(file\);/);
   assert.strictEqual(src.split("executeCommand(CLEAR_STORAGE").length, 2);

@@ -722,7 +722,8 @@ function watchPane(context) {
   context.subscriptions.push(vscode.window.tabGroups.onDidChangeTabGroups(touched), vscode.window.tabGroups.onDidChangeTabs(touched));
 }
 
-// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here; `jobs.py clear-signins` =>
+// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here; `jobs.py open <file> <link>`
+// => the files as tabs first (showFiles); `jobs.py clear-signins` =>
 // this window's sign-ins emptied; `apply-form fill --in-window` (trial) => attach / detach. Job
 // Finder's folder only.
 // Requests already waiting as the window starts: fresh ones opened, leftovers deleted unseen
@@ -775,10 +776,25 @@ async function takeLink(file) {
     fs.unlinkSync(taken);
   } catch {}
   if (req && req.clear) return clearSignins(file);
+  if (req && req.files) return answer(file, await showFiles(req.files));
   if (req && req.attach) return answer(file, await attachForm(req.attach));
   if (req && req.detach) return answer(file, await detachForm(req.detach));
   const url = req && req.url;
   if (url) await openLink(url);
+}
+
+// `jobs.py open <file> <link>`: each file a kept tab, as a click in the file list opens it (PDF in
+// its viewer, a guide formatted), one after another; the answer goes out once the last tab shows -
+// jobs.py opens the link after it, so the page is in front (#x)
+async function showFiles(files) {
+  const shown = [];
+  for (const file of files) {
+    try {
+      await vscode.commands.executeCommand("vscode.open", vscode.Uri.file(file), { preview: false });
+      shown.push(file);
+    } catch {}
+  }
+  return { ok: shown.length === files.length, shown };
 }
 
 // `jobs.py clear-signins` (before removing the app): only this window can empty them; jobs.py

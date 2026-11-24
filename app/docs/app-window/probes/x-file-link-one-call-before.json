@@ -1,0 +1,70 @@
+{
+ "what": "x: file + link in one jobs.py open call, first PDF of the window",
+ "uniq": "22edd855",
+ "at": "2026-11-24T14:54:08Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "files": {
+  "yml": "$D/f/My Settings/probe-w.yml",
+  "pdf": "$D/f/My Jobs/1 To apply/1 - Probe - Engineer/First_Last_Resume.pdf"
+ },
+ "launch": {
+  "rc": 0,
+  "stdout": ""
+ },
+ "up": [
+  {
+   "group": 1,
+   "tabs": [
+    "Today.md*"
+   ]
+  }
+ ],
+ "steps": {
+  "cold": {
+   "open": {
+    "rc": 0,
+    "stdout": "opened in the Job Finder window"
+   },
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "Today.md",
+      "cold",
+      "1 resume*"
+     ]
+    }
+   ]
+  },
+  "warm": {
+   "open": {
+    "rc": 0,
+    "stdout": "opened in the Job Finder window"
+   },
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "warm",
+      "1 resume*"
+     ]
+    }
+   ]
+  },
+  "yml": {
+   "open": {
+    "rc": 0,
+    "stdout": "opened in the Job Finder window"
+   },
+   "tabs": [
+    {
+     "group": 1,
+     "tabs": [
+      "yml",
+      "probe-w.yml*"
+     ]
+    }
+   ]
+  }
+ }
+}
