@@ -27,6 +27,9 @@ PROFILE = cfg.DATA / "apply-browser"
 # port we started Chrome on. Never --remote-debugging-port=0: Chrome then sets
 # navigator.webdriver = true on every page (measured 2026-09, Chrome 154); a fixed port leaves it false
 PORT_FILE = PROFILE / "job-finder-port"
+# held (flock) by the one watcher that quits Job Finder's Chrome once its last window closes (watch)
+WATCH_FILE = PROFILE / "job-finder-watch"
+WATCH_POLL_S, IDLE_POLLS = 5, 3  # quit ~10-15 s after the last window closes
 CHROME = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
@@ -119,6 +122,82 @@ def restart() -> None:
             break
         time.sleep(0.25)
     PORT_FILE.unlink(missing_ok=True)
+
+
+def windows(port: int) -> int | None:
+    """Tabs open in the Chrome on `port` (page targets; extension workers don't count). None: the
+    port didn't answer."""
+    try:
+        return sum(t.get("type") == "page" for t in httpx.get(f"http://127.0.0.1:{port}/json/list", timeout=2).json())
+    except (httpx.HTTPError, ValueError):
+        return None
+
+
+def watch(poll_s: float = WATCH_POLL_S, idle_polls: int = IDLE_POLLS) -> None:
+    """Mac: quit Job Finder's Chrome once its last window has been closed a few polls in a row.
+    Closing the last window leaves a Mac app running, and this Chrome is the same app as the
+    user's own: with it running windowless, the Dock's Chrome (or a link) went to it and no window
+    came up - their own Chrome could not start (2026-11-20: one left ~10 days, relaunched by
+    Chrome's own update on 2026-11-10 w/ --no-startup-window, a new process id). So it is found by
+    its profile every poll, never by process id. A port not answering = wait, not gone. The final
+    check + close hold the open lock: no tab opening mid-close. One watcher at a time (flock)."""
+    import fcntl
+    WATCH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(WATCH_FILE, os.O_CREAT | os.O_RDWR)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            return  # another watcher has it
+        idle = 0
+        while found := running():
+            idle = idle + 1 if windows(found[1]) == 0 else 0
+            if idle >= idle_polls:
+                try:
+                    with locks.held(PROFILE.parent / "apply-browser.lock", "tab opening"):
+                        if (found := running()) and windows(found[1]) == 0:
+                            restart()
+                            return
+                except SystemExit:  # a tab kept opening past the lock's wait: look again
+                    pass
+                idle = 0
+            time.sleep(poll_s)
+    finally:
+        os.close(fd)
+
+
+def watching() -> bool:
+    """A watcher holds the watch file."""
+    import fcntl
+    try:
+        fd = os.open(WATCH_FILE, os.O_RDWR)
+    except OSError:
+        return False
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return False
+    except OSError:
+        return True
+    finally:
+        os.close(fd)
+
+
+def start_watch() -> None:
+    """The watcher as its own process (Mac only - closing the last window quits Chrome on Windows),
+    outliving this run like the window does. Every tab we hand out starts one, so a Chrome started
+    before the watcher existed gets one too; a second exits at once."""
+    if sys.platform != "darwin" or watching():
+        return
+    log = cfg.DATA / "chrome-watch.log"
+    try:
+        log.parent.mkdir(parents=True, exist_ok=True)
+        with open(log, "ab") as err:
+            subprocess.Popen([sys.executable, str(Path(__file__).resolve().parents[1] / "jobs.py"), "apply-form", "chrome-watch"],
+                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=err, cwd=cfg.ROOT,
+                             start_new_session=True)
+    except OSError:  # never stops a fill; the user can still quit Chrome by hand
+        pass
 
 
 def refuses_attach(error: Exception) -> bool:
@@ -242,6 +321,7 @@ def page_at(url: str, match=None):
                     raise
         if page is None:
             page = fresh(*open_tab(url))
+        start_watch()
         page.wait_for_load_state()
         page.bring_to_front()
         yield page

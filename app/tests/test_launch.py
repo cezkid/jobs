@@ -1570,3 +1570,20 @@ def test_sign_in_sites_never_touch_a_running_or_unreadable_store(tmp_path, monke
     (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
     launch.ensure_sign_in_sites_trusted(paths)
     assert not (paths.global_storage / "state.vscdb").exists()
+
+
+def test_window_start_and_job_check_give_a_windowless_chrome_its_watcher(monkeypatch):
+    # a Chrome left with no window before this start has no watcher until a tab is handed out:
+    # the user's own Chrome could not open meanwhile (2026-11-23)
+    import inspect
+    import daily
+    from apply import browser
+    started = []
+    monkeypatch.setattr(browser, "start_watch", lambda: started.append(True))
+    launch.watch_chrome()
+    assert started == [True]
+    # a watcher that can't start never stops the window from opening
+    monkeypatch.setattr(browser, "start_watch", lambda: 1 / 0)
+    launch.watch_chrome()
+    assert "watch_chrome()" in inspect.getsource(launch.open_window)
+    assert "launch.watch_chrome()" in inspect.getsource(daily.main)

@@ -913,6 +913,108 @@ def test_another_profiles_chrome_is_never_closed(tmp_path, monkeypatch):
     browser.restart()
 
 
+def watch_files(monkeypatch, tmp_path):
+    monkeypatch.setattr(browser, "PROFILE", tmp_path / "apply-browser")
+    monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "apply-browser" / "job-finder-port")
+    monkeypatch.setattr(browser, "WATCH_FILE", tmp_path / "apply-browser" / "job-finder-watch")
+    monkeypatch.setattr(browser.time, "sleep", lambda s: None)
+
+
+def test_chrome_with_no_window_left_is_quit_found_by_profile_not_process_id(tmp_path, monkeypatch):
+    # 2026-11-20: Job Finder's Chrome sat windowless ~10 days (Chrome's own update relaunched it
+    # 2026-11-10, a new process id) - the Mac's Chrome button went to it and no window came up
+    watch_files(monkeypatch, tmp_path)
+    pids = [100, 100, 100, 200, 200, 200, 200, 200, 200]  # relaunched mid-watch
+    seen = [0, 1, 0, 0, None, 0, 0, 0, 0]  # a window back, then a port gap: count starts over
+    monkeypatch.setattr(browser, "running", lambda: (pids.pop(0), 55211) if pids else None)
+    monkeypatch.setattr(browser, "windows", lambda port: seen.pop(0))
+    closed = []
+    monkeypatch.setattr(browser, "restart", lambda: closed.append(True))
+    browser.watch(idle_polls=3)
+    # closed once, only after 3 windowless polls in a row + the final look (every poll used up)
+    assert closed == [True] and not seen and not pids
+
+
+def test_watch_ends_when_the_user_quits_chrome_and_never_closes_one_with_a_window(tmp_path, monkeypatch):
+    watch_files(monkeypatch, tmp_path)
+    found = [(4331, 55211)] * 5
+    monkeypatch.setattr(browser, "running", lambda: found.pop() if found else None)
+    monkeypatch.setattr(browser, "windows", lambda port: 2)
+    monkeypatch.setattr(browser, "restart", lambda: pytest.fail("closed a Chrome with windows"))
+    browser.watch(idle_polls=1)
+    assert not found
+
+
+def test_one_watcher_at_a_time(tmp_path, monkeypatch):
+    import fcntl
+    import os
+    watch_files(monkeypatch, tmp_path)
+    assert not browser.watching()
+    browser.WATCH_FILE.parent.mkdir(parents=True)
+    fd = os.open(browser.WATCH_FILE, os.O_CREAT | os.O_RDWR)
+    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        assert browser.watching()
+        monkeypatch.setattr(browser, "running", lambda: pytest.fail("a second watcher ran"))
+        browser.watch()
+    finally:
+        os.close(fd)
+    assert not browser.watching()
+
+
+def test_watcher_starts_on_mac_only_and_once(tmp_path, monkeypatch):
+    from conftest import REAL_START_WATCH
+    watch_files(monkeypatch, tmp_path)
+    monkeypatch.setattr(browser.cfg, "DATA", tmp_path)
+    started = []
+    monkeypatch.setattr(browser.subprocess, "Popen", lambda args, **kw: started.append((args, kw)))
+    for platform, watching, starts in (("win32", False, 0), ("darwin", True, 0), ("darwin", False, 1)):
+        monkeypatch.setattr(browser.sys, "platform", platform)
+        monkeypatch.setattr(browser, "watching", lambda: watching)
+        started.clear()
+        REAL_START_WATCH()
+        assert len(started) == starts
+    args, kw = started[0]
+    assert args[-2:] == ["apply-form", "chrome-watch"] and kw["start_new_session"]
+
+
+@pytest.mark.loopback
+def test_real_chrome_left_with_no_tab_is_quit(tmp_path, monkeypatch):
+    import subprocess
+    import time
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    profile = tmp_path / "apply-browser"
+    profile.mkdir()
+    monkeypatch.setattr(browser, "PROFILE", profile)
+    monkeypatch.setattr(browser, "PORT_FILE", profile / "job-finder-port")
+    monkeypatch.setattr(browser, "WATCH_FILE", profile / "job-finder-watch")
+    port = browser.free_port()
+    proc = subprocess.Popen([exe, "--headless=new", f"--remote-debugging-port={port}", f"--user-data-dir={profile}",
+                             "--no-first-run", "--no-default-browser-check", "about:blank"],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 30
+        while not browser.answers(port):
+            if time.monotonic() > deadline:
+                pytest.skip("Chrome didn't start")
+            time.sleep(0.2)
+        assert browser.windows(port) == 1
+        for t in browser.httpx.get(f"http://127.0.0.1:{port}/json/list", timeout=5).json():
+            if t["type"] == "page":
+                browser.httpx.get(f"http://127.0.0.1:{port}/json/close/{t['id']}", timeout=5)
+        real_restart, closed = browser.restart, []
+        monkeypatch.setattr(browser, "restart", lambda: (closed.append(True), real_restart()))
+        browser.watch(poll_s=0.5, idle_polls=2)
+        assert closed, "Chrome quit by itself: nothing measured"
+        proc.wait(15)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+
 def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch):
     # job folders move with their status (sent, heard back ...): a path saved at prepare went
     # stale - Ashby's upload failed, UKG typed the untailored resume's lines with no error

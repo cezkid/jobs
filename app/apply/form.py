@@ -692,6 +692,7 @@ def main() -> None:
     sub.add_parser("hold", help="(started by fill / prepare --in-window) stay on a multi-page form's window tab "
                    "between runs")
     sub.add_parser("let-go", help="the window's form helper lets go of the tabs it keeps and stops")
+    sub.add_parser("chrome-watch", help="(started with Job Finder's Chrome, Mac) quit it once its last window closes")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
     m = sub.add_parser("measure", help="(developers) safe look at a live form: throwaway Chrome, every write "
@@ -728,6 +729,8 @@ def main() -> None:
     if args.step in ("hold", "let-go"):
         from apply import window
         return window.hold() if args.step == "hold" else window.let_go_all()
+    if args.step == "chrome-watch":
+        return browser.watch()
     {"prepare": lambda: prepare(args.slug, args.url, args.in_window), "fill": lambda: fill(args.slug, args.in_window),
      "paste": lambda: paste(args.slug)}[args.step]()
 

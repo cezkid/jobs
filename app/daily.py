@@ -190,7 +190,11 @@ def main() -> None:
         except (Exception, SystemExit):
             return senders(cfg.defaults())
 
-    if not guarded(work, ways):
+    ok = guarded(work, ways)
+    # every 2 hours, window open or not: a Job Finder Chrome left with no window gets its watcher
+    import launch
+    launch.watch_chrome()
+    if not ok:
         sys.exit(1)
 
 

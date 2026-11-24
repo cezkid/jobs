@@ -20,7 +20,9 @@ os.environ.pop("JOBS_VSCODE_DIR", None)
 import pytest  # noqa: E402
 
 import store  # noqa: E402
+from apply import browser as _browser  # noqa: E402
 
+REAL_START_WATCH = _browser.start_watch
 CODE_NAMES = {"code", "code.cmd", "code.exe"}
 # Chrome under a made-up home hangs on its first page load (measured: 2 lab tests time out);
 # the tests start it on its own throwaway profile, so the real home is safe to give it
@@ -78,6 +80,13 @@ def no_real_schedule(monkeypatch, tmp_path):
     monkeypatch.setattr(autorun, "STAMP", tmp_path / ".schedule-stamp")
     # ... nor the computer's real schedule read: a test sees none installed
     monkeypatch.setattr(autorun, "PLIST", tmp_path / "no-launch-agent.plist")
+
+
+@pytest.fixture(autouse=True)
+def no_chrome_watch(monkeypatch):
+    # every page_at starts a watcher process that may quit the Chrome on the checkout's own
+    # Job Finder profile: never from a test (its own tests call REAL_START_WATCH)
+    monkeypatch.setattr(_browser, "start_watch", lambda: None)
 
 
 def pytest_configure(config):
