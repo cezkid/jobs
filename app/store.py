@@ -53,7 +53,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     first_fetched_at TEXT NOT NULL,
     fetched_at TEXT NOT NULL,
     -- last time the job search was asked about it by listing id (freehire.recheck)
-    checked_at TEXT
+    checked_at TEXT,
+    link_asked_at TEXT
 );
 CREATE INDEX IF NOT EXISTS jobs_tier_posted ON jobs (tier, posted_at);
 CREATE TABLE IF NOT EXISTS seen (
@@ -190,7 +191,8 @@ def merge_link_copies(conn: sqlite3.Connection) -> None:
 def add_columns(conn: sqlite3.Connection) -> None:
     """Columns newer than a user's database: CREATE TABLE IF NOT EXISTS never adds them."""
     for table, col, kind in (("jobs", "requires_clearance", "INTEGER"), ("companies", "nonprofit", "INTEGER"),
-                             ("companies", "staffing", "INTEGER"), ("jobs", "checked_at", "TEXT")):
+                             ("companies", "staffing", "INTEGER"), ("jobs", "checked_at", "TEXT"),
+                             ("jobs", "link_asked_at", "TEXT")):
         if col not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:
             try:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {kind}")
@@ -222,7 +224,10 @@ def _decode(row: sqlite3.Row) -> dict:
 
 def upsert(conn: sqlite3.Connection, rows: list[dict], now: str) -> None:
     cols = COLS + ("first_fetched_at", "fetched_at")
-    updates = ", ".join(f"{c} = excluded.{c}" for c in COLS[1:] + ("fetched_at",))
+    # a blank link never replaces a known one: the job search stopped sending `url` (blank on 100 of 100
+    # rows, 2026-11-25) and every refetched row lost the link it had (312 of 6,701 on one list)
+    updates = ", ".join("url = CASE WHEN excluded.url = '' THEN jobs.url ELSE excluded.url END" if c == "url"
+                        else f"{c} = excluded.{c}" for c in COLS[1:] + ("fetched_at",))
     sql = (
         f"INSERT INTO jobs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))}) "
         f"ON CONFLICT (public_slug) DO UPDATE SET {updates}"

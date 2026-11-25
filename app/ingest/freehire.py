@@ -4,7 +4,7 @@ import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -30,6 +30,15 @@ WINDOW_EDGE_MARGIN = timedelta(hours=1)
 RECHECK_DAYS = 2
 RECHECK_BATCH = 400
 RECHECK_WORKERS = 8
+# The job search stopped sending a job's own link: `url` blank on search rows and on a job's record
+# (26 of 281 new rows 2026-11-23, 149 of 157 on 2026-11-25; Workday, Greenhouse, Ashby, Lever 50 of 50
+# each). `apply_url` = <base>/go/<listing id> (100 of 100 rows) answers 302 with the employer's link in
+# Location, tagged utm_source=freehire.me as `url` was. Asked header-only, never followed: the listing id
+# alone goes out, nothing reaches the employer. One asked link left its `applied_count` at 0 (n = 1).
+# Shares the 600-a-minute allowance with the rest of the check: a 429 leaves the rest for the next one.
+# No answer -> asked again after LINK_RETRY_DAYS, so dead ones never crowd out new rows
+LINK_BATCH = 300
+LINK_RETRY_DAYS = 2
 
 
 def query_params(params: dict) -> dict:
@@ -124,7 +133,7 @@ def normalize(raw: dict, tier: str) -> dict:
         "title": raw["title"].strip(),
         "company": (raw.get("company") or "").strip(),
         "company_slug": raw.get("company_slug"),
-        "url": raw["url"],
+        "url": raw.get("url") or "",  # blank since 2026-11-23: links() asks for it
         "source": raw.get("source"),
         "location": raw.get("location"),
         "cities": raw.get("cities") or [],
@@ -262,6 +271,58 @@ def recheck_quietly(conn, client: httpx.Client, base: str, since: str) -> None:
         print(f"older jobs: skipped ({exc})", file=sys.stderr)
 
 
+def links_due(conn, now: datetime, limit: int = LINK_BATCH) -> list[str]:
+    """Open rows with no link, not asked in LINK_RETRY_DAYS: newest fetched first (top of the list)."""
+    asked = (now - timedelta(days=LINK_RETRY_DAYS)).strftime(store.ISO)
+    return [r[0] for r in conn.execute(
+        "SELECT public_slug FROM jobs WHERE closed_at IS NULL AND url = ''"
+        " AND (link_asked_at IS NULL OR link_asked_at < ?) ORDER BY fetched_at DESC LIMIT ?", (asked, limit))]
+
+
+def own_link(client: httpx.Client, base: str, slug: str, limited: threading.Event) -> str | None:
+    """Where the job search's pass-through link for one listed job leads: the employer's own posting.
+    Header-only, the redirect read and never followed. '' = no link there; None = no answer (429,
+    network), asked again next check."""
+    if limited.is_set():
+        return None
+    try:
+        resp = client.head(f"{base}/go/{quote(slug, safe='')}", follow_redirects=False)
+    except httpx.InvalidURL:  # a Location httpx can't read as a link: none we would store
+        return ""
+    except httpx.HTTPError:
+        return None
+    if resp.status_code == 429:
+        limited.set()
+        return None
+    to = urlsplit(resp.headers.get("location", "")) if resp.status_code in (301, 302, 303, 307, 308) else None
+    if not to or to.scheme not in ("http", "https") or not to.hostname or to.hostname == urlsplit(base).hostname:
+        return ""
+    return to.geturl()
+
+
+def links(conn, client: httpx.Client, base: str, now: datetime | None = None) -> tuple[int, int]:
+    """Fills the link of listed jobs that came without one. (asked, found)."""
+    now = now or datetime.now(timezone.utc)
+    stamp = now.strftime(store.ISO)
+    slugs, limited = links_due(conn, now), threading.Event()
+    with ThreadPoolExecutor(RECHECK_WORKERS) as pool:
+        answers = list(pool.map(lambda slug: own_link(client, base, slug, limited), slugs))
+    got = [(stamp, url, s) for s, url in zip(slugs, answers) if url is not None]
+    with conn:
+        conn.executemany("UPDATE jobs SET link_asked_at = ?, url = ? WHERE public_slug = ? AND url = ''", got)
+    return len(got), sum(1 for _, url, _ in got if url)
+
+
+def links_quietly(conn, client: httpx.Client, base: str) -> None:
+    """At the job check, before anything reads the list: a failure is logged, never raised."""
+    try:
+        asked, found = links(conn, client, base)
+        if asked:
+            print(f"job links: {found} of {asked} found")
+    except Exception as exc:  # noqa: BLE001 - never stops the job check
+        print(f"job links: skipped ({exc})", file=sys.stderr)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Poll freehire API into SQLite")
     ap.add_argument("--db", help="override config db path")
@@ -271,6 +332,7 @@ def main() -> None:
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         started = store.utc_now()
         summary = run(config, conn, client)
+        links_quietly(conn, client, config["api"]["base"])
         recheck_quietly(conn, client, config["api"]["base"], started)
         companies.refresh_quietly(conn, client, config["api"]["base"])
     for tier, s in summary.items():
