@@ -93,6 +93,17 @@ Modelled in `fixtures/workday/tenant-w.html` (`test_apply_workday.py`).
 | Workday reopens a search list inside the category last opened | unfixed - only seen after a hand-driven look; the filler's own reads go back to the top (Escape + click) |
 | My Experience: both Degree menus "did not open" (FAIL), as tenant M; one job's To showed 12/2013 yet Save said "Invalid Date: /2013" until typed again with real keys; Spanish "I am fluent" left unticked (WARN) | unfixed - done by hand with real clicks and keys (CDP `Input.dispatchMouseEvent` / `dispatchKeyEvent`); options B.A., A.A. |
 
+### Tenant R (2026-11-25, one application, through Job Finder's Chrome)
+
+| Seen | Filler rule |
+|---|---|
+| My Experience: a real click on Add Another added no entry (Work Experience 2 of 2 tries, Education, Languages' Add) while the button's own `click()` added one each time; Websites' Add took the real click. 1 of 6 jobs went in | `grow`: no new entry after the click -> the button's own `click()` once, then FAIL |
+| Degree "did not open" on the entry whose School had just been picked from its search list; open on the next click (same FAIL as tenants M + P) | `menu`: a list that did not open is clicked once more before the FAIL |
+| Self Identify: the disability box read ticked right after the click (`ok`), was empty at Save and Continue - "Please check one of the boxes below: is required"; a second real click held | `put_choice` reads the tick again after `CHOICE_SETTLE_MS`, ticks once more, else FAIL "tick it by hand" |
+| Signed out while a step waited (overnight): the application reopened on My Information; after its Save and Continue the My Experience run started before the sections drew - "no Add button" for Work and Education, Skills "not found" - on a step holding every saved entry | `drawn` waits for an Add button (`SETTLE_MS`) before the run |
+| That reopened My Experience kept the saved entries with the two schools in the other order | unfixed - a rerun there fills by position; the question answered No skips the run (done by hand) |
+| Field of Study is a list without "New Media Technology"; Degree lists "Bachelor of Arts", "Associate of Arts" beside bare "Associates", "Bachelors", "BA/BS" | ASK as before; nothing new |
+
 ## Widgets (all tenants)
 
 | Widget | Behaviour | Filler rule |

@@ -114,11 +114,16 @@ window.__jf = (() => {
   }
   async function grow(area, heading, anchor, n) {
     while (entries(anchor).length < n) {
-      const add = [...(section(heading)?.querySelectorAll('button') || [])].reverse().find((b) => /^add( another)?$/i.test(txt(b)));
+      const find = () => [...(section(heading)?.querySelectorAll('button') || [])].reverse().find((b) => /^add( another)?$/i.test(txt(b)));
+      const add = find();
       const before = entries(anchor).length;
       if (!add) return note(area, 'Add', 'FAIL', 'no Add button');
       await click(add);
-      if (!await until(() => entries(anchor).length > before)) return note(area, 'Add', 'FAIL', 'no new entry appeared');
+      let grew = await until(() => entries(anchor).length > before);
+      // a real click on Add Another added no entry, twice, while the button's own click() added one each
+      // time (tenant R, 2026-11-25: Work Experience and Education) - tried once before the FAIL
+      if (!grew) { find()?.click(); grew = await until(() => entries(anchor).length > before); }
+      if (!grew) return note(area, 'Add', 'FAIL', 'no new entry appeared');
     }
     const extra = entries(anchor).length - n;
     if (extra > 0) note(area, 'entries', 'WARN', `${extra} more on the form than on the resume - delete by hand if duplicated`);
@@ -178,7 +183,10 @@ window.__jf = (() => {
     const shows = (w) => { const b = find(); return !!b && norm(txt(b)).includes(norm(w)); };
     const already = wanted.find(shows);
     if (already) return keep(area, name, () => shows(already), async () => { const b = find(); if (b) await choose(b, [already]); });
-    const { why, ask, got } = await choose(btn, wanted);
+    let { why, ask, got } = await choose(btn, wanted);
+    // the first click on Degree opened nothing right after that entry's School was picked from its search
+    // list; the next click opened it (tenant R, 2026-11-25; tenants M + P showed the same FAIL)
+    if (why) { const b = find(); if (b) ({ why, ask, got } = await choose(b, wanted)); }
     if (why) return note(area, name, 'FAIL', why);
     if (ask) return note(area, name, 'ASK', ask);
     note(area, name, 'OK', got);

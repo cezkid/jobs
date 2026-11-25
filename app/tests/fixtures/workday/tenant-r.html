@@ -1,0 +1,48 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Workday "My Experience" as tenant R showed it (2026-11-25, through Job Finder's Chrome): a real
+     click on Add Another adds no entry while the button's own click() adds one; the first click on an
+     entry's Degree opens nothing, the next opens its list. -->
+<div data-automation-id="progressBarActiveStep">My Experience</div>
+<section id="work">
+  <h4>Work Experience</h4>
+  <div class="entry"><div data-automation-id="formField-jobTitle"><label for="title1">Job Title*</label><input id="title1"></div></div>
+  <button class="add" data-automation-id="add-button">Add Another</button>
+</section>
+<section id="education">
+  <h4>Education</h4>
+  <div class="entry">
+    <div data-automation-id="formField-school"><label for="school1">School or University*</label><input id="school1"></div>
+    <div data-automation-id="formField-degree"><label for="degree1">Degree*</label><button id="degree1" class="menu">Select One</button></div>
+  </div>
+  <button class="add" data-automation-id="add-button">Add Another</button>
+</section>
+<div id="menu" role="listbox" hidden></div>
+<script>
+  let open = null;
+  const clicks = {};
+  window.realAdds = 0;
+  document.addEventListener('click', (e) => {
+    const el = e.target, menu = document.getElementById('menu');
+    if (el.matches('button.add')) {
+      if (e.isTrusted) { window.realAdds++; return; }
+      const entry = el.parentElement.querySelector('.entry').cloneNode(true);
+      const n = el.parentElement.querySelectorAll('.entry').length + 1;
+      entry.querySelectorAll('[id]').forEach((x) => { x.id = x.id.replace(/\d+$/, n); });
+      entry.querySelectorAll('label').forEach((l) => { l.htmlFor = l.htmlFor.replace(/\d+$/, n); });
+      entry.querySelectorAll('input').forEach((i) => { i.value = ''; });
+      entry.querySelectorAll('button.menu').forEach((b) => { b.textContent = 'Select One'; });
+      el.before(entry);
+    } else if (el.matches('button.menu')) {
+      clicks[el.id] = (clicks[el.id] || 0) + 1;
+      if (clicks[el.id] === 1) return;
+      open = el;
+      menu.innerHTML = ['Select One', 'Associate of Arts', 'Bachelor of Arts'].map((o) => `<div role="option">${o}</div>`).join('');
+      menu.hidden = false;
+    } else if (el.matches('#menu [role=option]')) {
+      open.textContent = el.textContent; menu.hidden = true; open = null;
+    }
+  });
+</script>
+</body></html>
