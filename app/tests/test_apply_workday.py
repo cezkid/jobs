@@ -460,6 +460,67 @@ def test_skills_at_the_page_end_picked_clear_of_the_footer(tenant_w_run):
     assert not any("did not register" in p for p in status["problems"]), status["problems"]
 
 
+# --- tenant R (2026-11-25): Add Another deaf to a real click, Degree's first click, a tick that didn't hold ---
+
+@pytest.fixture(scope="module")
+def tenant_r_run(chrome):
+    context = chrome.new_context(viewport={"width": 1000, "height": 700})
+    context.route("**/*", lambda route: route.fulfill(path=str(FIXTURES / "tenant-r.html"))
+                  if urlsplit(route.request.url).path == "/tenant-r.html" else route.abort())
+    pg = context.new_page()
+    pg.goto(HOME + "tenant-r.html")
+    pg.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+    job = {"company": "", "location": "", "current": True, "start": "", "end": "", "description": ""}
+    data = {"work": [{**job, "title": "Analyst"}, {**job, "title": "Clerk"}, {**job, "title": "Intern"}],
+            "education": [{"school": "Springfield State University", "degree": ["Bachelor of Arts"], "field": [], "end": ""},
+                          {"school": "Springfield College", "degree": ["Associate of Arts"], "field": [], "end": ""}],
+            "skills": [], "languages": [], "links": []}
+    workday.drawn(pg)
+    pg.evaluate("(data) => { window.__jf.R.on = true; window.__jf.run(data); }", data)
+    yield pg, workday.drive(pg, limit_s=120)
+    context.close()
+
+
+def test_add_another_deaf_to_a_real_click_still_adds_every_job_and_school(tenant_r_run):
+    pg, status = tenant_r_run
+    assert pg.evaluate("window.realAdds") == 3  # the real click came first each time, and added nothing
+    assert pg.evaluate("[...document.querySelectorAll('#work input')].map(i => i.value)") == ["Analyst", "Clerk", "Intern"]
+    assert pg.evaluate("[...document.querySelectorAll('#education input')].map(i => i.value)") == [
+        "Springfield State University", "Springfield College"]
+    assert not any("Add" in p for p in status["problems"]), status["problems"]
+
+
+def test_degree_list_opened_on_the_second_click(tenant_r_run):
+    pg, status = tenant_r_run
+    assert pg.evaluate("[...document.querySelectorAll('button.menu')].map(b => b.textContent)") == [
+        "Bachelor of Arts", "Associate of Arts"]
+    assert not any("Degree" in p for p in status["problems"]), status["problems"]
+
+
+TICKS = """<div data-automation-id="progressBarActiveStep">Self Identify</div>
+<div data-automation-id="formField-disability"><fieldset><legend>Please check one of the boxes below:</legend>
+<input type="checkbox" id="yes"><label for="yes">Yes, I have a disability</label>
+<input type="checkbox" id="no"><label for="no">No, I do not have a disability</label></fieldset></div>
+<script>let drops = %d; document.addEventListener('change', (e) => {
+  if (e.target.checked && drops-- > 0) setTimeout(() => { e.target.checked = false; }, 150); });</script>"""
+
+
+@pytest.mark.parametrize("drops, said", [(0, "ok"), (1, "ok"), (9, "FAIL No, I do not have a disability not selected - tick it by hand")])
+def test_a_tick_the_page_took_off_again_is_ticked_once_more_then_fails(page, drops, said):
+    """Ticked, read "ok", empty by Save and Continue (tenant R's Self Identify): never ok for a box left blank."""
+    page.set_content(TICKS % drops)
+    box = page.locator('[data-automation-id="formField-disability"]')
+    assert workday.put_choice(box, "No, I do not have a disability") == said
+    assert page.evaluate("[document.getElementById('yes').checked, document.getElementById('no').checked]") == [False, said == "ok"]
+
+
+def test_my_experience_run_waits_for_its_sections_to_draw(page):
+    page.set_content("""<div data-automation-id="progressBarActiveStep">My Experience</div><div id="late"></div>
+<script>setTimeout(() => { document.getElementById('late').innerHTML = '<h4>Work Experience</h4><button>Add</button>'; }, 600);</script>""")
+    workday.drawn(page)
+    assert page.locator("button").count() == 1
+
+
 START_PAGE = ('<h2>Start Your Application</h2><a href="#" role="button">Apply Manually</a>'
               '<a href="#" role="button">Use My Last Application</a>')
 

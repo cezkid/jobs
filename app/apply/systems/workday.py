@@ -45,6 +45,8 @@ NEXT = '[data-automation-id="pageFooterNextButton"]'
 # the start choices after Apply (tenant G 2026-10-14, tenant H 2026-10-22)
 STARTS = ["Autofill with Resume", "Apply Manually", "Use My Last Application"]
 MENU_WAIT_MS, MENU_NEW_MS, SETTLE_MS, DATE_RETRIES = 4000, 1500, 5000, 2
+# a tick read again this long after the click: one read at once showed a box ticked that was empty at Save (tenant R)
+CHOICE_SETTLE_MS = 600
 START, EXPERIENCE, RESUME, AUTOFILL_RESUME = "workday-start", "workday-experience", "workday-resume", "workday-autofill-resume"
 SIGN_IN = re.compile(r"create account|sign in", re.I)
 REVIEW = re.compile(r"^review$", re.I)
@@ -451,6 +453,7 @@ def experience(page, resume_file: str | None) -> str:
     if note and note.startswith("ASK"):
         return note
     data = profile.answers(master, tailored, roles)
+    drawn(page)
     page.evaluate("(data) => { window.__jf.data = data; window.__jf.R.on = true; window.__jf.run(data); }", data)
     try:
         status = drive(page)
@@ -460,6 +463,17 @@ def experience(page, resume_file: str | None) -> str:
     problems = status["problems"] + dates + ([note] if note else [])
     done = f"{status['ok']} filled, {len(data['work'])} jobs, {len(data['education'])} schools"
     return f"ASK {done}; " + "; ".join(problems) if problems else f"ok - {done}"
+
+
+def drawn(page) -> None:
+    """My Experience's name shows before its sections draw: run then, the filler found "no Add button" for
+    Work and Education and no Skills box, on a step that drew a moment later (tenant R, 2026-11-25, the
+    step reached by Save and Continue). Waits for an Add button; a step that never shows one runs anyway
+    and says what it didn't find."""
+    for _ in range(SETTLE_MS // 250):
+        if page.evaluate("() => [...document.querySelectorAll('button')].some(b => /^add( another)?$/i.test(b.textContent.trim()))"):
+            return
+        page.wait_for_timeout(250)
 
 
 def type_dates(page) -> list[str]:
@@ -559,9 +573,16 @@ def close_list(page) -> None:
 
 
 def put_choice(b, value: str) -> str:
+    """Ticked, then read again once the page settles: a Self Identify box read ticked right after the click
+    and was empty by Save and Continue, which said "Please check one of the boxes" (tenant R, 2026-11-25) -
+    printed ok, it sent the user past a blank answer. Gone -> ticked once more, still gone -> FAIL."""
     target = b.get_by_label(value, exact=True).first
-    target.check()
-    return "ok" if target.is_checked() else f"FAIL {value} not selected"
+    for _ in range(2):
+        target.check()
+        b.page.wait_for_timeout(CHOICE_SETTLE_MS)
+        if target.is_checked():
+            return "ok"
+    return f"FAIL {value} not selected - tick it by hand"
 
 
 def put_date(page, b, value: str) -> str:
