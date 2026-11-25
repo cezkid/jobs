@@ -263,3 +263,72 @@ def test_recheck_stops_asking_at_the_rate_limit(conn):
         assert freehire.recheck(conn, c, "https://api.test", since=days_ago(0)) == (0, 0)
     assert len(asked) <= freehire.RECHECK_WORKERS
     assert len(store.all_jobs(conn)) == 20
+
+
+# --- the job search stopped sending a job's own link (2026-11-23): asked for by its pass-through link ---
+
+def go(answers: dict[str, httpx.Response], asked: list | None = None) -> httpx.Client:
+    """HEAD /go/<slug> -> answers[slug]; any other request, or a GET, fails the test."""
+    def handler(request):
+        assert request.method == "HEAD" and "/go/" in request.url.path, request
+        if asked is not None:
+            asked.append(request.url.path.rsplit("/", 1)[-1])
+        return answers[request.url.path.rsplit("/", 1)[-1]]
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def to(link: str) -> httpx.Response:
+    return httpx.Response(302, headers={"location": link})
+
+
+def test_a_row_without_a_link_gets_the_employers_own_from_the_pass_through(conn):
+    store.upsert(conn, [{**make_job("blank"), "url": ""}, make_job("linked"), {**make_job("closed"), "url": ""}], days_ago(0))
+    conn.execute("UPDATE jobs SET closed_at = ? WHERE public_slug = 'closed'", (days_ago(0),))
+    asked = []
+    with go({"blank": to("https://acme.wd5.myworkdayjobs.com/x/job/Analyst_R1?utm_source=freehire.me")}, asked) as c:
+        assert freehire.links(conn, c, "https://api.test") == (1, 1)
+    assert asked == ["blank"]  # never a row that has its link, never a closed one
+    assert {j["public_slug"]: j["url"] for j in store.all_jobs(conn)}["blank"] == \
+        "https://acme.wd5.myworkdayjobs.com/x/job/Analyst_R1?utm_source=freehire.me"
+
+
+@pytest.mark.parametrize("answer", [httpx.Response(404), httpx.Response(200), httpx.Response(302),
+                                    to("https://api.test/jobs/somewhere"), to("javascript:alert(1)"), to("/jobs/x")])
+def test_no_employer_link_there_stays_blank_and_waits_before_the_next_ask(conn, answer):
+    store.upsert(conn, [{**make_job("blank"), "url": ""}], days_ago(0))
+    with go({"blank": answer}) as c:
+        assert freehire.links(conn, c, "https://api.test") == (1, 0)
+    assert store.all_jobs(conn)[0]["url"] == ""
+    now = datetime.now(timezone.utc)
+    assert freehire.links_due(conn, now) == []
+    assert freehire.links_due(conn, now + timedelta(days=freehire.LINK_RETRY_DAYS, minutes=1)) == ["blank"]
+
+
+def test_links_stop_asking_at_the_rate_limit_and_ask_again_next_check(conn):
+    store.upsert(conn, [{**make_job(f"j{i}"), "url": ""} for i in range(20)], days_ago(0))
+    asked = []
+    with go({f"j{i}": httpx.Response(429) for i in range(20)}, asked) as c:
+        assert freehire.links(conn, c, "https://api.test") == (0, 0)
+    assert len(asked) <= freehire.RECHECK_WORKERS
+    assert len(freehire.links_due(conn, datetime.now(timezone.utc))) == 20
+
+
+def test_links_failure_never_stops_the_check(conn):
+    store.upsert(conn, [{**make_job("a"), "url": ""}], days_ago(0))
+    with httpx.Client(transport=httpx.MockTransport(lambda r: (_ for _ in ()).throw(RuntimeError("boom")))) as c:
+        freehire.links_quietly(conn, c, "https://api.test")
+    assert store.all_jobs(conn)[0]["url"] == ""
+
+
+def test_a_refetched_row_keeps_the_link_it_had_when_the_job_search_sends_none(conn):
+    store.upsert(conn, [make_job("a")], days_ago(1))
+    had = store.all_jobs(conn)[0]["url"]
+    store.upsert(conn, [{**make_job("a"), "url": "", "title": "Analyst II"}], days_ago(0))
+    assert (store.all_jobs(conn)[0]["url"], store.all_jobs(conn)[0]["title"]) == (had, "Analyst II")
+    store.upsert(conn, [{**make_job("a"), "url": "https://x.test/moved"}], days_ago(0))
+    assert store.all_jobs(conn)[0]["url"] == "https://x.test/moved"
+
+
+def test_a_row_the_job_search_sends_without_url_is_stored_blank():
+    assert freehire.normalize({"public_slug": "a", "title": "Analyst"}, "t")["url"] == ""
+    assert freehire.normalize({"public_slug": "a", "title": "Analyst", "url": None}, "t")["url"] == ""

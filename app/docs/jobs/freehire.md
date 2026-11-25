@@ -202,6 +202,16 @@ AWS, Vanguard, Ford, Booz Allen) => no source block.
   in 30 days, 734 of them not security work; 392 of 2,320 "security engineer" titles; the job search's
   `requires_clearance` on 279 of the 814. `freehire.pay_word_only` drops a row whose searched word sits only
   in the tag; `normalize` sets the clearance flag from it.
+- **`url` blank** (2026-11-25). Search rows and a job's own record carry `url: ""`: 26 of 281 new rows
+  2026-11-23, 28 of 147 the next day, 149 of 157 on 2026-11-25; 100 of 100 unfiltered rows, 50 of 50 each on
+  Workday, Greenhouse, Ashby, Lever. New field `apply_url` = `<base>/go/<public_slug>` (100 of 100; some
+  end `?src=web`): 302, the employer's link in `Location`, tagged `utm_source=freehire.me` as `url` was.
+  `ingest/freehire.py` `links()` asks it header-only at each job check for open rows with no link
+  (`LINK_BATCH` a check, newest first; no answer -> again after `LINK_RETRY_DAYS`), stores `Location`,
+  never follows it. A refetched row keeps the link it had (`store.upsert`): before, every refetch blanked it
+  (312 of 6,701 rows on one list). `applied_count` read 0 after one header-only ask (n = 1) - whether a
+  GET counts is unmeasured. `external_id` (`host/site:/job/...` on Workday, `board:id` on Greenhouse) could
+  rebuild some links - not used: a built link is a guess.
 - **Every link tagged** (2026-09-30). `url` carries `utm_source=freehire.me` (1431 of 1431 stored
   rows); a link copied from the employer's page doesn't. `store.link_key` drops `utm_*` before
   comparing; links stay as served.
